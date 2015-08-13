@@ -1,0 +1,11 @@
+*~
+.idea
+.project
+.pydevproject
+.settings
+*.pyc
+*.pyo
+build
+dist
+MANIFEST
+node_modules
