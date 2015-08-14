@@ -6,7 +6,6 @@ var pubsub = (function () {
     var channels = {};
 
     var subscribe = function (channel, callback) {
-        console.log("new client subscribed to channel ", channel, "with callback ", callback);
         if (!channels[channel]) {
             channels[channel] = [];
         }
@@ -20,7 +19,7 @@ var pubsub = (function () {
         callback = unsubscribe_handle[1];
 
         if (channels[channel]) {
-            for (i = 0; i < callback_list[channel].length; i++) {
+            for (i = 0; i < channels[channel].length; i++) {
                 if (channels[channel][i] === callback) {
                     channels[channel].splice(channels[channel][i], 1);
                     if (!channels[channel].length) {
@@ -32,12 +31,10 @@ var pubsub = (function () {
         }
     };
 
-    var publish = function (channel, msg) {
+    var publish = function (channel, msg, self) {
         if (channels[channel]) {
-            var callback_list = channels[channel];
-            for (i = 0; i < callback_list.length; i++) {
-                console.log("i=", i, "msg=", msg);
-                callback_list[i].apply(this, [msg]);
+            for (i = 0; i < channels[channel].length; i++) {
+                channels[channel][i].apply(self, [msg]);
             }
         }
     };

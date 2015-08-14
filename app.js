@@ -74,7 +74,7 @@ app.post('/api/loop', function (req, res) {
     res.send("SUCCESS");
 
     // Now let any interested parties know there is a new packet:
-    pubsub.publish('new_packet', packet);
+    pubsub.publish('new_packet', packet, this);
 });
 
 
@@ -85,7 +85,7 @@ app.post('/api/loop', function (req, res) {
 io.on('connection', function (socket) {
 
     // New client has connected. Subscribe him/her to any new packets
-    pubsub.subscribe('new_packet', function (packet) {
+    unsubscribe_handle = pubsub.subscribe('new_packet', function (packet) {
         socket.emit('packet', packet);
     });
 
@@ -94,4 +94,8 @@ io.on('connection', function (socket) {
     socket.on('my other event', function (data) {
         console.log(data);
     });
+
+    socket.on('disconnect', function(){
+        pubsub.unsubscribe(unsubscribe_handle);
+    })
 });
