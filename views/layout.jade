@@ -6,7 +6,7 @@ html
     script(src='/socket.io/socket.io.js')
     script(type='text/javascript').
         console.log("connecting...");
-        var socket = io('http://localhost:3000');
+        var socket = io('#{server}');
         socket.on('news', function (data) {
             console.log(data);
             socket.emit('my other event', { my: 'data' });
