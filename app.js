@@ -1,5 +1,3 @@
-var pubsub = require('./pubsub');
-
 var port = process.env.PORT || 3000;
 
 var express = require('express');
@@ -28,21 +26,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', function (req, res, next) {
     res.render('index', {
-        title: 'Express',
-        server: 'http://nuc:3000'
+        title : 'Express',
+        scriptlist : ['/socket.io/socket.io.js', 'javascripts/main.js']
     });
-});
-
-// RESTful interface for storing loop packets into MongoDB
-app.post('/api/loop', function (req, res) {
-    // Get the packet out of the request body:
-    var packet = req.body.packet;
-    // Insert it into the database
-    loop_packets.insert(packet, function (err, result) {
-        if (err) throw err;
-    });
-    res.send("SUCCESS");
-    pubsub.publish('new_packet', packet);
 });
 
 //app.get('/', function (req, res) {
@@ -56,15 +42,17 @@ var mongo = require('mongodb');
 var MongoClient = mongo.MongoClient;
 var mongo_url = "mongodb://localhost:27017/wee_node";
 
+// MongoDB collection holding the loop packets:
 var loop_packets;
+
 MongoClient.connect(mongo_url, function (err, db) {
     if (err) throw err;
     // Create a capped collection if it doesn't exist already
-    db.listCollections({name:'loop_packets'}).toArray(function(err,names){
-        if (names.length){
+    db.listCollections({name: 'loop_packets'}).toArray(function (err, names) {
+        if (names.length) {
             console.log("Collection loop_packets already exists");
         } else {
-            db.createCollection("loop_packets", {capped:true, size:1000000, max:1800});
+            db.createCollection("loop_packets", {capped: true, size: 1000000, max: 1800});
             console.log("Created collection loop_packets");
         }
     });
@@ -73,22 +61,37 @@ MongoClient.connect(mongo_url, function (err, db) {
     })
 });
 
+var pubsub = require('./pubsub');
+
+// RESTful interface for storing loop packets into MongoDB
+app.post('/api/loop', function (req, res) {
+    // Get the packet out of the request body:
+    var packet = req.body.packet;
+    // Insert it into the database
+    loop_packets.insert(packet, function (err, result) {
+        if (err) throw err;
+    });
+    res.send("SUCCESS");
+
+    // Now let any interested parties know there is a new packet:
+    pubsub.publish('new_packet', packet);
+});
+
+
 /*
  * Set up WebSocket connection to any interested clients.
  */
 
 io.on('connection', function (socket) {
-    console.log("got a connection");
 
-    // subscribe to any new packets
-    pubsub.subscribe('new_packet', function(packet){
-        console.log("ready to emit packet", packet);
+    // New client has connected. Subscribe him/her to any new packets
+    pubsub.subscribe('new_packet', function (packet) {
         socket.emit('packet', packet);
     });
+
     socket.emit('news', {hello: 'world'});
+
     socket.on('my other event', function (data) {
         console.log(data);
     });
 });
-
-

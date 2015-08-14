@@ -3,16 +3,7 @@ html
   head
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css')
-    script(src='/socket.io/socket.io.js')
-    script(type='text/javascript').
-        console.log("connecting...");
-        var socket = io('#{server}');
-        socket.on('news', function (data) {
-            console.log(data);
-            socket.emit('my other event', { my: 'data' });
-        });
-        socket.on('packet', function (data) {
-            console.log("Got packet", data);
-        });
+    -each script_src in scriptlist
+        script(src=script_src, type="text/javascript")
   body
     block content
