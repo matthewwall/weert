@@ -1,9 +1,12 @@
-var express = require('express');
-var path = require('path');
+var pubsub = require('./pubsub');
+var mongo = require('mongodb');
 var bodyParser = require('body-parser');
+var path = require('path');
+var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+
 var port = process.env.PORT || 3000;
 
 // view engine setup. Set some values in the app settings table.
@@ -29,19 +32,21 @@ app.get('/', function (req, res, next) {
 //});
 
 var ws_socket;
+
 io.on('connection', function (socket) {
     console.log("got a connection");
-    ws_socket = socket;
+
+    // subscribe to any new packets
+    pubsub.subscribe('new_packet', function(packet){
+        console.log("ready to emit packet", packet);
+        socket.emit('packet', packet);
+    });
     socket.emit('news', {hello: 'world'});
     socket.on('my other event', function (data) {
         console.log(data);
     });
 });
 
-
-
-var mongo = require('mongodb');
-var bodyParser = require('body-parser');
 
 var MongoClient = mongo.MongoClient;
 var mongo_url = "mongodb://localhost:27017/wee_node";
@@ -73,7 +78,7 @@ app.post('/api/loop', function (req, res) {
         if (err) throw err;
     });
     res.send("SUCCESS");
-    ws_socket.emit("packet", packet);
+    pubsub.publish('new_packet', packet);
     console.log("Sent packet");
 });
 
