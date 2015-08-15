@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function (req, res, next) {
     res.render('index', {
         title : 'Express',
-        scriptlist : ['/socket.io/socket.io.js', 'javascripts/main.js']
+        scriptlist : ['/socket.io/socket.io.js', 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js', 'javascripts/main.js']
     });
 });
 
