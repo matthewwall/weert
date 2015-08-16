@@ -1,21 +1,26 @@
+var mongo_url = "mongodb://localhost:27017/wee_node";
 var port = process.env.PORT || 3000;
 
+// requires
 var express = require('express');
-var app = express();
-var server = require('http').createServer(app);
+var socket_io = require('socket.io');
+var path = require('path');
+var http = require('http');
+var mongo = require('mongodb');
+var bodyParser = require('body-parser');
+var pubsub = require('./pubsub');
+
+var server = http.createServer(app);
 server.listen(port, function () {
     console.log('Server listening at port %d', port);
 });
 
-var io = require('socket.io')(server);
-
+var app = express();
 // view engine setup. Set some values in the app settings table.
 // See http://expressjs.com/4x/api.html#app.set
-var path = require('path');
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-var bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
@@ -27,7 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function (req, res, next) {
     res.render('index', {
         title : 'Express',
-        scriptlist : ['/socket.io/socket.io.js', 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js', 'javascripts/main.js']
+        scriptlist : ['/socket.io/socket.io.js', 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js', 'javascripts/timeplot.js', 'javascripts/main.js']
     });
 });
 
@@ -38,9 +43,7 @@ app.get('/', function (req, res, next) {
 /*
  * Set up connection to MongoDB
  */
-var mongo = require('mongodb');
 var MongoClient = mongo.MongoClient;
-var mongo_url = "mongodb://localhost:27017/wee_node";
 
 // MongoDB collection holding the loop packets:
 var loop_packets;
@@ -61,8 +64,6 @@ MongoClient.connect(mongo_url, function (err, db) {
     })
 });
 
-var pubsub = require('./pubsub');
-
 // RESTful interface for storing loop packets into MongoDB
 app.post('/api/loop', function (req, res) {
     // Get the packet out of the request body:
@@ -82,6 +83,7 @@ app.post('/api/loop', function (req, res) {
  * Set up WebSocket connection to any interested clients.
  */
 
+var io = socket_io(server);
 io.on('connection', function (socket) {
 
     // New client has connected. Subscribe him/her to any new packets
