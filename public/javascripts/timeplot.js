@@ -1,9 +1,9 @@
-d3 = require('d3');
-
-var timeplot = (function (svg, options) {
+var timeplot = (function (svg, options_input) {
 
     // the dataset to be plotted
     var dataset = [];
+
+    var options = options_input || {};
 
     var total_width = options.width || 960,
         total_height = options.height || 500,

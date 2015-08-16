@@ -181,7 +181,6 @@ var socket = io(ws_url);
 
 socket.on('news', function (data) {
     console.log(data);
-    socket.emit('my other event', {my: 'data'});
 });
 
 socket.on('packet', function (packet) {

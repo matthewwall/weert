@@ -1,21 +1,25 @@
+/*
+ *               SERVER CODE
+ */
+
 var mongo_url = "mongodb://localhost:27017/wee_node";
 var port = process.env.PORT || 3000;
 
 // requires
+var http = require('http');
 var express = require('express');
 var socket_io = require('socket.io');
 var path = require('path');
-var http = require('http');
-var mongo = require('mongodb');
 var bodyParser = require('body-parser');
 var pubsub = require('./pubsub');
+var mongo = require('mongodb');
 
+var app = express();
 var server = http.createServer(app);
 server.listen(port, function () {
     console.log('Server listening at port %d', port);
 });
 
-var app = express();
 // view engine setup. Set some values in the app settings table.
 // See http://expressjs.com/4x/api.html#app.set
 app.set('views', path.join(__dirname, 'views'));
@@ -27,9 +31,11 @@ app.use(bodyParser.urlencoded({extended: false}));
 /*
  * Set up express routes
  */
-app.use(express.static(path.join(__dirname, 'public')));
+console.log("__dirname=", __dirname);
+app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', function (req, res, next) {
+    console.log("New client get at /");
     res.render('index', {
         title : 'Express',
         scriptlist : ['/socket.io/socket.io.js', 'https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js', 'javascripts/timeplot.js', 'javascripts/main.js']
@@ -59,12 +65,14 @@ MongoClient.connect(mongo_url, function (err, db) {
             console.log("Created collection loop_packets");
         }
     });
+    // Get the collection, and assign it to variable 'loop_packets'
     db.collection('loop_packets', function (err, collection) {
         loop_packets = collection;
     })
 });
 
-// RESTful interface for storing loop packets into MongoDB
+// RESTful interface that listens for incoming loop packets and then
+// stores them in the MongoDB database
 app.post('/api/loop', function (req, res) {
     // Get the packet out of the request body:
     var packet = req.body.packet;
@@ -80,22 +88,23 @@ app.post('/api/loop', function (req, res) {
 
 
 /*
- * Set up WebSocket connection to any interested clients.
+ * Listen for any new, incoming websocket connections. Then notify
+ * them if there is a new packet.
  */
 
 var io = socket_io(server);
 io.on('connection', function (socket) {
 
-    // New client has connected. Subscribe him/her to any new packets
+    console.log("New client has connected");
+
+    // New client has connected. Subscribe him/her to any new packets.
+    // Save the unsubscribe handle so we can unsubscribe the client should
+    // his connection go away.
     unsubscribe_handle = pubsub.subscribe('new_packet', function (packet) {
         socket.emit('packet', packet);
     });
 
-    socket.emit('news', {hello: 'world'});
-
-    socket.on('my other event', function (data) {
-        console.log(data);
-    });
+    socket.emit('news', {hello: 'You are connected to the WeeRT server'});
 
     socket.on('disconnect', function(){
         pubsub.unsubscribe(unsubscribe_handle);
