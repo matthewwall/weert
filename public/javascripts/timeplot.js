@@ -1,135 +1,135 @@
-var timeplot = (function (svg, options_input) {
+var Timeplot = (function () {
 
-    // the dataset to be plotted
-    var dataset = [];
+    function Timeplot(svg, options) {
 
-    var options = options_input || {};
+        this.svg = svg;
+        this.options = options || {};
+        // The dataset to be plotted
+        this.dataset = [];
 
-    var total_width = options.width || 960,
-        total_height = options.height || 500,
-        margin = options.margin || {top: 10, right: 10, bottom: 100, left: 40},
-        width = total_width - margin.left - margin.right,
-        height = total_height - margin.top - margin.bottom;
+        this.total_width = this.options.width || 960;
+        this.total_height = this.options.height || 500;
+        this.margins = this.options.margins || {top: 10, right: 10, bottom: 100, left: 40};
+        this.width = this.total_width - this.margins.left - this.margins.right;
+        this.height = this.total_height - this.margins.top - this.margins.bottom;
 
-    // Set the x and y scaling
-    var xScale = d3.time.scale()
-        .range([0, width]);
-    var yScale = d3.scale.linear()
-        .range([height, 0]);
+        // Set the x and y scaling
+        this.xScale = d3.time.scale()
+            .range([0, this.width]);
+        this.yScale = d3.scale.linear()
+            .range([this.height, 0]);
 
-    // Define the x & y axes
-    var xAxis = d3.svg.axis()
-        .scale(xScale)
-        .orient("bottom")
-        .ticks(d3.time.minute, 5);
+        // Define the x & y axes
+        this.xAxis = d3.svg.axis()
+            .scale(this.xScale)
+            .orient("bottom")
+            .ticks(d3.time.minute, 5);
 
-    var yAxis = d3.svg.axis()
-        .scale(yScale)
-        .orient("left");
+        this.yAxis = d3.svg.axis()
+            .scale(this.yScale)
+            .orient("left");
 
-    // Include a brush in the bottom plot
-    //var brush = d3.svg.brush()
-    //    .x(xScale_2)
-    //    .on("brush", brushed);
+        // Include a brush in the bottom plot
+        //var brush = d3.svg.brush()
+        //    .x(xScale_2)
+        //    .on("brush", brushed);
 
-    // Define the plot line
-    var line = d3.svg.line()
-        .x(function (d) {
-            return xScale(d.dateTime);
-        })
-        .y(function (d) {
-            return yScale(d.outTemp);
-        });
+        // Define the plot line
+        this.line = d3.svg.line()
+            .x(function (d) {
+                return this.xScale(d.dateTime);
+            })
+            .y(function (d) {
+                return this.yScale(d.outTemp);
+            });
 
-    // Define a clipping rectangle for the plot
-    svg.append("defs").append("clipPath")
-        .attr("id", "clip")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height);
+        // Define a clipping rectangle for the plot
+        this.svg.append("defs").append("clipPath")
+            .attr("id", "clip")
+            .append("rect")
+            .attr("width", this.width)
+            .attr("height", this.height);
 
-    // Create a group which will hold the axes and plot. Include the clipping rectangle.
-    svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-        .attr("clip-path", "url(#clip)");
+        // Create a group which will hold the axes and plot. Include the clipping rectangle.
+        this.svg.append("g")
+            .attr("transform", "translate(" + this.margins.left + "," + this.margins.top + ")")
+            .attr("clip-path", "url(#clip)");
 
-    // Position the top x-axis
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("id", "x-axis-1")
-        .attr("transform", "translate(0," + height + ")");
+        // Position the top x-axis
+        this.svg.append("g")
+            .attr("class", "axis")
+            .attr("id", "x-axis-1")
+            .attr("transform", "translate(0," + this.height + ")");
 
-    // Position the bottom x-axis
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("id", "x-axis-2")
-        .attr("transform", "translate(0," + (total_height - margin_2.bottom) + ")");
+        // Position the bottom x-axis
+        this.svg.append("g")
+            .attr("class", "axis")
+            .attr("id", "x-axis-2")
+            .attr("transform", "translate(0," + (this.total_height - this.bottom) + ")");
 
-    // Position the top y-axis
-    svg.append("g")
-        .attr("class", "axis")
-        .attr("id", "y-axis")
-        .append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("y", 6)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text("Temperature");
+        // Position the top y-axis
+        this.svg.append("g")
+            .attr("class", "axis")
+            .attr("id", "y-axis")
+            .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Temperature");
+    }
 
-    var data = function (data) {
-        dataset = data;
+    Timeplot.prototype.data = function (data) {
+        if (data) {
+            this.dataset = data;
+        }
+        return this.dataset;
     };
 
-    var update_data = function (newdata) {
+    Timeplot.prototype.update_data = function (newdata) {
         if (newdata.constructor === Array) {
-            dataset.concat(newdata);
+            this.dataset = this.dataset.concat(newdata);
         } else {
-            dataset.push(newdata);
+            this.dataset.push(newdata);
         }
 
         // Update the scales
-        xScale.domain(d3.extent(dataset, function (d) {
+        this.xScale.domain(d3.extent(this.dataset, function (d) {
             return d.dateTime;
         }));
-        yScale.domain(d3.extent(dataset, function (d) {
+        this.yScale.domain(d3.extent(this.dataset, function (d) {
             return d.outTemp;
         }));
 
         //Update axes
-        svg.select("#x-axis")
+        this.svg.select("#x-axis")
             .transition()
             .duration(300)
-            .call(xAxis);
-        svg.select("#y-axis")
+            .call(this.xAxis);
+        this.svg.select("#y-axis")
             .transition()
             .duration(300)
-            .call(yAxis);
+            .call(this.yAxis);
 
         // Find the path for the plot line
-        var paths = svg.selectAll("path#plotline")
-            .data([dataset]);
+        this.paths = svg.selectAll("path#plotline")
+            .data([this.dataset]);
 
-        paths
+        this.paths
             .enter()
             .append("path")
             .attr("class", "line")
             .attr("id", "plotline")
-            .attr('d', line);
+            .attr('d', this.line);
 
-        paths
-            .attr('d', line);
+        this.paths
+            .attr('d', this.line);
 
-        paths
+        this.paths
             .exit()
             .remove();
     };
 
-    return {
-        data : data,
-        update_data : update_data
-    }
-
+    return Timeplot;
 
 }());
-
-module.exports = timeplot;
