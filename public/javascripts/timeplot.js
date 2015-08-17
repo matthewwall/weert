@@ -3,10 +3,13 @@ var Timeplot = (function () {
     function Timeplot(svg, options) {
 
         self = this;
-
-        self.options = options || {};
         // The dataset to be plotted
         self.dataset = [];
+
+        self.options = options || {};
+        if (self.options.obstype === undefined) {
+            self.options.obstype = 'outTemp'
+        }
 
         // Margins is the distance to the ends of the axes
         self.margins = self.options.margins || {top: 10, right: 10, bottom: 100, left: 40};
@@ -23,8 +26,7 @@ var Timeplot = (function () {
         // Define the x & y axes
         self.xAxis = d3.svg.axis()
             .scale(self.xScale)
-            .orient("bottom")
-            .ticks(d3.time.minute, 5);
+            .orient("bottom");
 
         self.yAxis = d3.svg.axis()
             .scale(self.yScale)
@@ -37,11 +39,14 @@ var Timeplot = (function () {
 
         // Define the plot line
         self.line = d3.svg.line()
+            .defined(function (d) {
+                return d[self.options.obstype] != null;
+            })
             .x(function (d) {
                 return self.xScale(d.dateTime);
             })
             .y(function (d) {
-                return self.yScale(d.outTemp);
+                return self.yScale(d[self.options.obstype]);
             });
 
         self.plotarea = svg.append("g")
@@ -87,16 +92,16 @@ var Timeplot = (function () {
             self.dataset.push(newdata);
         }
 
-        // Update the scales. The x scale has to be at least 15 minutes long.
+        // Update the scales. The x scale has to be at least 1 minute long.
         var x_domain = d3.extent(self.dataset, function (d) {
             return d.dateTime;
         });
-        x_domain[1] = Math.max(x_domain[1], x_domain[0]+15*60*1000);
+        x_domain[1] = Math.max(x_domain[1], x_domain[0] + 60 * 1000);
         self.xScale.domain(x_domain);
         y_domain = d3.extent(self.dataset, function (d) {
-            return d.outTemp;
+            return d[self.options.obstype];
         });
-        if (y_domain[0] === y_domain[1]){
+        if (y_domain[0] === y_domain[1]) {
             y_domain[1] = y_domain[0] + 0.1;
         }
         self.yScale.domain(y_domain);

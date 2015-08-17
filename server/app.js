@@ -97,6 +97,8 @@ io.on('connection', function (socket) {
 
     console.log("New client has connected");
 
+    socket.emit('news', {hello: 'You are connected to the WeeRT server'});
+
     // New client has connected. Subscribe him/her to any new packets.
     // Save the unsubscribe handle so we can unsubscribe the client should
     // his connection go away.
@@ -104,9 +106,8 @@ io.on('connection', function (socket) {
         socket.emit('packet', packet);
     });
 
-    socket.emit('news', {hello: 'You are connected to the WeeRT server'});
-
     socket.on('disconnect', function(){
+        console.log("A client has disconnected");
         pubsub.unsubscribe(unsubscribe_handle);
-    })
+    });
 });
