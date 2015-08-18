@@ -1,7 +1,13 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  h1 Welcome to #{title}
   h2 Outside Temperature
   svg(id="lineChart")
+
+  p Architecture
+  ul
+      li Uses a Node server
+      li The server receives packet updates from weewx via a RESTful interface
+      li The server sends new packets to any interested clients via a websocket connection
+      li The client plots the real-time updates using D3

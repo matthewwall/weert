@@ -111,6 +111,10 @@ class WeeRTThread(RESTThread):
         # Instead of sending every observation type, send only those in
         # the list obs_types
         abridged = dict((x, record.get(x)) for x in self.obs_types)
+        
+        # Convert timestamps to JavaScript style:
+        abridged['dateTime'] *= 1000
+        
         packet = {'packet':abridged}
 
         req = urllib2.Request(self.node_url)

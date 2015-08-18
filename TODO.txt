@@ -1,0 +1,8 @@
+A "keep alive" strategy for the websocket. They seem to be getting dropped.
+
+A settable "minimum domain" for the y-axis.
+
+Only store an hour or so worth of data on the client.
+
+The data stored in Mongo could use a better naming scheme. Something
+like "outside_temperature" instead of "outTemp."

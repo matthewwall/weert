@@ -22,10 +22,11 @@ var pubsub = (function () {
             for (i = 0; i < channels[channel].length; i++) {
                 if (channels[channel][i] === callback) {
                     channels[channel].splice(channels[channel][i], 1);
-                    if (!channels[channel].length) {
+                    N = channels[channel].length;
+                    if (!N) {
                         delete channels[channel]
                     }
-                    return
+                    return N
                 }
             }
         }
