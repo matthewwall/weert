@@ -10,7 +10,7 @@ socket.on('news', function (data) {
     console.log(data);
 });
 
-var initialData = [];
+var dataset = [];
 
 var getInitialData = function (callback) {
     // Tell the server to send 30 minutes worth of data.
@@ -22,8 +22,8 @@ var getInitialData = function (callback) {
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {
             if (xmlhttp.status === 200) {
-                initialData = JSON.parse(xmlhttp.responseText);
-                console.log(initialData.length, "packets retrieved.");
+                dataset = JSON.parse(xmlhttp.responseText);
+                console.log(dataset.length, "packets retrieved.");
                 return callback(null);
             } else {
                 console.log("Unable to retrieve initial dataset. Status=", xmlhttp.status);
@@ -46,32 +46,34 @@ var readyPlot = function (callback) {
     // The DOM has to be ready before we can select the SVG area.
     document.addEventListener("DOMContentLoaded", function (event) {
 
-        var total_width = 1000,
-            total_height = 600;
+        svg_linechart = d3.select("#linechart")
+            .attr("width", 600)
+            .attr("height", 500);
 
-        svg = d3.select("#lineChart")
-            .attr("width", total_width)
-            .attr("height", total_height);
+        svg_overview = d3.select("#overview")
+            .attr("width", 600)
+            .attr("height", 100);
 
-        linechart = new Timeplot(svg, {margins: {top: 10, right: 10, bottom: 100, left: 40}});
-        //overview = new Timeplot(svg, {margins: {top: 430, right: 10, bottom: 20, left: 40}});
+        linechart = new Timeplot(svg_linechart, {margins: {top: 10, right: 10, bottom: 10, left: 40}});
+        overview  = new Timeplot(svg_overview, {margins: {top: 10, right: 10, bottom: 10, left: 40}});
         // Signal that we are ready
         callback(null);
     });
 };
 
 var updatePlot = function (err) {
-    linechart.update_data(initialData);
-    //overview.update_data(initialData);
+    linechart.render(dataset);
+    overview.render(dataset);
 
     socket.on('packet', function (packet) {
         console.log("Got packet", packet);
-        linechart.update_data(packet);
-        //overview.update_data(packet);
+        dataset.push(packet);
+        linechart.render(dataset);
+        overview.render(dataset);
     });
 
 };
 
-// We can get the initial data while we ready the plot, but both have to be done
+// We can get the initial data while we get the plot ready, but both have to be done
 // before we can actually update the plot:
 async.parallel([getInitialData, readyPlot], updatePlot);

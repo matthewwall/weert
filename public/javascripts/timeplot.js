@@ -3,8 +3,6 @@ var Timeplot = (function () {
     function Timeplot(svg, options) {
 
         self = this;
-        // The dataset to be plotted
-        self.dataset = [];
 
         self.options = options || {};
         if (self.options.obstype === undefined) {
@@ -76,27 +74,15 @@ var Timeplot = (function () {
             .text("Temperature");
     }
 
-    Timeplot.prototype.data = function (data) {
-        if (data) {
-            self.dataset = data;
-        }
-        return self.dataset;
-    };
-
-    Timeplot.prototype.update_data = function (newdata) {
-        if (newdata.constructor === Array) {
-            self.dataset = self.dataset.concat(newdata);
-        } else {
-            self.dataset.push(newdata);
-        }
+    Timeplot.prototype.render = function (dataset) {
 
         // Update the scales. The x scale has to be at least 1 minute long.
-        var x_domain = d3.extent(self.dataset, function (d) {
+        var x_domain = d3.extent(dataset, function (d) {
             return d.dateTime;
         });
         x_domain[1] = Math.max(x_domain[1], x_domain[0] + 60 * 1000);
         self.xScale.domain(x_domain);
-        y_domain = d3.extent(self.dataset, function (d) {
+        y_domain = d3.extent(dataset, function (d) {
             return d[self.options.obstype];
         });
         if (y_domain[0] === y_domain[1]) {
@@ -118,10 +104,10 @@ var Timeplot = (function () {
         // Associate it with an array with a single path, the dataset. Because
         // the data has only a single element, the plot line should also be a
         // single element (a path).
-        self.paths = self.plotarea.selectAll(".plotline")
-            .data([self.dataset]);
+        self.paths = self.plotarea.selectAll(".plotarea .plotline")
+            .data([dataset]);
 
-        // If no such path exists, this will add one and link it to the line.\
+        // If no such path exists, this will add one and link it to the line.
         // There should only be one path around at a time.
         self.paths
             .enter()
