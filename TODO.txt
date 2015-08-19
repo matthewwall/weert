@@ -1,3 +1,5 @@
+Need to deal with data gaps.
+
 A "keep alive" strategy for the websocket. They seem to be getting dropped.
 
 A settable "minimum domain" for the y-axis.

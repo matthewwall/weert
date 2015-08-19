@@ -13,9 +13,9 @@ socket.on('news', function (data) {
 var initialData = [];
 
 var getInitialData = function (callback) {
-    // Tell the server to send 10 minutes worth of data.
+    // Tell the server to send 30 minutes worth of data.
     var stop = +new Date();
-    var start = stop - 10 * 60 * 1000;
+    var start = stop - 30 * 60 * 1000;
     // Use a simple GET request
     var url = "http://" + window.location.host + "/api/loop?start=" + start + "&stop=" + stop;
     var xmlhttp = new XMLHttpRequest();
@@ -39,8 +39,11 @@ var getInitialData = function (callback) {
 
 var svg;
 var linechart;
+var overview;
 
 var readyPlot = function (callback) {
+
+    // The DOM has to be ready before we can select the SVG area.
     document.addEventListener("DOMContentLoaded", function (event) {
 
         var total_width = 1000,
@@ -50,24 +53,25 @@ var readyPlot = function (callback) {
             .attr("width", total_width)
             .attr("height", total_height);
 
-        linechart = new Timeplot(svg);
+        linechart = new Timeplot(svg, {margins: {top: 10, right: 10, bottom: 100, left: 40}});
+        //overview = new Timeplot(svg, {margins: {top: 430, right: 10, bottom: 20, left: 40}});
+        // Signal that we are ready
         callback(null);
-
     });
 };
 
 var updatePlot = function (err) {
     linechart.update_data(initialData);
+    //overview.update_data(initialData);
 
     socket.on('packet', function (packet) {
         console.log("Got packet", packet);
         linechart.update_data(packet);
+        //overview.update_data(packet);
     });
 
 };
 
-async.parallel([
-    getInitialData,
-    readyPlot
-    ],
-    updatePlot);
+// We can get the initial data while we ready the plot, but both have to be done
+// before we can actually update the plot:
+async.parallel([getInitialData, readyPlot], updatePlot);

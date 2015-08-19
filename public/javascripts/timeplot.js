@@ -62,14 +62,12 @@ var Timeplot = (function () {
 
         // Position the top x-axis
         self.plotarea.append("g")
-            .attr("class", "axis")
-            .attr("id", "x-axis")
+            .attr("class", "x axis")
             .attr("transform", "translate(0," + self.height + ")");
 
         // Position the top y-axis
         self.plotarea.append("g")
-            .attr("class", "axis")
-            .attr("id", "y-axis")
+            .attr("class", "y axis")
             .append("text")
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
@@ -107,29 +105,31 @@ var Timeplot = (function () {
         self.yScale.domain(y_domain);
 
         //Update axes
-        self.plotarea.select("#x-axis")
+        self.plotarea.select(".x")
             .transition()
             .duration(300)
             .call(self.xAxis);
-        self.plotarea.select("#y-axis")
+        self.plotarea.select(".y")
             .transition()
             .duration(300)
             .call(self.yAxis);
 
-        // Find the path for the plot line
-        self.paths = self.plotarea.selectAll("path#plotline")
+        // Select the plot line by using its class, "plotline."
+        // Associate it with an array with a single path, the dataset. Because
+        // the data has only a single element, the plot line should also be a
+        // single element (a path).
+        self.paths = self.plotarea.selectAll(".plotline")
             .data([self.dataset]);
 
+        // If no such path exists, this will add one and link it to the line.\
+        // There should only be one path around at a time.
         self.paths
             .enter()
             .append("path")
-            .attr("class", "line")
-            .attr("id", "plotline")
+            .attr("class", "plotline")
             .attr('d', self.line);
 
-        self.paths
-            .attr('d', self.line);
-
+        // Not sure how this would get invoked, but it's here for completeness.
         self.paths
             .exit()
             .remove();

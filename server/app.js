@@ -62,7 +62,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.get('/', function (req, res, next) {
     console.log("New client get at /");
     res.render('index', {
-        title: 'Express'
+        title: 'WeeRT'
     });
 });
 
