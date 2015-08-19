@@ -1,4 +1,7 @@
-Implement a "brush."
+Brush needs a clip path.
+
+If brush includes the extreme right of the x-axis domain, it should always
+include the last point.
 
 Pretty up the y-axis, especially for the overview plot.
 

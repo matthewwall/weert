@@ -30,11 +30,6 @@ var Timeplot = (function () {
             .scale(self.yScale)
             .orient("left");
 
-        // Include a brush in the bottom plot
-        //var brush = d3.svg.brush()
-        //    .x(xScale_2)
-        //    .on("brush", brushed);
-
         // Define the plot line
         self.line = d3.svg.line()
             .defined(function (d) {
@@ -73,6 +68,32 @@ var Timeplot = (function () {
             .style("text-anchor", "end")
             .text("Temperature");
     }
+
+    Timeplot.prototype.add_brush = function(callback) {
+        var self = this;
+        self.brush = d3.svg.brush();
+        self.brush.x(self.xScale)
+            .on("brush", callback);
+        self.plotarea.append("g")
+            .attr("class", "x brush")
+            .call(self.brush)
+            .selectAll("rect")
+            .attr("y", -6)
+            .attr("height", self.height + 7);
+        return self.brush;
+    };
+
+    Timeplot.prototype.domain = function(new_domain){
+        var self = this;
+        if (new_domain === undefined){
+            console.log("returning scale", self.xScale.domain());
+            return self.xScale.domain();
+        } else {
+            self.xScale.domain(new_domain);
+            self.plotarea.select(".plotline").attr("d", self.line);
+            self.plotarea.select(".x.axis").call(self.xAxis);
+        }
+    };
 
     Timeplot.prototype.render = function (dataset) {
 

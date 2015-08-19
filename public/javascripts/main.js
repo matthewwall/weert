@@ -40,6 +40,7 @@ var getInitialData = function (callback) {
 var svg;
 var linechart;
 var overview;
+var brush;
 
 var readyPlot = function (callback) {
 
@@ -56,6 +57,12 @@ var readyPlot = function (callback) {
 
         linechart = new Timeplot(svg_linechart, {margins: {top: 10, right: 10, bottom: 40, left: 40}});
         overview  = new Timeplot(svg_overview,  {margins: {top: 10, right: 10, bottom: 40, left: 40}});
+
+        // Add a brush to the overview:
+        brush = overview.add_brush(function(){
+            var new_domain = brush.empty() ? overview.domain() : brush.extent();
+            linechart.domain(new_domain);
+        });
         // Signal that we are ready
         callback(null);
     });
