@@ -2,7 +2,7 @@ var Timeplot = (function () {
 
     function Timeplot(svg, options) {
 
-        self = this;
+        var self = this;
 
         self.options = options || {};
         if (self.options.obstype === undefined) {
@@ -76,6 +76,8 @@ var Timeplot = (function () {
 
     Timeplot.prototype.render = function (dataset) {
 
+        var self = this;
+
         // Update the scales. The x scale has to be at least 1 minute long.
         var x_domain = d3.extent(dataset, function (d) {
             return d.dateTime;
@@ -104,7 +106,7 @@ var Timeplot = (function () {
         // Associate it with an array with a single path, the dataset. Because
         // the data has only a single element, the plot line should also be a
         // single element (a path).
-        self.paths = self.plotarea.selectAll(".plotarea .plotline")
+        self.paths = self.plotarea.selectAll(".plotline")
             .data([dataset]);
 
         // If no such path exists, this will add one and link it to the line.
@@ -123,4 +125,4 @@ var Timeplot = (function () {
 
     return Timeplot;
 
-}());
+})();

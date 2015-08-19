@@ -1,4 +1,6 @@
-Packets getting added twice.
+Implement a "brush."
+
+Pretty up the y-axis, especially for the overview plot.
 
 Need to deal with data gaps.
 

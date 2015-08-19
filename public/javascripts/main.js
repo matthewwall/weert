@@ -7,7 +7,7 @@ var ws_url = "ws://" + window.location.host;
 var socket = io(ws_url);
 
 socket.on('news', function (data) {
-    console.log(data);
+    console.log("News from the server:", data.hello);
 });
 
 var dataset = [];
@@ -23,7 +23,7 @@ var getInitialData = function (callback) {
         if (xmlhttp.readyState === 4) {
             if (xmlhttp.status === 200) {
                 dataset = JSON.parse(xmlhttp.responseText);
-                console.log(dataset.length, "packets retrieved.");
+                console.log(dataset.length, "packets retrieved from the MongoDB database.");
                 return callback(null);
             } else {
                 console.log("Unable to retrieve initial dataset. Status=", xmlhttp.status);
@@ -54,8 +54,8 @@ var readyPlot = function (callback) {
             .attr("width", 600)
             .attr("height", 100);
 
-        linechart = new Timeplot(svg_linechart, {margins: {top: 10, right: 10, bottom: 10, left: 40}});
-        overview  = new Timeplot(svg_overview, {margins: {top: 10, right: 10, bottom: 10, left: 40}});
+        linechart = new Timeplot(svg_linechart, {margins: {top: 10, right: 10, bottom: 40, left: 40}});
+        overview  = new Timeplot(svg_overview,  {margins: {top: 10, right: 10, bottom: 40, left: 40}});
         // Signal that we are ready
         callback(null);
     });
@@ -66,12 +66,11 @@ var updatePlot = function (err) {
     overview.render(dataset);
 
     socket.on('packet', function (packet) {
-        console.log("Got packet", packet);
+        //console.log("Got packet", packet);
         dataset.push(packet);
         linechart.render(dataset);
         overview.render(dataset);
     });
-
 };
 
 // We can get the initial data while we get the plot ready, but both have to be done
