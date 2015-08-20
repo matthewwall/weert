@@ -13,8 +13,11 @@ svg {
     fill: steelblue;
     clip-path: url(#clip);
 }
+
 .plotline {
+    clip-path: url(#clip);
 }
+
 .axis path,
 .axis line {
     fill: none;

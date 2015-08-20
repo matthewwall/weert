@@ -83,7 +83,7 @@ var setup_mongo = function (callback) {
             if (names.length) {
                 console.log("Collection loop_packets already exists");
             } else {
-                db.createCollection("loop_packets", {capped: true, size: 1000000, max: 1800});
+                db.createCollection("loop_packets", {capped: true, size: 1000000, max: 3600});
                 console.log("Created collection loop_packets");
             }
         });

@@ -4,10 +4,14 @@ var Timeplot = (function () {
 
         var self = this;
 
-        self.options = options || {};
-        if (self.options.obstype === undefined) {
-            self.options.obstype = 'outTemp'
-        }
+        var defaults = {
+            obstype : 'outTemp',
+            margins : {top: 10, right: 10, bottom: 100, left: 40},
+            y : {ticks : 5,
+            text : undefined}
+        };
+        self.options= _.extend({}, defaults, options || {});
+        console.log("options will be ", self.options);
 
         // Margins is the distance to the ends of the axes
         self.margins = self.options.margins || {top: 10, right: 10, bottom: 100, left: 40};
@@ -28,7 +32,8 @@ var Timeplot = (function () {
 
         self.yAxis = d3.svg.axis()
             .scale(self.yScale)
-            .orient("left");
+            .orient("left")
+            .ticks(self.options.y.ticks);
 
         // Define the plot line
         self.line = d3.svg.line()
@@ -58,6 +63,7 @@ var Timeplot = (function () {
             .attr("class", "x axis")
             .attr("transform", "translate(0," + self.height + ")");
 
+        var y_text = self.options.y.text === undefined ? self.options.obstype : self.options.y.text;
         // Position the top y-axis
         self.plotarea.append("g")
             .attr("class", "y axis")
@@ -66,7 +72,7 @@ var Timeplot = (function () {
             .attr("y", 6)
             .attr("dy", ".71em")
             .style("text-anchor", "end")
-            .text("Temperature");
+            .text(y_text);
     }
 
     Timeplot.prototype.add_brush = function(callback) {

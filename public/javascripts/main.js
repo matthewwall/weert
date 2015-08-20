@@ -13,9 +13,9 @@ socket.on('news', function (data) {
 var dataset = [];
 
 var getInitialData = function (callback) {
-    // Tell the server to send 30 minutes worth of data.
+    // Tell the server to send up to 60 minutes worth of data.
     var stop = +new Date();
-    var start = stop - 30 * 60 * 1000;
+    var start = stop - 60 * 60 * 1000;
     // Use a simple GET request
     var url = "http://" + window.location.host + "/api/loop?start=" + start + "&stop=" + stop;
     var xmlhttp = new XMLHttpRequest();
@@ -47,19 +47,20 @@ var readyPlot = function (callback) {
     // The DOM has to be ready before we can select the SVG area.
     document.addEventListener("DOMContentLoaded", function (event) {
 
-        svg_linechart = d3.select("#linechart")
-            .attr("width", 600)
+        svg = d3.select("#linechart")
+            .attr("width", 960)
             .attr("height", 500);
 
-        svg_overview = d3.select("#overview")
-            .attr("width", 600)
-            .attr("height", 100);
-
-        linechart = new Timeplot(svg_linechart, {margins: {top: 10, right: 10, bottom: 40, left: 40}});
-        overview  = new Timeplot(svg_overview,  {margins: {top: 10, right: 10, bottom: 40, left: 40}});
+        linechart = new Timeplot(svg, {
+            margins: {top: 10, right: 10, bottom: 100, left: 40}
+        });
+        overview = new Timeplot(svg, {
+            margins: {top: 430, right: 10, bottom: 20, left: 40},
+            y      : {ticks: 1, text : ""}
+        });
 
         // Add a brush to the overview:
-        brush = overview.add_brush(function(){
+        brush = overview.add_brush(function () {
             var new_domain = brush.empty() ? overview.domain() : brush.extent();
             linechart.domain(new_domain);
         });
