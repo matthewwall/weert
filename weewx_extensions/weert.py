@@ -45,7 +45,9 @@ class WeeRTThread(RESTThread):
                          'outTemp',
                          'inTemp',
                          'outHumidity',
-                         'barometer']
+                         'barometer',
+                         'windSpeed',
+                         'windDir']
 
     def __init__(self, queue,
                  node_url = DEFAULT_NODE_URL,

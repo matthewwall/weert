@@ -104,7 +104,7 @@ var setup_routes = function (callback) {
     app.post('/api/loop', function (req, res) {
         // Get the packet out of the request body:
         var packet = req.body.packet;
-        console.log("got packet timestamp", packet.dateTime);
+        console.log("got packet timestamp", new Date(packet.dateTime));
         // Insert it into the database
         loop_packets.insert(packet, function (err, result) {
             if (err) {

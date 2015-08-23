@@ -5,12 +5,14 @@ var Timeplot = (function () {
         var self = this;
 
         var defaults = {
-            obstype : 'outTemp',
-            margins : {top: 10, right: 10, bottom: 100, left: 40},
-            y : {ticks : 5,
-            text : undefined}
+            obstype: 'outTemp',
+            margins: {top: 10, right: 10, bottom: 100, left: 40},
+            y      : {
+                ticks: 5,
+                text : undefined
+            }
         };
-        self.options= _.extend({}, defaults, options || {});
+        self.options = _.extend({}, defaults, options || {});
         console.log("options will be ", self.options);
 
         // Margins is the distance to the ends of the axes
@@ -47,6 +49,7 @@ var Timeplot = (function () {
                 return self.yScale(d[self.options.obstype]);
             });
 
+        // The plot area will have class "plotarea." Honor the margins.
         self.plotarea = svg.append("g")
             .attr("class", "plotarea")
             .attr("transform", "translate(" + self.margins.left + "," + self.margins.top + ")");
@@ -58,13 +61,13 @@ var Timeplot = (function () {
         //    .attr("width", self.width)
         //    .attr("height", self.height);
 
-        // Position the top x-axis
+        // Position the top x-axis within plotarea
         self.plotarea.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + self.height + ")");
 
         var y_text = self.options.y.text === undefined ? self.options.obstype : self.options.y.text;
-        // Position the top y-axis
+        // Position the top y-axis within plotarea
         self.plotarea.append("g")
             .attr("class", "y axis")
             .append("text")
@@ -73,47 +76,98 @@ var Timeplot = (function () {
             .attr("dy", ".71em")
             .style("text-anchor", "end")
             .text(y_text);
+
+        // To start, we have no brush
+        self.brush = undefined;
     }
 
-    Timeplot.prototype.add_brush = function(callback) {
+    Timeplot.prototype.addBrush = function (callback) {
+        // Add a brush to the plot. See
+        // http://stackoverflow.com/questions/22873551/d3-js-brush-controls-getting-extent-width-coordinates
+        // for a pretty good explanation of how this works.
         var self = this;
+
+        // Create a brush
         self.brush = d3.svg.brush();
+
+        // Attach it to the x-scale. Arrange to have it call the function "_brushed" when brushing
         self.brush.x(self.xScale)
-            .on("brush", callback);
+            .on("brush", _brushed);
+
+        // Create an (invisible) rectangle by calling the brush function. It will have classes "x" and "brush"
         self.plotarea.append("g")
             .attr("class", "x brush")
             .call(self.brush)
+            // Select the just created rectangle. It will have no width initially.
+            // It will also have no height (because it has no y scale), so hardwire something in.
             .selectAll("rect")
             .attr("y", -6)
             .attr("height", self.height + 7);
-        return self.brush;
-    };
 
-    Timeplot.prototype.domain = function(new_domain){
-        var self = this;
-        if (new_domain === undefined){
-            console.log("returning scale", self.xScale.domain());
-            return self.xScale.domain();
-        } else {
-            self.xScale.domain(new_domain);
-            self.plotarea.select(".plotline").attr("d", self.line);
-            self.plotarea.select(".x.axis").call(self.xAxis);
+        function _brushed() {
+            // Stash the brush extent, then call the user's callback
+            self.brush_extent = self.brush.extent();
+            callback(self.brush);
         }
+
     };
 
-    Timeplot.prototype.render = function (dataset) {
+    Timeplot.prototype.data = function (dataset) {
+        // Set the data to be used.
+        this.dataset = dataset;
+    };
+
+    Timeplot.prototype.set_x_domain = function (domain) {
+        // Set the x domain of the plot. If the new domain is undefined, then it will
+        // be calculated from the extent of the dataset. Otherwise, it will be set to the given value.
+        // NB: the domain will be locked to this value, even if the dataset changes.
 
         var self = this;
+        var new_domain = self.x_domain = domain;
 
-        // Update the scales. The x scale has to be at least 1 minute long.
-        var x_domain = d3.extent(dataset, function (d) {
+        // If the new domain is undefined, calculate it from the data
+        if (new_domain === undefined) {
+            new_domain = _calc_x_domain();
+        }
+
+        self.xScale.domain(new_domain);
+        self.plotarea.select(".plotline").attr("d", self.line);
+        self.plotarea.select(".x.axis").call(self.xAxis);
+    };
+
+    function _calc_x_domain() {
+        var domain = d3.extent(self.dataset, function (d) {
             return d.dateTime;
         });
-        x_domain[1] = Math.max(x_domain[1], x_domain[0] + 60 * 1000);
-        self.xScale.domain(x_domain);
-        y_domain = d3.extent(dataset, function (d) {
+        // It should be at least 1 minute big
+        if (domain[0] === undefined) {
+            domain[0] = (new Date).getTime() - 60 * 1000;
+        }
+        if (domain[1] === undefined || domain[1] < (domain[0] + 60 * 1000)) {
+            domain[1] = domain[0] + 60 * 1000
+        }
+        return domain;
+    }
+
+    Timeplot.prototype.render = function () {
+
+        var self = this;
+        var domain = self.x_domain;
+
+        // If the domain has not been locked by the brush,
+        // calculate it from the dataset
+        if (domain === undefined) {
+            domain = _calc_x_domain();
+            console.log("calculating domain. Came up with", domain);
+        }
+        // Now use the resultant domain to set the x-scale:
+        self.xScale.domain(domain);
+
+        // Update the y-scale.
+        y_domain = d3.extent(self.dataset, function (d) {
             return d[self.options.obstype];
         });
+        // Make sure there's something to the y-scale:
         if (y_domain[0] === y_domain[1]) {
             y_domain[1] = y_domain[0] + 0.1;
         }
@@ -129,25 +183,48 @@ var Timeplot = (function () {
             .duration(300)
             .call(self.yAxis);
 
+
         // Select the plot line by using its class, "plotline."
         // Associate it with an array with a single path, the dataset. Because
         // the data has only a single element, the plot line should also be a
         // single element (a path).
         self.paths = self.plotarea.selectAll(".plotline")
-            .data([dataset]);
+            .data([self.dataset]);
 
-        // If no such path exists, this will add one and link it to the line.
-        // There should only be one path around at a time.
-        self.paths
-            .enter()
+        // For transitions, just update the data
+        self.paths.transition()
+            .duration(200)
+            .attr("d", self.line);
+
+        // When first starting up, there will be no data, so ".enter()" will
+        // be invoked. Add the path.
+        self.paths.enter()
             .append("path")
             .attr("class", "plotline")
             .attr('d', self.line);
 
-        // Not sure how this would get invoked, but it's here for completeness.
-        self.paths
-            .exit()
+        self.paths.exit()
             .remove();
+
+        if (self.brush !== undefined && !self.brush.empty()) {
+            console.log("brush is active. moving. Has extent", self.brush.extent());
+            self.plotarea.select("rect .extent")
+                .call(self.brush);
+
+        }
+
+
+        //// Because the scales may have changed (from adding new datapoints), rerender
+        //// the brush.
+        //if (self.brush !== undefined && !self.brush.empty()){
+        //    var new_x1 = self.xScale(self.brush_extent[0]);
+        //    var new_x2 = self.xScale(self.brush_extent[1]);
+        //    var new_width = new_x2 - new_x1;
+        //    console.log("moving brush to", new_x1, "with width", new_width);
+        //    self.plotarea.select("rect")
+        //        .attr("x", new_x1)
+        //        .attr("width", new_width);
+        //}
     };
 
     return Timeplot;

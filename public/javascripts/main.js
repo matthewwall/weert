@@ -11,6 +11,9 @@ socket.on('news', function (data) {
 });
 
 var dataset = [];
+var svg;
+var linechart;
+var overview;
 
 var getInitialData = function (callback) {
     // Tell the server to send up to 60 minutes worth of data.
@@ -37,17 +40,12 @@ var getInitialData = function (callback) {
     xmlhttp.send();
 };
 
-var svg;
-var linechart;
-var overview;
-var brush;
-
 var readyPlot = function (callback) {
 
     // The DOM has to be ready before we can select the SVG area.
     document.addEventListener("DOMContentLoaded", function (event) {
 
-        svg = d3.select("#linechart")
+        svg = d3.select("#chartarea")
             .attr("width", 960)
             .attr("height", 500);
 
@@ -60,9 +58,8 @@ var readyPlot = function (callback) {
         });
 
         // Add a brush to the overview:
-        brush = overview.add_brush(function () {
-            var new_domain = brush.empty() ? overview.domain() : brush.extent();
-            linechart.domain(new_domain);
+        overview.addBrush(function (brush) {
+            linechart.set_x_domain(brush.empty() ? undefined : brush.extent());
         });
         // Signal that we are ready
         callback(null);
@@ -70,14 +67,16 @@ var readyPlot = function (callback) {
 };
 
 var updatePlot = function (err) {
-    linechart.render(dataset);
-    overview.render(dataset);
+    linechart.data(dataset);
+    overview.data(dataset);
+    linechart.render();
+    overview.render();
 
     socket.on('packet', function (packet) {
-        //console.log("Got packet", packet);
+        console.log("Client got packet", new Date(packet.dateTime));
         dataset.push(packet);
-        linechart.render(dataset);
-        overview.render(dataset);
+        linechart.render();
+        overview.render();
     });
 };
 
