@@ -50,11 +50,12 @@ var readyPlot = function (callback) {
             .attr("height", 500);
 
         linechart = new Timeplot(svg, {
-            margins: {top: 10, right: 10, bottom: 100, left: 40}
+            margins: {top: 10, right: 10, bottom: 100, left: 40},
+            y      : {ticks: 5, text: "Temperature"}
         });
         overview = new Timeplot(svg, {
             margins: {top: 430, right: 10, bottom: 20, left: 40},
-            y      : {ticks: 1, text : ""}
+            y      : {ticks: 1, text: ""}
         });
 
         // Add a brush to the overview:
@@ -67,6 +68,7 @@ var readyPlot = function (callback) {
 };
 
 var updatePlot = function (err) {
+    if (err) throw err;
     linechart.data(dataset);
     overview.data(dataset);
     linechart.render();

@@ -31,7 +31,6 @@ var Timeplot = (function () {
         self.xAxis = d3.svg.axis()
             .scale(self.xScale)
             .orient("bottom");
-
         self.yAxis = d3.svg.axis()
             .scale(self.yScale)
             .orient("left")
@@ -105,8 +104,10 @@ var Timeplot = (function () {
             .attr("height", self.height + 7);
 
         function _brushed() {
+            // This is the callback function for when the brush is moved.
             // Stash the brush extent, then call the user's callback
             self.brush_extent = self.brush.extent();
+            console.log("locking brush extent to ", self.brush_extent);
             callback(self.brush);
         }
 
@@ -158,7 +159,6 @@ var Timeplot = (function () {
         // calculate it from the dataset
         if (domain === undefined) {
             domain = _calc_x_domain();
-            console.log("calculating domain. Came up with", domain);
         }
         // Now use the resultant domain to set the x-scale:
         self.xScale.domain(domain);
@@ -207,24 +207,12 @@ var Timeplot = (function () {
             .remove();
 
         if (self.brush !== undefined && !self.brush.empty()) {
-            console.log("brush is active. moving. Has extent", self.brush.extent());
-            self.plotarea.select("rect .extent")
-                .call(self.brush);
-
+            // If we have an active brush, lock its extent to the initially brushed area
+            self.brush.extent(self.brush_extent);
+            // Because the x-scale may have changed, the brush may have to be moved to
+            // hold its position in the domain constant.
+            self.brush(d3.select(".brush").transition().duration(200));
         }
-
-
-        //// Because the scales may have changed (from adding new datapoints), rerender
-        //// the brush.
-        //if (self.brush !== undefined && !self.brush.empty()){
-        //    var new_x1 = self.xScale(self.brush_extent[0]);
-        //    var new_x2 = self.xScale(self.brush_extent[1]);
-        //    var new_width = new_x2 - new_x1;
-        //    console.log("moving brush to", new_x1, "with width", new_width);
-        //    self.plotarea.select("rect")
-        //        .attr("x", new_x1)
-        //        .attr("width", new_width);
-        //}
     };
 
     return Timeplot;

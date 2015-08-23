@@ -3,11 +3,9 @@ Brush needs a clip path.
 If brush includes the extreme right of the x-axis domain, it should always
 include the last point.
 
-Pretty up the y-axis, especially for the overview plot.
+The y-domain of the focus area needs to change when the brush is active.
 
 Need to deal with data gaps.
-
-A "keep alive" strategy for the websocket. They seem to be getting dropped.
 
 A settable "minimum domain" for the y-axis.
 
