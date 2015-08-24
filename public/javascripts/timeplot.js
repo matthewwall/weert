@@ -211,7 +211,7 @@ var Timeplot = (function () {
             self.brush.extent(self.brush_extent);
             // Because the x-scale may have changed, the brush may have to be moved to
             // hold its position in the domain constant.
-            self.brush(d3.select(".brush").transition().duration(200));
+            self.brush(d3.select(".brush").transition().duration(self.options.duration));
         }
     };
 
