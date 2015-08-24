@@ -10,7 +10,8 @@ var Timeplot = (function () {
             y      : {
                 ticks: 5,
                 text : undefined
-            }
+            },
+            duration : 500
         };
         self.options = _.extend({}, defaults, options || {});
         console.log("options will be ", self.options);
@@ -107,7 +108,6 @@ var Timeplot = (function () {
             // This is the callback function for when the brush is moved.
             // Stash the brush extent, then call the user's callback
             self.brush_extent = self.brush.extent();
-            console.log("locking brush extent to ", self.brush_extent);
             callback(self.brush);
         }
 
@@ -176,11 +176,11 @@ var Timeplot = (function () {
         //Update axes
         self.plotarea.select(".x")
             .transition()
-            .duration(300)
+            .duration(self.options.duration)
             .call(self.xAxis);
         self.plotarea.select(".y")
             .transition()
-            .duration(300)
+            .duration(self.options.duration)
             .call(self.yAxis);
 
 
@@ -191,9 +191,9 @@ var Timeplot = (function () {
         self.paths = self.plotarea.selectAll(".plotline")
             .data([self.dataset]);
 
-        // For transitions, just update the data
+        // Update the line for selected elements
         self.paths.transition()
-            .duration(200)
+            .duration(self.options.duration)
             .attr("d", self.line);
 
         // When first starting up, there will be no data, so ".enter()" will
