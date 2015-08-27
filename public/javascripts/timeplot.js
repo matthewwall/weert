@@ -191,20 +191,20 @@ var Timeplot = (function () {
         self.paths = self.plotarea.selectAll(".plotline")
             .data([self.dataset]);
 
-        // Update the line for selected elements
-        self.paths.transition()
-            .duration(self.options.duration)
-            .attr("d", self.line);
+        // Remove any elements with no data. This shouldn't happen, but is included for completeness
+        self.paths.exit()
+            .remove();
 
-        // When first starting up, there will be no data, so ".enter()" will
-        // be invoked. Add the path.
+        // On startup, there will be data with no elements. Add a path element for them.
         self.paths.enter()
             .append("path")
             .attr("class", "plotline")
             .attr('d', self.line);
 
-        self.paths.exit()
-            .remove();
+        // For the rest, update the selection. Use a transition.
+        self.paths.transition()
+            .duration(self.options.duration)
+            .attr("d", self.line);
 
         if (self.brush !== undefined && !self.brush.empty()) {
             // If we have an active brush, lock its extent to the initially brushed area
