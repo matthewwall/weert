@@ -77,8 +77,12 @@ var Timeplot = (function () {
             .style("text-anchor", "end")
             .text(y_text);
 
+        self.plotarea.append("path")
+            .attr("class", "plotline");
+
         // To start, we have no brush
         self.brush = undefined;
+
     }
 
     Timeplot.prototype.addBrush = function (callback) {
@@ -183,27 +187,8 @@ var Timeplot = (function () {
             .duration(self.options.duration)
             .call(self.yAxis);
 
-
-        // Select the plot line by using its class, "plotline."
-        // Associate it with an array with a single path, the dataset. Because
-        // the data has only a single element, the plot line should also be a
-        // single element (a path).
-        self.paths = self.plotarea.selectAll(".plotline")
-            .data([self.dataset]);
-
-        // Remove any elements with no data. This shouldn't happen, but is included for completeness
-        self.paths.exit()
-            .remove();
-
-        // On startup, there will be data with no elements. Add a path element for them.
-        self.paths.enter()
-            .append("path")
-            .attr("class", "plotline")
-            .attr('d', self.line);
-
-        // For the rest, update the selection. Use a transition.
-        self.paths.transition()
-            .duration(self.options.duration)
+        self.plotarea.select(".plotline")
+            .datum(self.dataset)
             .attr("d", self.line);
 
         if (self.brush !== undefined && !self.brush.empty()) {
