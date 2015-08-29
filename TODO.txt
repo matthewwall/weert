@@ -9,7 +9,8 @@ Need to deal with data gaps.
 
 A settable "minimum domain" for the y-axis.
 
-Only store an hour or so worth of data on the client.
+Should limit the amount of data stored on the client to an hour or so. Better still,
+let the user set this.
 
 The data stored in Mongo could use a better naming scheme. Something
 like "outside_temperature" instead of "outTemp."

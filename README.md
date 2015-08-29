@@ -2,7 +2,7 @@
 A real-time interface to weewx using Node, Express, and D3.
 
 ## General architecture
-- Uses a [Node](https://nodejs.org/) server
+- Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/)
 - Data is stored in a [MongoDB](https://www.mongodb.org/) server
 - The server receives packet updates from weewx via a RESTful interface
 - The server then sends the new packets on to clients through a Websocket
