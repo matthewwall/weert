@@ -1,6 +1,9 @@
+var bisectDate = d3.bisector(function(d) { return d.dateTime; }).left;
+
 var Timeplot = (function () {
 
     function Timeplot(svg, options) {
+        // Constructor for Timeplot object
 
         var self = this;
 
@@ -82,8 +85,44 @@ var Timeplot = (function () {
 
         // To start, we have no brush
         self.brush = undefined;
-
     }
+
+    Timeplot.prototype.addMouseover = function() {
+
+        // Add the ability to display the y-value on mouseover
+        // Inspiration from http://bl.ocks.org/mbostock/3902569
+
+        var self = this;
+
+        var highlight = self.plotarea.append("g")
+            .attr("class", "highlight")
+            .style("display", "none");
+
+        highlight.append("circle")
+            .attr("r", 4.5);
+
+        highlight.append("text")
+            .attr("x", 9)
+            .attr("dy", "1em");
+
+        self.plotarea.append("rect")
+            .attr("class", "overlay")
+            .attr("width", self.width)
+            .attr("height", self.height)
+            .on("mouseover", function() { highlight.style("display", null); })
+            .on("mouseout", function() { highlight.style("display", "none"); })
+            .on("mousemove", mousemove);
+
+        function mousemove() {
+            var x0 = self.xScale.invert(d3.mouse(this)[0]),
+                i = bisectDate(self.dataset, x0, 1),
+                d0 = self.dataset[i - 1],
+                d1 = self.dataset[i],
+                d = x0 - d0.dateTime > d1.dateTime - x0 ? d1 : d0;
+            highlight.attr("transform", "translate(" + self.xScale(d.dateTime) + "," + self.yScale(d[self.options.obstype]) + ")");
+            highlight.select("text").text(d[self.options.obstype]);
+        }
+    };
 
     Timeplot.prototype.addBrush = function (callback) {
         // Add a brush to the plot. See
@@ -198,6 +237,7 @@ var Timeplot = (function () {
             // hold its position in the domain constant.
             self.brush(d3.select(".brush").transition().duration(self.options.duration));
         }
+
     };
 
     return Timeplot;

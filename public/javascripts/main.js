@@ -62,6 +62,10 @@ var readyPlot = function (callback) {
         overview.addBrush(function (brush) {
             linechart.set_x_domain(brush.empty() ? undefined : brush.extent());
         });
+
+        // Show the y-value on mouseover in the big chart:
+        linechart.addMouseover();
+
         // Signal that we are ready
         callback(null);
     });

@@ -33,3 +33,11 @@ path {
     stroke: steelblue;
     fill: none;
 }
+.overlay {
+    fill: none;
+    pointer-events: all;
+}
+.highlight circle {
+    fill: none;
+    stroke: steelblue;
+}
