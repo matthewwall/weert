@@ -46,29 +46,11 @@ io.on('connection', function (socket) {
     });
 });
 
-// view engine setup. Set some values in the app settings table.
-// See http://expressjs.com/4x/api.html#app.set
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
-/*
- * Set up express routes
- */
+// Serve all static files from the "public" subdirectory:
 app.use(express.static(path.join(__dirname, '../public')));
-
-app.get('/', function (req, res, next) {
-    console.log("New client get at /");
-    res.render('index', {
-        title: 'WeeRT'
-    });
-});
-
-//app.get('/', function (req, res) {
-//  res.sendfile(__dirname + '/index.html');
-//});
 
 var loop_packets;
 
