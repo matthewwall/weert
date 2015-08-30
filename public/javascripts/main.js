@@ -3,9 +3,9 @@
  */
 
 // Initial request of data from MongoDB in seconds
-var max_initial_age_secs = 1800;
+var max_initial_age_secs = 300;
 // Max retained age in seconds:
-var max_age_secs = 1800;
+var max_age_secs = 3600;
 
 // Construct and open up a websocket back to the original host
 var ws_url = "ws://" + window.location.host;
