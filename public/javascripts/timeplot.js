@@ -185,7 +185,7 @@ var Timeplot = (function () {
         });
         // It should be at least 1 minute big
         if (domain[0] === undefined) {
-            domain[0] = (new Date).getTime() - 60 * 1000;
+            domain[0] = Date.now() - 60 * 1000;
         }
         if (domain[1] === undefined || domain[1] < (domain[0] + 60 * 1000)) {
             domain[1] = domain[0] + 60 * 1000

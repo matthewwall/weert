@@ -2,6 +2,11 @@
  *               CLIENT CODE
  */
 
+// Initial request of data from MongoDB in seconds
+var max_initial_age_secs = 1800;
+// Max retained age in seconds:
+var max_age_secs = 1800;
+
 // Construct and open up a websocket back to the original host
 var ws_url = "ws://" + window.location.host;
 var socket = io(ws_url);
@@ -17,8 +22,8 @@ var overview;
 
 var getInitialData = function (callback) {
     // Tell the server to send up to 60 minutes worth of data.
-    var stop = +new Date();
-    var start = stop - 60 * 60 * 1000;
+    var stop = Date.now();
+    var start = stop - max_initial_age_secs * 1000;
     // Use a simple GET request
     var url = "http://" + window.location.host + "/api/loop?start=" + start + "&stop=" + stop;
     var xmlhttp = new XMLHttpRequest();
@@ -81,6 +86,10 @@ var updatePlot = function (err) {
     socket.on('packet', function (packet) {
         console.log("Client got packet", new Date(packet.dateTime));
         dataset.push(packet);
+        // Trim any too-old packets
+        while (dataset[0].dateTime < (Date.now() - max_age_secs * 1000)){
+            dataset.shift();
+        }
         linechart.render();
         overview.render();
     });
