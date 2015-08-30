@@ -117,13 +117,11 @@ class WeeRTThread(RESTThread):
         # Convert timestamps to JavaScript style:
         abridged['dateTime'] *= 1000
         
-        packet = {'packet':abridged}
-
         req = urllib2.Request(self.node_url)
         req.add_header('Content-Type', 'application/json')
+        req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
 
-        response = urllib2.urlopen(req, json.dumps(packet), timeout=self.timeout)
-        self.check_response(response)
+        self.post_with_retries(req, payload=json.dumps({'packet' : abridged}))
         
     def check_response(self, response):
         """Check the HTTP response code."""

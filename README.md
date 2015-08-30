@@ -1,5 +1,5 @@
 # weert
-A real-time interface to weewx using Node, Express, and D3.
+A real-time interface to weewx using MongoDB, Express, Node, and D3 (MEND?)
 
 ## General architecture
 - Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/)
@@ -44,6 +44,9 @@ For experimental purposes.
 
 5. Make sure the `weert.py` module is in your `PYTHONPATH`.
 
-6. Run `weewxd`
+6. Make sure you are running weewx version 3.3 or later (weert makes use of POST requests, which are
+only supported by v3.3+
 
-7. Open up a client at [http://localhost:3000](http://localhost:3000).
+7. Run `weewxd`
+
+8. Open up a client at [http://localhost:3000](http://localhost:3000).
