@@ -7,6 +7,10 @@ var max_initial_age_secs = 300;
 // Max retained age in seconds:
 var max_age_secs = 3600;
 
+Handlebars.registerHelper('formatTimeStamp', function(ts) {
+    return new Date(ts);
+});
+
 // Construct and open up a websocket back to the original host
 var ws_url = "ws://" + window.location.host;
 var socket = io(ws_url);
@@ -19,6 +23,7 @@ var dataset = [];
 var svg;
 var linechart;
 var overview;
+var template;
 
 var getInitialData = function (callback) {
     // Tell the server to send up to 60 minutes worth of data.
@@ -49,6 +54,9 @@ var readyPlot = function (callback) {
 
     // The DOM has to be ready before we can select the SVG area.
     document.addEventListener("DOMContentLoaded", function (event) {
+
+        var source = $("#packet-template").html();
+        template = new Handlebars.compile(source);
 
         svg = d3.select("#chartarea")
             .attr("width", 960)
@@ -90,6 +98,10 @@ var updatePlot = function (err) {
         while (dataset[0].dateTime < (Date.now() - max_age_secs * 1000)){
             dataset.shift();
         }
+
+        var html = template(packet);
+        console.log("html=", html);
+        $("#packet-info").html(html);
         linechart.render();
         overview.render();
     });

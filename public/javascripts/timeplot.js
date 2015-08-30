@@ -16,7 +16,7 @@ var Timeplot = (function () {
             },
             duration : 500
         };
-        self.options = _.extend({}, defaults, options || {});
+        self.options = $.extend({}, defaults, options || {});
         console.log("options will be ", self.options);
 
         // Margins is the distance to the ends of the axes
