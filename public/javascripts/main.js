@@ -20,10 +20,11 @@ socket.on('news', function (data) {
 });
 
 var dataset = [];
+var template;
+var windcompass;
 var svg;
 var linechart;
 var overview;
-var template;
 
 var getInitialData = function (callback) {
     // Tell the server to send up to 60 minutes worth of data.
@@ -58,6 +59,8 @@ var readyPlot = function (callback) {
         var source = $("#packet-template").html();
         template = new Handlebars.compile(source);
 
+        windcompass = new WindCompass();
+
         svg = d3.select("#chartarea")
             .attr("width", 960)
             .attr("height", 500);
@@ -86,6 +89,7 @@ var readyPlot = function (callback) {
 
 var updatePlot = function (err) {
     if (err) throw err;
+
     linechart.data(dataset);
     overview.data(dataset);
     linechart.render();
@@ -99,9 +103,14 @@ var updatePlot = function (err) {
             dataset.shift();
         }
 
+        // Render the Handlebars template showing the current conditions
         var html = template(packet);
-        console.log("html=", html);
         $("#packet-info").html(html);
+
+        // Render the wind arrow
+        windcompass.updateWind([packet.dateTime, packet.windDir, packet.windSpeed]);
+
+        // Update the line charts
         linechart.render();
         overview.render();
     });
