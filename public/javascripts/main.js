@@ -11,6 +11,13 @@ Handlebars.registerHelper('formatTimeStamp', function(ts) {
     return new Date(ts);
 });
 
+Handlebars.registerHelper("formatNumber", function (val, digits) {
+    if (val == null) {
+        return "N/A"
+    } else {
+        return val.toFixed(digits);
+    }
+});
 // Construct and open up a websocket back to the original host
 var ws_url = "ws://" + window.location.host;
 var socket = io(ws_url);
@@ -20,7 +27,7 @@ socket.on('news', function (data) {
 });
 
 var dataset = [];
-var template;
+var console_template;
 var windcompass;
 var svg;
 var linechart;
@@ -56,13 +63,16 @@ var readyPlot = function (callback) {
     // The DOM has to be ready before we can select the SVG area.
     document.addEventListener("DOMContentLoaded", function (event) {
 
-        var source = $("#packet-template").html();
-        template = new Handlebars.compile(source);
+        var source = $("#wx-console-template").html();
+        console_template = new Handlebars.compile(source);
+        var html = console_template({});
+        $("#wx-console-area").html(html);
 
+        // Include the initial wind compass
         windcompass = new WindCompass();
 
-        svg = d3.select("#chartarea")
-            .attr("width", 960)
+        svg = d3.select("#chart-area")
+            .attr("width", 700)
             .attr("height", 500);
 
         linechart = new Timeplot(svg, {
@@ -104,10 +114,10 @@ var updatePlot = function (err) {
         }
 
         // Render the Handlebars template showing the current conditions
-        var html = template(packet);
-        $("#packet-info").html(html);
+        var html = console_template(packet);
+        $("#wx-console-area").html(html);
 
-        // Render the wind arrow
+        // Update the wind compass
         windcompass.updateWind([packet.dateTime, packet.windDir, packet.windSpeed]);
 
         // Update the line charts

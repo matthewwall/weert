@@ -1,6 +1,6 @@
 The WeeRT server should log startup to syslog.
 
-The weewx weert RESTful service should be more robust.
+Need to be more tolerant of null values.
 
 Brush needs a clip path.
 

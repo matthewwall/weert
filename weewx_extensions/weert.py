@@ -5,6 +5,7 @@ import time
 import urllib2
 import Queue
 
+import weewx.units
 import weewx.restx
 
 from weewx.restx import StdRESTful, RESTThread
@@ -25,8 +26,14 @@ class WeeRT(StdRESTful):
         if _node_dict is None:
             return        
 
+        # Get the manager dictionary:
+        _manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
+                                                                   'wx_binding')
         self.loop_queue = Queue.Queue()
-        self.loop_thread = WeeRTThread(self.loop_queue,  **_node_dict)
+        self.loop_thread = WeeRTThread(self.loop_queue,  
+                                       _manager_dict,
+                                       protocol_name="WeeRT", 
+                                       **_node_dict)
         self.loop_thread.start()
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
 
@@ -43,13 +50,17 @@ class WeeRTThread(RESTThread):
     default_obs_types = ['dateTime',
                          'usUnits',
                          'outTemp',
+                         'dewpoint',
                          'inTemp',
                          'outHumidity',
                          'barometer',
                          'windSpeed',
-                         'windDir']
+                         'windDir',
+                         'dayRain']
 
     def __init__(self, queue,
+                 manager_dict,
+                 protocol_name,
                  node_url = DEFAULT_NODE_URL,
                  obs_types = default_obs_types,
                  max_backlog=sys.maxint, stale=60,
@@ -94,7 +105,8 @@ class WeeRTThread(RESTThread):
         """        
         # Initialize my superclass
         super(WeeRTThread, self).__init__(queue,
-                                           protocol_name="Node",
+                                           protocol_name=protocol_name,
+                                           manager_dict=manager_dict,
                                            max_backlog=max_backlog,
                                            stale=stale,
                                            log_success=log_success,
@@ -110,18 +122,23 @@ class WeeRTThread(RESTThread):
     def process_record(self, record, dbmanager):
         """Specialized version of process_record that posts to a node server."""
 
+        # Get the full record by querying the database ...
+        _full_record = self.get_record(record, dbmanager)
+        # ... convert to US if necessary ...
+        _us_record = weewx.units.to_US(_full_record)
+        
         # Instead of sending every observation type, send only those in
         # the list obs_types
-        abridged = dict((x, record.get(x)) for x in self.obs_types)
+        _abridged = dict((x, _us_record.get(x)) for x in self.obs_types)
         
         # Convert timestamps to JavaScript style:
-        abridged['dateTime'] *= 1000
+        _abridged['dateTime'] *= 1000
         
-        req = urllib2.Request(self.node_url)
-        req.add_header('Content-Type', 'application/json')
-        req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
+        _req = urllib2.Request(self.node_url)
+        _req.add_header('Content-Type', 'application/json')
+        _req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
 
-        self.post_with_retries(req, payload=json.dumps({'packet' : abridged}))
+        self.post_with_retries(_req, payload=json.dumps({'packet' : _abridged}))
         
     def check_response(self, response):
         """Check the HTTP response code."""
