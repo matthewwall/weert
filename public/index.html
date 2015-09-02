@@ -20,6 +20,7 @@
 </head>
 <body>
 
+
 <script id="wx-console-template" type="text/x-handlebars-template">
     <h2>Current conditions</h2>
     <div id="wx-console" class="wx-console console-vertical" id="wx-console-vertical">
@@ -35,18 +36,15 @@
             <span class="desc">temperature</span>
         </div>
         <div class="dewpoint-group reading-group">
-            <span class="dewpoint-value reading-value">{{formatNumber dewpoint 1}}</span><span
-                class="dewpoint-unit unit-label">°F</span>
+            <span class="dewpoint-value reading-value">{{formatNumber dewpoint 1}}</span>
+            <span class="dewpoint-unit unit-label">°F</span>
             <span class="desc">dewpoint</span>
         </div>
 
         <div class="wind-group reading-group">
-            <span class="windSpeed-value reading-value">{{windSpeed}}</span>
-            <span class="windSpeed-unit unit-label">mph</span>
-            <span class="windDir-value reading-value"> @ {{windDir}}°</span>
-            <!--
-            <div id="windCompass" class="compass"></div>
-            -->
+            <div id="windCompass-placeholder">
+                <div id="windCompass" class="compass"></div>
+            </div>
             <span class="desc">wind</span>
         </div>
         <div class="out-hum-group reading-group">
@@ -56,11 +54,11 @@
         </div>
         <div class="bar-group reading-group">
             <span class="barometer-value reading-value">{{formatNumber barometer 3}}</span><span
-                class="barometer-unit unit-label">inHg</span>
+                class="barometer-unit unit-label"> inHg</span>
             <span class="desc">pressure</span>
         </div>
         <div class="rain-group reading-group">
-            <span class="dayRain-value reading-value">{{dayRain}}</span><span class="dayRain-unit unit-label">in</span>
+            <span class="dayRain-value reading-value">{{dayRain}}</span><span class="dayRain-unit unit-label"> in</span>
 
             <div class="rainRate-container"><span class="rainRate-value reading-value"></span><span
                     class="rainRate-unit unit-label"></span></div>
@@ -69,6 +67,7 @@
         <div class="last-update"><span class="dateTime-value">{{formatTimeStamp dateTime}}</span></div>
     </div>
 </script>
+
 
 
 <div id="container">

@@ -7,6 +7,8 @@ var max_initial_age_secs = 300;
 // Max retained age in seconds:
 var max_age_secs = 3600;
 
+var obslist = ['outTemp', 'dewpoint', 'outHumidity', 'barometer', 'dayRain'];
+
 Handlebars.registerHelper('formatTimeStamp', function(ts) {
     return new Date(ts);
 });
@@ -63,8 +65,10 @@ var readyPlot = function (callback) {
     // The DOM has to be ready before we can select the SVG area.
     document.addEventListener("DOMContentLoaded", function (event) {
 
+        // Compile the console template
         var source = $("#wx-console-template").html();
         console_template = new Handlebars.compile(source);
+        // Now render it as a place holder until the first update:
         var html = console_template({});
         $("#wx-console-area").html(html);
 
@@ -113,9 +117,14 @@ var updatePlot = function (err) {
             dataset.shift();
         }
 
+        // Because Handlebars will overwrite the wind compass, we need to
+        // first detach it, save it, then reattach later
+        var hold = $("#windCompass").detach();
         // Render the Handlebars template showing the current conditions
         var html = console_template(packet);
         $("#wx-console-area").html(html);
+        // Now reattach the wind compass
+        $("#windCompass").html(hold);
 
         // Update the wind compass
         windcompass.updateWind([packet.dateTime, packet.windDir, packet.windSpeed]);
