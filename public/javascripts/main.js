@@ -113,7 +113,8 @@ var updatePlot = function (err) {
         console.log("Client got packet", new Date(packet.dateTime));
         dataset.push(packet);
         // Trim any too-old packets
-        while (dataset[0].dateTime < (Date.now() - max_age_secs * 1000)){
+        var now = Date.now();
+        while (dataset[0].dateTime < (now - max_age_secs * 1000)){
             dataset.shift();
         }
 

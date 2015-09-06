@@ -1,3 +1,5 @@
+Figure out why after an hour or so, the scales stop updating.
+
 The WeeRT server should log startup to syslog.
 
 Need to be more tolerant of null values.

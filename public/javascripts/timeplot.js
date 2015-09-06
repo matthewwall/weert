@@ -188,7 +188,7 @@ var Timeplot = (function () {
             domain[0] = Date.now() - 60 * 1000;
         }
         if (domain[1] === undefined || domain[1] < (domain[0] + 60 * 1000)) {
-            domain[1] = domain[0] + 60 * 1000
+            domain[1] = domain[0] + 60 * 1000;
         }
         return domain;
     }
