@@ -81,6 +81,8 @@ var readyPlot = function (callback) {
             y      : {ticks: 5, text: "Temperature"}
         });
 
+        linechart.addMouseover();
+
         // Signal that we are ready
         callback(null);
     });

@@ -227,11 +227,11 @@ var Timeplot = (function () {
         self.yScale.domain(y_domain);
 
         //Update axes
-        self.plotarea.select(".x")
+        self.plotarea.select(".x.axis")
             .call(self.xAxis)
             .transition()
             .duration(self.options.duration);
-        self.plotarea.select(".y")
+        self.plotarea.select(".y.axis")
             .call(self.yAxis)
             .transition()
             .duration(self.options.duration);
