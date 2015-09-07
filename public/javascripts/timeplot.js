@@ -14,6 +14,9 @@ var Timeplot = (function () {
             height : 500,
             // Margins is the distance from SVG box to the axes ends.
             margins: {top: 10, right: 10, bottom: 100, left: 40},
+            x      : {
+                ticks: 5
+            },
             y      : {
                 ticks: 5,
                 text : undefined
@@ -39,7 +42,8 @@ var Timeplot = (function () {
         // Define the x & y axes
         self.xAxis = d3.svg.axis()
             .scale(self.xScale)
-            .orient("bottom");
+            .orient("bottom")
+            .ticks(self.options.x.ticks);
         self.yAxis = d3.svg.axis()
             .scale(self.yScale)
             .orient("left")
