@@ -2,13 +2,17 @@ var bisectDate = d3.bisector(function(d) { return d.dateTime; }).left;
 
 var Timeplot = (function () {
 
-    function Timeplot(svg, options) {
+    function Timeplot(options) {
         // Constructor for Timeplot object
 
         var self = this;
 
         var defaults = {
             obstype: 'outTemp',
+            element: "#chart",
+            width  : 800,   // This will be the width & height of the SVG box.
+            height : 500,
+            // Margins is the distance from SVG box to the axes ends.
             margins: {top: 10, right: 10, bottom: 100, left: 40},
             y      : {
                 ticks: 5,
@@ -17,13 +21,14 @@ var Timeplot = (function () {
             duration : 500
         };
         self.options = $.extend({}, defaults, options || {});
-        console.log("options will be ", self.options);
-
-        // Margins is the distance to the ends of the axes
         self.margins = self.options.margins || {top: 10, right: 10, bottom: 100, left: 40};
         // Width and height are the length of the x- and y-axes, respectively
-        self.width = parseInt(svg.style("width")) - self.margins.left - self.margins.right;
-        self.height = parseInt(svg.style("height")) - self.margins.top - self.margins.bottom;
+        self.width  = options.width  - self.margins.left - self.margins.right;
+        self.height = options.height - self.margins.top - self.margins.bottom;
+
+        svg = d3.select(options.element).append("svg")
+            .attr('width', options.width)
+            .attr('height', options.height);
 
         // Set the x and y scaling
         self.xScale = d3.time.scale()
@@ -64,13 +69,13 @@ var Timeplot = (function () {
         //    .attr("width", self.width)
         //    .attr("height", self.height);
 
-        // Position the top x-axis within plotarea
+        // Position the x-axis within plotarea
         self.plotarea.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + self.height + ")");
 
         var y_text = self.options.y.text === undefined ? self.options.obstype : self.options.y.text;
-        // Position the top y-axis within plotarea
+        // Position the y-axis within plotarea
         self.plotarea.append("g")
             .attr("class", "y axis")
             .append("text")
@@ -80,6 +85,7 @@ var Timeplot = (function () {
             .style("text-anchor", "end")
             .text(y_text);
 
+        // This will be the plot line
         self.plotarea.append("path")
             .attr("class", "plotline");
 
@@ -218,14 +224,15 @@ var Timeplot = (function () {
 
         //Update axes
         self.plotarea.select(".x")
+            .call(self.xAxis)
             .transition()
-            .duration(self.options.duration)
-            .call(self.xAxis);
+            .duration(self.options.duration);
         self.plotarea.select(".y")
+            .call(self.yAxis)
             .transition()
-            .duration(self.options.duration)
-            .call(self.yAxis);
+            .duration(self.options.duration);
 
+        // Update the plot line
         self.plotarea.select(".plotline")
             .datum(self.dataset)
             .attr("d", self.line);

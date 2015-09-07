@@ -31,9 +31,7 @@ socket.on('news', function (data) {
 var dataset = [];
 var console_template;
 var windcompass;
-var svg;
 var linechart;
-var overview;
 
 var getInitialData = function (callback) {
     // Tell the server to send up to 60 minutes worth of data.
@@ -75,26 +73,13 @@ var readyPlot = function (callback) {
         // Include the initial wind compass
         windcompass = new WindCompass();
 
-        svg = d3.select("#chart-area")
-            .attr("width", 700)
-            .attr("height", 500);
-
-        linechart = new Timeplot(svg, {
-            margins: {top: 10, right: 10, bottom: 100, left: 40},
+        linechart = new Timeplot({
+            element: "#chart",
+            margins: {top: 10, right: 10, bottom: 50, left: 40},
+            width  : 500,
+            height : 300,
             y      : {ticks: 5, text: "Temperature"}
         });
-        overview = new Timeplot(svg, {
-            margins: {top: 430, right: 10, bottom: 20, left: 40},
-            y      : {ticks: 1, text: ""}
-        });
-
-        // Add a brush to the overview:
-        overview.addBrush(function (brush) {
-            linechart.set_x_domain(brush.empty() ? undefined : brush.extent());
-        });
-
-        // Show the y-value on mouseover in the big chart:
-        linechart.addMouseover();
 
         // Signal that we are ready
         callback(null);
@@ -105,9 +90,7 @@ var updatePlot = function (err) {
     if (err) throw err;
 
     linechart.data(dataset);
-    overview.data(dataset);
     linechart.render();
-    overview.render();
 
     socket.on('packet', function (packet) {
         console.log("Client got packet", new Date(packet.dateTime));
@@ -132,7 +115,6 @@ var updatePlot = function (err) {
 
         // Update the line charts
         linechart.render();
-        overview.render();
     });
 };
 
