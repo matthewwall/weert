@@ -254,3 +254,44 @@ var Timeplot = (function () {
     return Timeplot;
 
 })();
+
+var StackedPlots = (function () {
+
+    function StackedPlots(plotlist) {
+
+        var self=this;
+        self.plots = [];
+
+        for (var i=0; i<plotlist.length; i++){
+            t = new Timeplot(plotlist[i]);
+            self.plots.push(t);
+        }
+    }
+
+    StackedPlots.prototype.data = function (dataset) {
+        var self=this;
+        // Set the data to be used.
+        for (var i=0; i<self.plots.length; i++){
+            self.plots[i].data(dataset);
+        }
+    };
+
+    StackedPlots.prototype.render = function () {
+        var self=this;
+        for (var i=0; i<self.plots.length; i++){
+            self.plots[i].render();
+        }
+    };
+
+    StackedPlots.prototype.addMouseover = function () {
+        var self=this;
+        for (var i=0; i<self.plots.length; i++){
+            self.plots[i].addMouseover();
+        }
+
+    };
+
+    return StackedPlots;
+
+})();
+

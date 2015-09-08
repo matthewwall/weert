@@ -7,9 +7,31 @@ var max_initial_age_secs = 300;
 // Max retained age in seconds:
 var max_age_secs = 3600;
 
-var obslist = ['outTemp', 'dewpoint', 'outHumidity', 'barometer', 'dayRain'];
+var dataset = [];
+var console_template;
+var windcompass;
+var charts;
 
-Handlebars.registerHelper('formatTimeStamp', function(ts) {
+var chartOptions = [
+    {
+        obstype: "windSpeed",
+        element: "#windSpeed-chart",
+        margins: {top: 10, right: 10, bottom: 20, left: 40},
+        width  : 500,
+        height : 300,
+        y      : {ticks: 5, text: "Wind speed"}
+    }, {
+        obstype: "outTemp",
+        element: "#outTemp-chart",
+        margins: {top: 10, right: 10, bottom: 20, left: 40},
+        width  : 500,
+        height : 300,
+        y      : {ticks: 5, text: "Temperature"}
+    }
+];
+
+
+Handlebars.registerHelper('formatTimeStamp', function (ts) {
     return new Date(ts);
 });
 
@@ -27,11 +49,6 @@ var socket = io(ws_url);
 socket.on('news', function (data) {
     console.log("News from the server:", data.hello);
 });
-
-var dataset = [];
-var console_template;
-var windcompass;
-var linechart;
 
 var getInitialData = function (callback) {
     // Tell the server to send up to 60 minutes worth of data.
@@ -73,15 +90,9 @@ var readyPlot = function (callback) {
         // Include the initial wind compass
         windcompass = new WindCompass();
 
-        linechart = new Timeplot({
-            element: "#chart",
-            margins: {top: 10, right: 10, bottom: 50, left: 40},
-            width  : 500,
-            height : 300,
-            y      : {ticks: 5, text: "Temperature"}
-        });
-
-        linechart.addMouseover();
+        // Instantiate the charts
+        charts = new StackedPlots(chartOptions);
+        charts.addMouseover();
 
         // Signal that we are ready
         callback(null);
@@ -91,15 +102,15 @@ var readyPlot = function (callback) {
 var updatePlot = function (err) {
     if (err) throw err;
 
-    linechart.data(dataset);
-    linechart.render();
+    charts.data(dataset);
+    charts.render();
 
     socket.on('packet', function (packet) {
         console.log("Client got packet", new Date(packet.dateTime));
         dataset.push(packet);
         // Trim any too-old packets
         var now = Date.now();
-        while (dataset[0].dateTime < (now - max_age_secs * 1000)){
+        while (dataset[0].dateTime < (now - max_age_secs * 1000)) {
             dataset.shift();
         }
 
@@ -116,7 +127,7 @@ var updatePlot = function (err) {
         windcompass.updateWind([packet.dateTime, packet.windDir, packet.windSpeed]);
 
         // Update the line charts
-        linechart.render();
+        charts.render();
     });
 };
 
