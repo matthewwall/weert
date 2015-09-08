@@ -274,12 +274,20 @@ var StackedPlots = (function () {
         for (var i=0; i<self.plots.length; i++){
             self.plots[i].data(dataset);
         }
+        // Check to see if we have a brush
+        if (self.overview){
+            self.overview.data(dataset);
+        }
     };
 
     StackedPlots.prototype.render = function () {
         var self=this;
         for (var i=0; i<self.plots.length; i++){
             self.plots[i].render();
+        }
+        // Check to see if we have a brush
+        if (self.overview){
+            self.overview.render();
         }
     };
 
@@ -288,6 +296,17 @@ var StackedPlots = (function () {
         for (var i=0; i<self.plots.length; i++){
             self.plots[i].addMouseover();
         }
+    };
+
+    StackedPlots.prototype.addBrush = function(options) {
+        var self = this;
+        self.overview = new Timeplot(options);
+        // Add a brush to the overview:
+        self.overview.addBrush(function (brush) {
+            for (var i=0; i<self.plots.length; i++) {
+                self.plots[i].set_x_domain(brush.empty() ? undefined : brush.extent());
+            }
+        });
 
     };
 

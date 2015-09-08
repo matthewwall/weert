@@ -30,6 +30,14 @@ var chartOptions = [
     }
 ];
 
+var brushOptions = {
+    obstype: "windSpeed",
+    element: "#brush-chart",
+    margins: {top: 10, right: 10, bottom: 20, left: 40},
+    width  : 500,
+    height : 80,
+    y      : {ticks: 2, text: ""}
+};
 
 Handlebars.registerHelper('formatTimeStamp', function (ts) {
     return new Date(ts);
@@ -92,6 +100,9 @@ var readyPlot = function (callback) {
 
         // Instantiate the charts
         charts = new StackedPlots(chartOptions);
+        // Add a brush
+        charts.addBrush(brushOptions);
+        // Add mouse over
         charts.addMouseover();
 
         // Signal that we are ready
