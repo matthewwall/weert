@@ -1,4 +1,4 @@
-Figure out why after an hour or so, the scales stop updating.
+The Websockets need a keep-alive strategy.
 
 The WeeRT server should log startup to syslog.
 
