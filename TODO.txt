@@ -1,3 +1,15 @@
+SERVER
+
+Need to define a proper data model.
+
+Use dateTime as the _id in the databases. Saves space on an index.
+
+The data stored in Mongo could use a better naming scheme. Something
+like "outside_temperature" instead of "outTemp."
+
+CLIENT
+If windDir is null, WindCompass should not show anything (rather than the last value or zero).
+
 The Websockets need a keep-alive strategy.
 
 The WeeRT server should log startup to syslog.
@@ -15,5 +27,3 @@ Need to deal with data gaps.
 
 A settable "minimum domain" for the y-axis.
 
-The data stored in Mongo could use a better naming scheme. Something
-like "outside_temperature" instead of "outTemp."
