@@ -5,6 +5,8 @@
 .settings
 *.pyc
 *.pyo
+junk*
+out
 build
 dist
 MANIFEST
