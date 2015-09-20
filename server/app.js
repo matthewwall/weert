@@ -59,14 +59,12 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Serve all static files from the "public" subdirectory:
 app.use(express.static(path.join(__dirname, '../public')));
 
-// Weert requires:
 var loop = require('./loop');
 var loop_manager = undefined;
 
 var setup_loop_manager = function(callback) {
     // Pretty trivial. Could probably go synchronous.
     loop_manager = new loop.LoopManager(mongo_url);
-    console.log("set up loop mgr");
     return callback(null);
 };
 
@@ -83,36 +81,9 @@ var setup_database = function (callback) {
             }
         }
     );
-    console.log("finished setup on database");
     return callback(null);
 };
 
-//var setup_mongo = function (callback) {
-//    var MongoClient = mongo.MongoClient;
-//
-//    MongoClient.connect(mongo_url, function (err, db) {
-//        if (err) return callback(err);
-//        dbhelper.createCollection(
-//            db,
-//            'loop_packets',
-//            {capped: true, size: 1000000, max: 3600},
-//            function (err, collection) {
-//                if (err) return callback(err);
-//                loop_packets = collection;
-//            }
-//        );
-//        //archiver.createArchive(
-//        //    db,
-//        //    'archive',
-//        //    {},
-//        //    function(err, arch) {
-//        //        if (err) return callback(err);
-//        //        archive = arch;
-//        //    }
-//        //);
-//    });
-//};
-//
 var setup_routes = function (callback) {
 
     // RESTful interface that listens for incoming loop packets and then
@@ -120,14 +91,15 @@ var setup_routes = function (callback) {
     app.post('/api/loop', function (req, res) {
         // Get the packet out of the request body:
         var packet = req.body.packet;
-        packet.timestamp = new Date(packet.timestamp)
-        console.log("got packet timestamp", packet.timestamp);
+        var ts = new Date(packet.timestamp);
+        console.log("got packet timestamp", ts);
         // Insert it into the database
         loop_manager.insert(packet, function (err, result) {
             if (err) {
-                console.log("Unable to insert packet with timestamp", packet.timestamp);
-                // Signal internal server error
-                res.sendStatus(500);
+                console.log("Unable to insert packet with timestamp", ts);
+                if (err.code === 11000)
+                    console.log("Reason: duplicate time stamp");
+                res.status(400).send("Error code " + err.code);
             } else {
                 res.sendStatus(200);
                 // Let any interested parties know there is a new packet:
@@ -170,12 +142,12 @@ var setup_routes = function (callback) {
         });
     });
 
-    // Signal that the callbacks are set up and with no errors
+    // Signal that the routes are set up and with no errors
     callback(null);
 };
 
-// Setup mongo, then once it is up and running, set up the RESTful interfaces
 async.series([
+        // Set up the database first, then the routes:
         setup_database,
         setup_routes
     ],

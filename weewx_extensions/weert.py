@@ -176,6 +176,6 @@ class WeeRTThread(RESTThread):
             return
         else:
             for line in response:
-                if line.startswith('ERROR'):
-                    # Bad login. No reason to retry. Raise an exception.
+                if line.startswith('Error'):
+                    # Server signals an error. Raise an exception.
                     raise weewx.restx.FailedPost(line)

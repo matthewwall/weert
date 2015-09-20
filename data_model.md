@@ -129,8 +129,8 @@ that it be unique. MongoDB will automatically index it.
 ## All other types
 For all other types besides timestamps, the same units are used in the RESTful API and in the database. They are
 always in the _metric_ unit system. Exactly which unit depends on the unit group a measurement belongs to.
-The measurement groups, and their corresponding metric unit, is given in the following table. Note that this
-corresponds to the weewx `METRICWX` unit system.
+The measurement groups, and their corresponding metric unit, is given in the following table. Note that with
+the exception of entries marked with an asterisk (*), this corresponds to the weewx `METRICWX` unit system.
 
 
 <table style="font-family:monospace">
