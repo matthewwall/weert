@@ -114,7 +114,7 @@ Generally, there is no difference between the API units and the storage units. T
 ## Timestamps
 
 ### RESTful API
-Timestamps should be sent as an integer value representing the number of _milliseconds_ since 
+Timestamps should be sent under key `timestamp`. and as an integer value representing the number of _milliseconds_ since 
 1 January 1970 00:00:00 UTC (the Unix Epoch), that is, in [JavaScript style]
 (https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date).
 
@@ -129,7 +129,8 @@ that it be unique. MongoDB will automatically index it.
 ## All other types
 For all other types besides timestamps, the same units are used in the RESTful API and in the database. They are
 always in the _metric_ unit system. Exactly which unit depends on the unit group a measurement belongs to.
-The measurement groups, and their correspondong metric unit, is given in the following table:
+The measurement groups, and their corresponding metric unit, is given in the following table. Note that this
+corresponds to the weewx `METRICWX` unit system.
 
 
 <table style="font-family:monospace">
@@ -147,7 +148,7 @@ The measurement groups, and their correspondong metric unit, is given in the fol
 <tr><td>interval</td><td>minute</td></tr>
 <tr><td>length</td><td>cm</td></tr>
 <tr><td>moisture</td><td>centibar</td></tr>
-<tr><td>percent</td><td>percent</td></tr>
+<tr><td>humidity<sup>*</sup></td><td>percent</td></tr>
 <tr><td>power</td><td>watt</td></tr>
 <tr><td>pressure</td><td>mbar</td></tr>
 <tr><td>radiation</td><td>watt_per_meter_squared</td></tr>
