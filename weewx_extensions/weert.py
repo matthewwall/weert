@@ -21,7 +21,9 @@ class WeeRT(StdRESTful):
         
         super(WeeRT, self).__init__(engine, config_dict)
 
-        _node_dict = weewx.restx.check_enable(config_dict, 'WeeRT')
+        _node_dict = weewx.restx.check_enable(config_dict, 'WeeRT', 
+                                              'platform_uuid',
+                                              'instrument_uuid')
 
         if _node_dict is None:
             return        
@@ -32,7 +34,6 @@ class WeeRT(StdRESTful):
         self.loop_queue = Queue.Queue()
         self.loop_thread = WeeRTThread(self.loop_queue,  
                                        _manager_dict,
-                                       protocol_name="WeeRT", 
                                        **_node_dict)
         self.loop_thread.start()
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
@@ -47,9 +48,7 @@ class WeeRTThread(RESTThread):
     """Concrete class for threads posting to a Node server"""
     
 
-    default_obs_types = ['dateTime',
-                         'usUnits',
-                         'outTemp',
+    default_obs_types = ['outTemp',
                          'dewpoint',
                          'inTemp',
                          'outHumidity',
@@ -57,10 +56,22 @@ class WeeRTThread(RESTThread):
                          'windSpeed',
                          'windDir',
                          'dayRain']
+    
+    # Maps from weewx names, to the names used in WeeRT:
+    map = {'outTemp'    : 'outside_temperature',
+           'dewpoint'   : 'dewpoint_temperature',
+           'inTemp'     : 'inside_temperature',
+           'outHumidity': 'outside_humidity',
+           'barometer'  : 'barometer_pressure',
+           'windSpeed'  : 'wind_speed',
+           'windDir'    : 'wind_direction',
+           'dayRain'    : 'day_rain'}
 
     def __init__(self, queue,
                  manager_dict,
-                 protocol_name,
+                 platform_uuid,
+                 instrument_uuid,
+                 protocol_name = "WeeRT",
                  node_url = DEFAULT_NODE_URL,
                  obs_types = default_obs_types,
                  max_backlog=sys.maxint, stale=60,
@@ -74,6 +85,13 @@ class WeeRTThread(RESTThread):
 
           queue: An instance of Queue.Queue where the packets will appear.
           
+          manager_dict: The database manager dictionary to be used for database
+          lookups.
+          
+          platform_uuid: The UUID for the platform.
+          
+          instrument_uuid: The UUID for the instrument.
+        
         Optional parameters:
         
           node_url: The endpoint URL for the Node server
@@ -105,16 +123,18 @@ class WeeRTThread(RESTThread):
         """        
         # Initialize my superclass
         super(WeeRTThread, self).__init__(queue,
-                                           protocol_name=protocol_name,
-                                           manager_dict=manager_dict,
-                                           max_backlog=max_backlog,
-                                           stale=stale,
-                                           log_success=log_success,
-                                           log_failure=log_failure,
-                                           timeout=timeout,
-                                           max_tries=max_tries,
-                                           retry_wait=retry_wait)
+                                          protocol_name=protocol_name,
+                                          manager_dict=manager_dict,
+                                          max_backlog=max_backlog,
+                                          stale=stale,
+                                          log_success=log_success,
+                                          log_failure=log_failure,
+                                          timeout=timeout,
+                                          max_tries=max_tries,
+                                          retry_wait=retry_wait)
 
+        self.platform_uuid = platform_uuid
+        self.instrument_uuid = instrument_uuid
         self.node_url = node_url
         self.obs_types = obs_types
         syslog.syslog(syslog.LOG_NOTICE, "wee_node: publishing to Node server at %s" % self.node_url)
@@ -124,21 +144,30 @@ class WeeRTThread(RESTThread):
 
         # Get the full record by querying the database ...
         _full_record = self.get_record(record, dbmanager)
-        # ... convert to US if necessary ...
-        _us_record = weewx.units.to_US(_full_record)
+        # ... convert to Metric if necessary ...
+        _metric_record = weewx.units.to_METRICWX(_full_record)
         
         # Instead of sending every observation type, send only those in
         # the list obs_types
-        _abridged = dict((x, _us_record.get(x)) for x in self.obs_types)
+        _abridged = dict((x, _metric_record.get(x)) for x in self.obs_types)
         
         # Convert timestamps to JavaScript style:
-        _abridged['dateTime'] *= 1000
+        _abridged['timestamp'] = record['dateTime'] * 1000
+        
+        # Add the platform and instrument UUID's
+        _abridged['platform'] = self.platform_uuid
+        _abridged['instrument'] = self.instrument_uuid
+        
+        _mapped = {}
+        for k in _abridged:
+            _new_k = WeeRTThread.map.get(k, k)
+            _mapped[_new_k] = _abridged[k] 
         
         _req = urllib2.Request(self.node_url)
         _req.add_header('Content-Type', 'application/json')
         _req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
 
-        self.post_with_retries(_req, payload=json.dumps({'packet' : _abridged}))
+        self.post_with_retries(_req, payload=json.dumps({'packet' : _mapped}))
         
     def check_response(self, response):
         """Check the HTTP response code."""
