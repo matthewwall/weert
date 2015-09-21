@@ -3,6 +3,8 @@
  */
 
 "use strict";
+var platform = "p1";
+var instrument = "i1";
 // Initial request of data from MongoDB in seconds
 var max_initial_age_secs = 300;
 // Max retained age in seconds:
@@ -60,11 +62,12 @@ socket.on('news', function (data) {
 });
 
 var getInitialData = function (callback) {
-    // Tell the server to send up to 60 minutes worth of data.
+    // Tell the server to send up to max_initial_age_secs worth of data.
     var stop = Date.now();
     var start = stop - max_initial_age_secs * 1000;
     // Use a simple GET request
-    var url = "http://" + window.location.host + "/api/loop?start=" + start + "&stop=" + stop;
+    var url = "http://" + window.location.host + "/api/loop?start=" + start + "&stop=" + stop
+        + "&platform=" + platform + "&instrument=" + instrument;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {
@@ -122,7 +125,7 @@ var updatePlot = function (err) {
         dataset.push(packet);
         // Trim any too-old packets
         var now = Date.now();
-        while (dataset[0].dateTime < (now - max_age_secs * 1000)) {
+        while (dataset[0].timestamp < (now - max_age_secs * 1000)) {
             dataset.shift();
         }
 

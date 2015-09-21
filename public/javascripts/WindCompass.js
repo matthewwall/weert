@@ -39,7 +39,7 @@ var WindCompass = (function () {
             speedValueFunction                     : function (d) {
                 return d[2];
             },
-            windSpeedUnitLabel                     : "mph",
+            windSpeedUnitLabel                     : "m/s",
             windDirToCardinalLabelConverterFunction: defaultWindDirToCardinalConverter
         };
 

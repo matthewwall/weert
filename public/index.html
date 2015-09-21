@@ -29,7 +29,7 @@
     <div id="wx-console" class="wx-console console-vertical" id="wx-console-vertical">
         <div class="outTemp-group reading-group">
             <span class="outTemp-value reading-value">{{formatNumber outside_temperature 1}}</span><span
-                class="outTemp-unit unit-label">°F</span>
+                class="outTemp-unit unit-label">°C</span>
             <!--
             <div class="feels-like-container">feels like <span
                     class="heatindex-value feels-like-value reading-value"></span><span
@@ -40,7 +40,7 @@
         </div>
         <div class="dewpoint-group reading-group">
             <span class="dewpoint-value reading-value">{{formatNumber dewpoint_temperature 1}}</span>
-            <span class="dewpoint-unit unit-label">°F</span>
+            <span class="dewpoint-unit unit-label">°C</span>
             <span class="desc">dewpoint</span>
         </div>
 
@@ -56,12 +56,12 @@
             <span class="desc">humidity</span>
         </div>
         <div class="bar-group reading-group">
-            <span class="barometer-value reading-value">{{formatNumber barometer_pressure 3}}</span><span
-                class="barometer-unit unit-label"> inHg</span>
+            <span class="barometer-value reading-value">{{formatNumber barometer_pressure 1}}</span><span
+                class="barometer-unit unit-label"> mbar</span>
             <span class="desc">pressure</span>
         </div>
         <div class="rain-group reading-group">
-            <span class="dayRain-value reading-value">{{day_rain}}</span><span class="dayRain-unit unit-label"> in</span>
+            <span class="dayRain-value reading-value">{{day_rain}}</span><span class="dayRain-unit unit-label"> mm</span>
 
             <div class="rainRate-container"><span class="rainRate-value reading-value"></span><span
                     class="rainRate-unit unit-label"></span></div>

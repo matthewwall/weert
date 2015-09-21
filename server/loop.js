@@ -64,9 +64,14 @@ LoopManager.prototype.find = function (start, stop, platform, instrument, callba
         db.collection(collection_name, function (err, coln) {
                 if (err) {db.close(); return callback(err);}
                 coln.find({"_id": {"$gt": new Date(start), "$lte": new Date(stop)}}).toArray(function (err, results) {
-                        console.log("find results are", results);
                         if (err) {db.close(); return callback(err);}
                         db.close();
+                        // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+                        // instead of a Date() object:
+                        for (var i=0; i<results.length; i++){
+                            results[i].timestamp = results[i]._id.getTime();
+                            delete results[i]._id;
+                        }
                         return callback(null, results);
                     }
                 )

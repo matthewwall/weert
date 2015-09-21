@@ -1,4 +1,4 @@
-var bisectDate = d3.bisector(function(d) { return d.dateTime; }).left;
+var bisectDate = d3.bisector(function(d) { return d.timestamp; }).left;
 
 var Timeplot = (function () {
 
@@ -55,7 +55,7 @@ var Timeplot = (function () {
                 return d[self.options.obstype] != null;
             })
             .x(function (d) {
-                return self.xScale(d.dateTime);
+                return self.xScale(d.timestamp);
             })
             .y(function (d) {
                 return self.yScale(d[self.options.obstype]);
@@ -128,8 +128,8 @@ var Timeplot = (function () {
                 i = bisectDate(self.dataset, x0, 1),
                 d0 = self.dataset[i - 1],
                 d1 = self.dataset[i],
-                d = x0 - d0.dateTime > d1.dateTime - x0 ? d1 : d0;
-            highlight.attr("transform", "translate(" + self.xScale(d.dateTime) + "," + self.yScale(d[self.options.obstype]) + ")");
+                d = x0 - d0.timestamp > d1.timestamp - x0 ? d1 : d0;
+            highlight.attr("transform", "translate(" + self.xScale(d.timestamp) + "," + self.yScale(d[self.options.obstype]) + ")");
             highlight.select("text").text(d[self.options.obstype]);
         }
     };

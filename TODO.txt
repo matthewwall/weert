@@ -2,6 +2,8 @@ SERVER
 
 Check on error codes going from the Node server back to weewx.
 
+Should have separate websocket channels for each platform/instrument combination.
+
 CLIENT
 If windDir is null, WindCompass should not show anything (rather than the last value or zero).
 

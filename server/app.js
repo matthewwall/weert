@@ -129,16 +129,6 @@ var setup_routes = function (callback) {
         });
     });
 
-        //loop_packets.find({"_id": {$gte: start, $lte: stop}}).toArray(function (err, packet_array) {
-        //    if (err) {
-        //        console.log("Unable to satisfy request. Reason", err);
-        //        res.sendStatus(400);
-        //    } else {
-        //        console.log("# of packets=", packet_array.length);
-        //        res.send(JSON.stringify(packet_array));
-        //    }
-        //});
-
     // RESTful interface that listens for incoming archive records and then
     // stores them in the MongoDB database
     app.post('/api/archive', function (req, res) {
