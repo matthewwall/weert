@@ -15,16 +15,18 @@ var LoopManager = function (url, options) {
 
 LoopManager.prototype.insert = function (in_packet, callback) {
     var self = this;
+    if (in_packet.platform === undefined || in_packet.instrument === undefined)
+        return callback("Missing platform or instrument ID");
     var db_name = in_packet.platform;
-    var collection_name = in_packet.instrument;
+    var collection_name = in_packet.instrument + ".loop_data";
     // Clone the packet, changing timestamp to _id, and not passing on the platform and instrument names
     var packet = {};
-    for (var k in in_packet){
-        if (in_packet.hasOwnProperty(k)){
-            if (k==='timestamp') {
-                packet[k] = new Date(in_packet[k]);
+    for (var k in in_packet) {
+        if (in_packet.hasOwnProperty(k)) {
+            if (k === 'timestamp') {
+                packet["_id"] = new Date(in_packet[k]);
             } else {
-                if (k!=='platform' && k!=='instrument') {
+                if (k !== 'platform' && k !== 'instrument') {
                     packet[k] = in_packet[k];
                 }
             }
@@ -32,23 +34,44 @@ LoopManager.prototype.insert = function (in_packet, callback) {
     }
     var MongoClient = mongo.MongoClient;
     // Check to see if the URL ends with a slash before tacking on the database name:
-    var full_url = self.url + (self.url.slice(-1)==='/' ? db_name : ('/' + db_name));
+    var full_url = self.url + (self.url.slice(-1) === '/' ? db_name : ('/' + db_name));
     MongoClient.connect(full_url, function (err, db) {
         if (err) return callback(err);
-        // Create a capped collection if it doesn't exist already
-        self._createCollection(db, collection_name, self.options, function (err, coln){
-            packet._id = new Date(packet.timestamp);
-            delete packet.timestamp;
-            delete packet.platform;
-            delete packet.instrument;
-            coln.insert(packet, null, function (err, result){
-                if (err) {
-                    return callback(err);
-                }
+        // Create the collection if it doesn't exist already
+        self._createCollection(db, collection_name, self.options, function (err, coln) {
+            if (err) return callback(err);
+            coln.insert(packet, null, function (err, result) {
+                if (err) return callback(err);
                 console.log("inserted packet with timestamp", packet._id);
+                db.close();
                 return callback(null, result);
             })
         });
+    });
+};
+
+LoopManager.prototype.find = function (start, stop, platform, instrument, callback) {
+    var self = this;
+    if (platform === undefined || instrument === undefined)
+        return callback("Missing platform or instrument ID");
+    var db_name = platform;
+    var collection_name = instrument + ".loop_data";
+    var MongoClient = mongo.MongoClient;
+    // Check to see if the URL ends with a slash before tacking on the database name:
+    var full_url = self.url + (self.url.slice(-1) === '/' ? db_name : ('/' + db_name));
+    MongoClient.connect(full_url, function (err, db) {
+        if (err) return callback(err);
+        db.collection(collection_name, function (err, coln) {
+                if (err) {db.close(); return callback(err);}
+                coln.find({"_id": {"$gt": new Date(start), "$lte": new Date(stop)}}).toArray(function (err, results) {
+                        console.log("find results are", results);
+                        if (err) {db.close(); return callback(err);}
+                        db.close();
+                        return callback(null, results);
+                    }
+                )
+            }
+        )
     });
 };
 
@@ -58,7 +81,7 @@ LoopManager.prototype._createCollection = function (db, collectionName, options,
     db.listCollections({name: collectionName}).toArray(function (err, names) {
         if (err) return callback(err);
         if (names.length) {
-            db.collection(collectionName, function (err, coln){
+            db.collection(collectionName, function (err, coln) {
                 return callback(null, coln);
             })
         } else {
@@ -71,7 +94,7 @@ LoopManager.prototype._createCollection = function (db, collectionName, options,
 };
 
 module.exports = {
-    LoopManager  : LoopManager
+    LoopManager: LoopManager
 };
 
 /**

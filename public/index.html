@@ -28,7 +28,7 @@
 
     <div id="wx-console" class="wx-console console-vertical" id="wx-console-vertical">
         <div class="outTemp-group reading-group">
-            <span class="outTemp-value reading-value">{{formatNumber outTemp 1}}</span><span
+            <span class="outTemp-value reading-value">{{formatNumber outside_temperature 1}}</span><span
                 class="outTemp-unit unit-label">°F</span>
             <!--
             <div class="feels-like-container">feels like <span
@@ -39,7 +39,7 @@
             <span class="desc">temperature</span>
         </div>
         <div class="dewpoint-group reading-group">
-            <span class="dewpoint-value reading-value">{{formatNumber dewpoint 1}}</span>
+            <span class="dewpoint-value reading-value">{{formatNumber dewpoint_temperature 1}}</span>
             <span class="dewpoint-unit unit-label">°F</span>
             <span class="desc">dewpoint</span>
         </div>
@@ -51,23 +51,23 @@
             <span class="desc">wind</span>
         </div>
         <div class="out-hum-group reading-group">
-            <span class="outHumidity-value reading-value">{{outHumidity}}</span><span
+            <span class="outHumidity-value reading-value">{{outside_humidity}}</span><span
                 class="outHumidity-unit unit-label">%</span>
             <span class="desc">humidity</span>
         </div>
         <div class="bar-group reading-group">
-            <span class="barometer-value reading-value">{{formatNumber barometer 3}}</span><span
+            <span class="barometer-value reading-value">{{formatNumber barometer_pressure 3}}</span><span
                 class="barometer-unit unit-label"> inHg</span>
             <span class="desc">pressure</span>
         </div>
         <div class="rain-group reading-group">
-            <span class="dayRain-value reading-value">{{dayRain}}</span><span class="dayRain-unit unit-label"> in</span>
+            <span class="dayRain-value reading-value">{{day_rain}}</span><span class="dayRain-unit unit-label"> in</span>
 
             <div class="rainRate-container"><span class="rainRate-value reading-value"></span><span
                     class="rainRate-unit unit-label"></span></div>
             <span class="desc">today's rain</span>
         </div>
-        <div class="last-update"><span class="dateTime-value">{{formatTimeStamp dateTime}}</span></div>
+        <div class="last-update"><span class="dateTime-value">{{formatTimeStamp _id}}</span></div>
     </div>
 </script>
 

@@ -191,7 +191,7 @@ var Timeplot = (function () {
 
     function _calc_x_domain() {
         var domain = d3.extent(self.dataset, function (d) {
-            return d.dateTime;
+            return d.timestamp;
         });
         // It should be at least 1 minute big
         if (domain[0] === undefined) {

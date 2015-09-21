@@ -2,6 +2,7 @@
  *               CLIENT CODE
  */
 
+"use strict";
 // Initial request of data from MongoDB in seconds
 var max_initial_age_secs = 300;
 // Max retained age in seconds:
@@ -14,14 +15,14 @@ var charts;
 
 var chartOptions = [
     {
-        obstype: "windSpeed",
+        obstype: "wind_speed",
         element: "#windSpeed-chart",
         margins: {top: 10, right: 10, bottom: 20, left: 40},
         width  : 500,
         height : 300,
         y      : {ticks: 5, text: "Wind speed"}
     }, {
-        obstype: "outTemp",
+        obstype: "outside_temperature",
         element: "#outTemp-chart",
         margins: {top: 10, right: 10, bottom: 20, left: 40},
         width  : 500,
@@ -31,7 +32,7 @@ var chartOptions = [
 ];
 
 var brushOptions = {
-    obstype: "windSpeed",
+    obstype: "wind_speed",
     element: "#brush-chart",
     margins: {top: 10, right: 10, bottom: 20, left: 40},
     width  : 500,
@@ -117,7 +118,7 @@ var updatePlot = function (err) {
     charts.render();
 
     socket.on('packet', function (packet) {
-        console.log("Client got packet", new Date(packet.dateTime));
+        console.log("Client got packet", new Date(packet.timestamp));
         dataset.push(packet);
         // Trim any too-old packets
         var now = Date.now();
@@ -135,7 +136,7 @@ var updatePlot = function (err) {
         $("#windCompass").html(hold);
 
         // Update the wind compass
-        windcompass.updateWind([packet.dateTime, packet.windDir, packet.windSpeed]);
+        windcompass.updateWind([packet.timestamp, packet.wind_direction, packet.wind_speed]);
 
         // Update the line charts
         charts.render();

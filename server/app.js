@@ -15,9 +15,9 @@ var socket_io = require('socket.io');
 var path = require('path');
 var bodyParser = require('body-parser');
 var pubsub = require('./pubsub');
-var archiver = require('./archiver');
-var mongo = require('mongodb');
 var async = require('async');
+var archiver = require('./archiver');
+var loop = require('./loop');
 
 var app = express();
 var server = http.createServer(app);
@@ -59,12 +59,11 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Serve all static files from the "public" subdirectory:
 app.use(express.static(path.join(__dirname, '../public')));
 
-var loop = require('./loop');
 var loop_manager = undefined;
 
 var setup_loop_manager = function(callback) {
     // Pretty trivial. Could probably go synchronous.
-    loop_manager = new loop.LoopManager(mongo_url);
+    loop_manager = new loop.LoopManager(mongo_url, loop_manager_options);
     return callback(null);
 };
 
@@ -99,6 +98,8 @@ var setup_routes = function (callback) {
                 console.log("Unable to insert packet with timestamp", ts);
                 if (err.code === 11000)
                     console.log("Reason: duplicate time stamp");
+                else
+                    console.log("Error code:", err.code);
                 res.status(400).send("Error code " + err.code);
             } else {
                 res.sendStatus(200);
@@ -113,8 +114,11 @@ var setup_routes = function (callback) {
     app.get('/api/loop', function (req, res) {
         var start = +req.query.start;
         var stop = +req.query.stop || Date.now();
+        var platform = req.query.platform;
+        var instrument = req.query.instrument;
         console.log("Request for packets with start, stop times of", start, stop);
-        loop_packets.find({"dateTime": {$gte: start, $lte: stop}}).toArray(function (err, packet_array) {
+
+        loop_manager.find(start, stop, platform, instrument, function(err, packet_array){
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
                 res.sendStatus(400);
@@ -124,6 +128,16 @@ var setup_routes = function (callback) {
             }
         });
     });
+
+        //loop_packets.find({"_id": {$gte: start, $lte: stop}}).toArray(function (err, packet_array) {
+        //    if (err) {
+        //        console.log("Unable to satisfy request. Reason", err);
+        //        res.sendStatus(400);
+        //    } else {
+        //        console.log("# of packets=", packet_array.length);
+        //        res.send(JSON.stringify(packet_array));
+        //    }
+        //});
 
     // RESTful interface that listens for incoming archive records and then
     // stores them in the MongoDB database
