@@ -25,8 +25,6 @@ server.listen(port, function () {
     console.log('Server listening at port %d', port);
 });
 
-//var dbhelper = require('./dbhelper');
-//var archiver = require('./archiver');
 
 /*
  * Listen for any new, incoming websocket connections. Then notify
@@ -44,7 +42,11 @@ io.on('connection', function (socket) {
     // Save the unsubscribe handle so we can unsubscribe the client should
     // his connection go away.
     var unsubscribe_handle = pubsub.subscribe('new_packet', function (packet) {
-        socket.emit('packet', packet);
+        // New packet has arrived. Figure out which websocket subscription to push it out on.
+        var platform = packet.platform;
+        var instrument = packet.instrument;
+        var subscription_name = "packet-" + platform + "-" + instrument;
+        socket.emit(subscription_name, packet);
     });
 
     socket.on('disconnect', function () {
@@ -60,20 +62,20 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, '../public')));
 
 var loop_manager = undefined;
-
-var setup_loop_manager = function(callback) {
-    // Pretty trivial. Could probably go synchronous.
-    loop_manager = new loop.LoopManager(mongo_url, loop_manager_options);
-    return callback(null);
-};
-
-var setup_archive_manager = function(callback) {
-    // Place holder for now
-    return callback(null);
-};
+var archive_manager = undefined;
 
 var setup_database = function (callback) {
-    async.parallel([setup_loop_manager, setup_archive_manager], function (err) {
+    async.parallel([
+            function (callback) {
+                // Set up the loop manager
+                loop_manager = new loop.LoopManager(mongo_url, loop_manager_options);
+                return callback(null);
+            },
+            function (callback) {
+                // Set up the archive manager. Placeholder for now
+                return callback(null);
+            }],
+        function (err) {
             if (err) {
                 console.log("Got error attempting to set up MongoDB database", err);
                 return callback(err);
@@ -94,6 +96,7 @@ var setup_routes = function (callback) {
         console.log("got packet timestamp", ts);
         // Insert it into the database
         loop_manager.insert(packet, function (err, result) {
+            // Send back an appropriate acknowledgement:
             if (err) {
                 console.log("Unable to insert packet with timestamp", ts);
                 if (err.code === 11000)
@@ -103,13 +106,13 @@ var setup_routes = function (callback) {
                 res.status(400).send("Error code " + err.code);
             } else {
                 res.sendStatus(200);
-                // Let any interested parties know there is a new packet:
+                // Let any interested subscribers know there is a new packet:
                 pubsub.publish('new_packet', packet, this);
             }
         });
     });
 
-    // RESTful interface that returns all packets in the database
+    // RESTful interface for requesting packets from a platform and instrument
     // between a start and stop time.
     app.get('/api/loop', function (req, res) {
         var start = +req.query.start;
@@ -118,7 +121,7 @@ var setup_routes = function (callback) {
         var instrument = req.query.instrument;
         console.log("Request for packets with start, stop times of", start, stop);
 
-        loop_manager.find(start, stop, platform, instrument, function(err, packet_array){
+        loop_manager.find(start, stop, platform, instrument, function (err, packet_array) {
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
                 res.sendStatus(400);
@@ -160,7 +163,7 @@ async.series([
             console.log("Got error attempting to set up Mongo or the RESTful interfaces:", err);
             throw err;
         }
-        console.log("Finished setup.", loop_manager);
+        console.log("Finished setup.");
     }
 );
 

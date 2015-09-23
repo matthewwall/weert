@@ -120,7 +120,10 @@ var updatePlot = function (err) {
     charts.data(dataset);
     charts.render();
 
-    socket.on('packet', function (packet) {
+    // Subscriptions are of the form 'packet-p1-i1':
+    var subscription_name = "packet-" + platform + "-" + instrument;
+
+    socket.on(subscription_name, function (packet) {
         console.log("Client got packet", new Date(packet.timestamp));
         dataset.push(packet);
         // Trim any too-old packets

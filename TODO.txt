@@ -4,6 +4,8 @@ Check on error codes going from the Node server back to weewx.
 
 Should have separate websocket channels for each platform/instrument combination.
 
+Need to implement the rest of the WeeRT data model, in particular metadata and location.
+
 CLIENT
 If windDir is null, WindCompass should not show anything (rather than the last value or zero).
 

@@ -69,7 +69,7 @@ The collection with name suffix `.metadata` holds meta information about the ins
 The collection with suffix `.loop_data` holds the raw data coming off the instrument. As this can be quite
 voluminous, this is usually a "capped collection" of limited size. The time between loop packets,
 as well as their contents, can be highly irregular. All packets must include the key `_id` with the
-timestamp of the measurements, and key `unit_system` with the unit system used in the packet.
+timestamp of the measurements. The unit system is always the weewx [`METRICWX`](#unit_systems), described below.
 
     // instrument_name.loop_data
     {_id: ISODate(1912-04-15 00:00:11), unit_system: metricwx, wind_speed: 1.2, wind_direction: 203, outside_temperature:12.3}
@@ -100,10 +100,10 @@ The first part is the name of the observation, the second the unit group to whic
 is the temperature outside, which is a member of the unit group `temperature`. Unit groups are used to cluster
 similar observations by the unit system they use.
 
-# Unit systems
+# <a id="unit_systems">Unit systems</a>
 There are three different places where unit systems come into play.
  
-* Units used for transport (usually via the RESTful API);
+* Units used for transport (via a RESTful API or websocket subscription);
 * Units used for storage in the database;
 * Units used for display.
 
@@ -124,10 +124,10 @@ Timestamps are stored in the MongoDB database as type
 translates to a `Date` object. 
 
 The timestamp should be stored under key `_id`, a required key for every MongoDB document. It is also required
-that it be unique. MongoDB will automatically index it.
+that it be unique. MongoDB will automatically index it. 
 
 ## All other types
-For all other types besides timestamps, the same units are used in the RESTful API and in the database. They are
+For all other types besides timestamps, the same units are used in transport as in the database. They are
 always in the _metric_ unit system. Exactly which unit depends on the unit group a measurement belongs to.
 The measurement groups, and their corresponding metric unit, is given in the following table. Note that with
 the exception of entries marked with an asterisk (*), this corresponds to the weewx `METRICWX` unit system.
