@@ -6,7 +6,7 @@
 
 var mongo_url = "mongodb://localhost:27017/";
 var port = process.env.PORT || 3000;
-var loop_manager_options = {capped: true, size: 1000000, max: 3600};
+var loop_manager_options = {collection:{capped: true, size: 1000000, max: 3600}};
 
 // requires
 var http = require('http');

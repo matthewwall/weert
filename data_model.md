@@ -1,6 +1,10 @@
 # Data model used by WeeRT
 The following describes the data model used by WeeRT.
 
+The general model is that a platform holds a number of instruments, each with their own data stream. 
+
+The MongoDB data model largely mirrors this.
+
 # Platform
 A platform is a group of instruments that have a location in common. This might be a stationary location, 
 such as an industrial siting, or a mobile location, such as a vehicle or boat. 
@@ -49,8 +53,9 @@ Each location record includes a timestamp, a latitude, longitude, and, optionall
 The “present location” is the last known location.
 
 ## Instruments
-The actual measurements resides in a set of collections used for each instrument, all starting with the instrument
-name. For example, if the instrument name was "WMR100," then the collections would be named
+The data for each instrument resides in three collections, all held inside the platform's database. The three
+collections share a common root name. For example, if the instrument name was "WMR100," then 
+the collections would be named
 
     WMR100.metadata
     WMR100.loop_data
@@ -68,28 +73,39 @@ The collection with name suffix `.metadata` holds meta information about the ins
 ### loop_data
 The collection with suffix `.loop_data` holds the raw data coming off the instrument. As this can be quite
 voluminous, this is usually a "capped collection" of limited size. The time between loop packets,
-as well as their contents, can be highly irregular. All packets must include the key `_id` with the
-timestamp of the measurements. The unit system is always the weewx [`METRICWX`](#unit_systems), described below.
+as well as their contents, can be highly irregular. However, all packets must include the key `_id` with the
+timestamp of the measurements. 
+
+The unit system used by the measurements is always the weewx [`METRICWX`](#unit_systems), described below.
+
+Sample contents of the `loop_data` collection:
 
     // instrument_name.loop_data
-    {_id: ISODate(1912-04-15 00:00:11), unit_system: metricwx, wind_speed: 1.2, wind_direction: 203, outside_temperature:12.3}
-    {_id: ISODate(1912-04-15 00:00:13), unit_system: metricwx, inside_temperature: 22.6}
-    {_id: ISODate(1912-04-15 00:00:19), unit_system: metricwx, barometer_pressure: 1002.8}
-    {_id: ISODate(1912-04-15 00:00:22), unit_system: metricwx, wind_speed: 0.3, wind_direction: 229, outside_temperature:12.4}    
+    {_id: ISODate(1912-04-15 00:00:11), wind_speed: 1.2, wind_direction: 203, outside_temperature:12.3}
+    {_id: ISODate(1912-04-15 00:00:13), inside_temperature: 22.6}
+    {_id: ISODate(1912-04-15 00:00:19), barometer_pressure: 1002.8}
+    {_id: ISODate(1912-04-15 00:00:22), wind_speed: 0.3, wind_direction: 229, outside_temperature:12.4}    
     
 ### archive data
 The collection with suffix `.archive_data` holds data aggregated over an "archive interval." While the interval
-is usually quite regular, it can change with time. All records must include the key `_id` with the
-timestamp of the measurement, a key `unit_system` with the unit system used in the record, and a key `interval`
-with the length of the interval in milliseconds.
+is usually quite regular, it does not have to be and can change with time. 
+All records must include the key `_id` with the
+timestamp of the measurement, and a key `interval` with the length of the interval in milliseconds.
+
+The unit system used by the measurements is always the weewx [`METRICWX`](#unit_systems), described below.
+
+Sample contents of the `archive_data` collection:
 
     // instrument_name.archive_data
-    {_id: ISODate(1912-04-15 00:00:10), interval: 300000, unit_system: metricwx, 
-     outside_temperature:12.4, inside_temperature:22.6, barometer_pressure: 1002.5, wind_speed: 1.2, wind_direction: 203}
-    {_id: ISODate(1912-04-15 00:00:15), interval: 300000, unit_system: metricwx, 
-     outside_temperature:12.5, inside_temperature:22.4, barometer_pressure: 1002.4, wind_speed: 0.8, wind_direction: 213}
-    {_id: ISODate(1912-04-15 00:00:20), interval: 300000, unit_system: metricwx, 
-     outside_temperature:12.5, inside_temperature:22.3, barometer_pressure: 1002.5, wind_speed: 0.7, wind_direction: 214}
+    {_id: ISODate(1912-04-15 00:00:10), interval: 300000, 
+     outside_temperature:12.4, inside_temperature:22.6, barometer_pressure: 1002.5, 
+     wind_speed: 1.2, wind_direction: 203}
+    {_id: ISODate(1912-04-15 00:00:15), interval: 300000, 
+     outside_temperature:12.5, inside_temperature:22.4, barometer_pressure: 1002.4, 
+     wind_speed: 0.8, wind_direction: 213}
+    {_id: ISODate(1912-04-15 00:00:20), interval: 300000, 
+     outside_temperature:12.5, inside_temperature:22.3, barometer_pressure: 1002.5, 
+     wind_speed: 0.7, wind_direction: 214}
     
 # Observation types
 The names of all observation types should consist of two parts, separated by an underscore ("`_`"). 
@@ -103,13 +119,13 @@ similar observations by the unit system they use.
 # <a id="unit_systems">Unit systems</a>
 There are three different places where unit systems come into play.
  
-* Units used for transport (via a RESTful API or websocket subscription);
+* Units used for transport (via a RESTful API or via a websocket subscription);
 * Units used for storage in the database;
 * Units used for display.
 
 This document covers only the first two.
 
-Generally, there is no difference between the API units and the storage units. The exception is timestamps. 
+Generally, there is no difference between the transport units and the storage units. The exception is timestamps. 
 
 ## Timestamps
 

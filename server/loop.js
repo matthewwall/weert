@@ -10,7 +10,7 @@ var mongo = require('mongodb');
 var LoopManager = function (url, options) {
     var self = this;
     self.url = url;
-    self.options = options;
+    self.options = options || {collection:{capped: true, size: 1000000, max: 3600}};
 };
 
 LoopManager.prototype.insert = function (in_packet, callback) {
@@ -38,7 +38,7 @@ LoopManager.prototype.insert = function (in_packet, callback) {
     MongoClient.connect(full_url, function (err, db) {
         if (err) return callback(err);
         // Create the collection if it doesn't exist already
-        self._createCollection(db, collection_name, self.options, function (err, coln) {
+        self._createCollection(db, collection_name, self.options.collection, function (err, coln) {
             if (err) return callback(err);
             coln.insert(packet, null, function (err, result) {
                 if (err) return callback(err);
