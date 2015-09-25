@@ -16,14 +16,11 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var pubsub = require('./pubsub');
 var async = require('async');
-var archiver = require('./archiver');
-var loop = require('./loop');
+//var archive = require('./archive');
+var dbtools = require('./dbtools');
 
 var app = express();
 var server = http.createServer(app);
-server.listen(port, function () {
-    console.log('Server listening at port %d', port);
-});
 
 
 /*
@@ -61,29 +58,7 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Serve all static files from the "public" subdirectory:
 app.use(express.static(path.join(__dirname, '../public')));
 
-var loop_manager = undefined;
-var archive_manager = undefined;
-
-var setup_database = function (callback) {
-    async.parallel([
-            function (callback) {
-                // Set up the loop manager
-                loop_manager = new loop.LoopManager(mongo_url, loop_manager_options);
-                return callback(null);
-            },
-            function (callback) {
-                // Set up the archive manager. Placeholder for now
-                return callback(null);
-            }],
-        function (err) {
-            if (err) {
-                console.log("Got error attempting to set up MongoDB database", err);
-                return callback(err);
-            }
-        }
-    );
-    return callback(null);
-};
+var loop_manager = new dbtools.StatelessCollectionMgr(mongo_url, loop_manager_options);
 
 var setup_routes = function (callback) {
 
@@ -95,7 +70,7 @@ var setup_routes = function (callback) {
         var ts = new Date(packet.timestamp);
         console.log("got packet timestamp", ts);
         // Insert it into the database
-        loop_manager.insert(packet, function (err, result) {
+        loop_manager.insertOne(packet, function (err, result) {
             // Send back an appropriate acknowledgement:
             if (err) {
                 console.log("Unable to insert packet with timestamp", ts);
@@ -139,7 +114,7 @@ var setup_routes = function (callback) {
         var record = req.body.record;
         console.log("got archive record with timestamp", new Date(record.dateTime));
 
-        archiver.insert(record, function (err, result) {
+        archive.insertOne(record, function (err, result) {
             if (err) {
                 console.log("Unable to insert record with timestamp", record['dateTime']);
                 res.sendStatus(500);
@@ -154,9 +129,14 @@ var setup_routes = function (callback) {
 };
 
 async.series([
-        // Set up the database first, then the routes:
-        setup_database,
-        setup_routes
+        // Set up the routes:
+        setup_routes,
+        function (callback){
+            server.listen(port, function(){
+                console.log("Server listening on port %d", port);
+                return callback(null);
+            });
+        }
     ],
     function (err) {
         if (err) {
@@ -166,5 +146,3 @@ async.series([
         console.log("Finished setup.");
     }
 );
-
-
