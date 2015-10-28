@@ -154,8 +154,7 @@ class WeeRTThread(RESTThread):
         # Convert timestamps to JavaScript style:
         _abridged['timestamp'] = record['dateTime'] * 1000
         
-        # Add the platform and instrument UUID's
-        _abridged['platform'] = self.platform_uuid
+        # Add the instrument ID:
         _abridged['instrument'] = self.instrument_uuid
         
         _mapped = {}

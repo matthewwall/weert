@@ -4,7 +4,7 @@
 
 "use strict";
 
-var mongo_url = "mongodb://localhost:27017/";
+var mongo_url = "mongodb://localhost:27017/weert";
 var port = process.env.PORT || 3000;
 var loop_manager_options = {collection:{capped: true, size: 1000000, max: 3600}};
 
@@ -16,8 +16,10 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var pubsub = require('./pubsub');
 var async = require('async');
+var MongoClient = require('mongodb').MongoClient;
+
 //var archive = require('./archive');
-var dbtools = require('./dbtools');
+var loop = require('./loop');
 
 var app = express();
 var server = http.createServer(app);
@@ -40,9 +42,8 @@ io.on('connection', function (socket) {
     // his connection go away.
     var unsubscribe_handle = pubsub.subscribe('new_packet', function (packet) {
         // New packet has arrived. Figure out which websocket subscription to push it out on.
-        var platform = packet.platform;
         var instrument = packet.instrument;
-        var subscription_name = "packet-" + platform + "-" + instrument;
+        var subscription_name = "packet-" + instrument;
         socket.emit(subscription_name, packet);
     });
 
@@ -58,7 +59,20 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Serve all static files from the "public" subdirectory:
 app.use(express.static(path.join(__dirname, '../public')));
 
-var loop_manager = new dbtools.StatelessCollectionMgr(mongo_url, loop_manager_options);
+var db = undefined;
+var loop_manager = undefined;
+
+var setup_databases = function (callback){
+    // Initialize connection once
+    MongoClient.connect(mongo_url, function(err, database) {
+        if(err) throw err;
+        db = database;
+        loop_manager = new loop.LoopManager(db, loop_manager_options);
+        console.log("loop collection ready");
+        // Signal that the databases are set up with no errors.
+        return callback(null);
+    });
+};
 
 var setup_routes = function (callback) {
 
@@ -68,7 +82,6 @@ var setup_routes = function (callback) {
         // Get the packet out of the request body:
         var packet = req.body.packet;
         var ts = new Date(packet.timestamp);
-        console.log("got packet timestamp", ts);
         // Insert it into the database
         loop_manager.insertOne(packet, function (err, result) {
             // Send back an appropriate acknowledgement:
@@ -92,11 +105,10 @@ var setup_routes = function (callback) {
     app.get('/api/loop', function (req, res) {
         var start = +req.query.start;
         var stop = +req.query.stop || Date.now();
-        var platform = req.query.platform;
         var instrument = req.query.instrument;
         console.log("Request for packets with start, stop times of", start, stop);
 
-        loop_manager.find(start, stop, platform, instrument, function (err, packet_array) {
+        loop_manager.find(start, stop, instrument, function (err, packet_array) {
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
                 res.sendStatus(400);
@@ -123,15 +135,26 @@ var setup_routes = function (callback) {
             }
         });
     });
-
+    console.log("routes read");
     // Signal that the routes are set up and with no errors
     callback(null);
 };
 
-async.series([
-        // Set up the routes:
-        setup_routes,
-        function (callback){
+async.series(
+    [
+        function (callback) {
+            async.parallel([
+                    setup_databases,
+                    setup_routes
+                ],
+                function (err, results) {
+                    if (err) return callback(err);
+                    console.log("dbs and routes ready", results);
+                    return callback(null);
+                }
+            );
+        },
+        function (callback) {
             server.listen(port, function(){
                 console.log("Server listening on port %d", port);
                 return callback(null);

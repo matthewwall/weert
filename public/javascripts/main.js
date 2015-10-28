@@ -67,7 +67,7 @@ var getInitialData = function (callback) {
     var start = stop - max_initial_age_secs * 1000;
     // Use a simple GET request
     var url = "http://" + window.location.host + "/api/loop?start=" + start + "&stop=" + stop
-        + "&platform=" + platform + "&instrument=" + instrument;
+        + "&instrument=" + instrument;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {
@@ -120,8 +120,8 @@ var updatePlot = function (err) {
     charts.data(dataset);
     charts.render();
 
-    // Subscriptions are of the form 'packet-p1-i1':
-    var subscription_name = "packet-" + platform + "-" + instrument;
+    // Subscriptions are of the form 'packet-i1':
+    var subscription_name = "packet-" + instrument;
 
     socket.on(subscription_name, function (packet) {
         console.log("Client got packet", new Date(packet.timestamp));
