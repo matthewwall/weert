@@ -81,7 +81,7 @@ var WindCompass = (function () {
             .append("tspan").attr("class", "speedSuffix")
             .text(self.config.windSpeedUnitLabel);
 
-        var ticks = self.compass.selectAll(".tick").data(tickInterval)
+        var ticks = self.compass.selectAll(".tick").data(tickInterval);
         ticks.enter().append("path")
             .attr("class", function (d) {
                 var classes = ["tick"];

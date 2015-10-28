@@ -64,7 +64,14 @@ StatelessCollectionMgr.prototype.find = function (start, stop, platform, instrum
                     db.close();
                     return callback(err);
                 }
-                coln.find({"_id": {"$gt": new Date(start), "$lte": new Date(stop)}}).toArray(function (err, results) {
+                coln.find(
+                    {
+                        _id: {
+                            $gt : new Date(start),
+                            $lte: new Date(stop)
+                        }
+                    }
+                ).toArray(function (err, results) {
                         if (err) {
                             db.close();
                             return callback(err);
@@ -106,13 +113,13 @@ var _createCollection = function (db, collectionName, options, callback) {
 
 var calcAggregate = function (collection, start, stop, obs_type, aggregate_type, callback) {
     var agg_operator = "$" + aggregate_type;
-    var agg_expr={};
+    var agg_expr = {};
     agg_expr[agg_operator] = "$" + obs_type;
     collection.aggregate(
         [
             {
                 $match: {
-                    _id     : {
+                    _id                : {
                         $gt : new Date(start),
                         $lte: new Date(stop)
                     },
@@ -121,7 +128,7 @@ var calcAggregate = function (collection, start, stop, obs_type, aggregate_type,
             },
             {
                 $group: {
-                    _id: null,
+                    _id      : null,
                     agg_value: agg_expr
                 }
             }
@@ -135,7 +142,7 @@ var calcAggregate = function (collection, start, stop, obs_type, aggregate_type,
 
 module.exports = {
     StatelessCollectionMgr: StatelessCollectionMgr,
-    calcAggregate : calcAggregate
+    calcAggregate         : calcAggregate
 };
 
 /**
