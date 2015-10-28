@@ -2,7 +2,7 @@
 
 var dbtools = require('./dbtools');
 
-var LoopManager = function(db, options) {
+var LoopManager = function (db, options) {
     this.db = db;
     this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
 };
@@ -37,34 +37,14 @@ LoopManager.prototype.insertOne = function (in_packet, callback) {
 };
 
 
-
-LoopManager.prototype.find = function (start, stop, instrument, callback) {
+LoopManager.prototype.find = function (start, stop, instrument, limit, callback) {
     var self = this;
-    if (instrument === undefined)
-        return callback("Missing platform or instrument ID");
     var collection_name = "loop_" + instrument;
-    self.db.collection(collection_name, function (err, coln) {
-            if (err) return callback(err);
-            coln.find(
-                {
-                    _id: {
-                        $gt : new Date(start),
-                        $lte: new Date(stop)
-                    }
-                }
-            ).toArray(function (err, results) {
-                    if (err) return callback(err);
-                    // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
-                    // instead of a Date() object:
-                    for (var i = 0; i < results.length; i++) {
-                        results[i].timestamp = results[i]._id.getTime();
-                        delete results[i]._id;
-                    }
-                    return callback(null, results);
-                }
-            )
-        }
-    )
+
+    dbtools.find(self.db, collection_name, start, stop, limit, function (err, result){
+        if (err) return callback(err);
+        return callback(null, result);
+    });
 };
 
 module.exports = {

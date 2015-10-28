@@ -19,6 +19,38 @@ var createCollection = function (db, collectionName, options, callback) {
     });
 };
 
+
+var find = function (db, collection_name, start, stop, limit, callback) {
+    var self = this;
+    if (limit === undefined)
+        limit = 0;
+    db.collection(collection_name, function (err, coln) {
+            if (err) return callback(err);
+            coln.find(
+                {
+                    _id: {
+                        $gt : new Date(start),
+                        $lte: new Date(stop)
+                    }
+                }
+            )
+                .limit(limit)
+                .toArray(function (err, results) {
+                    if (err) return callback(err);
+                    // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+                    // instead of a Date() object:
+                    for (var i = 0; i < results.length; i++) {
+                        results[i].timestamp = results[i]._id.getTime();
+                        delete results[i]._id;
+                    }
+                    return callback(null, results);
+                }
+            )
+        }
+    )
+};
+
+
 var calcAggregate = function (collection, start, stop, obs_type, aggregate_type, callback) {
     var agg_operator = "$" + aggregate_type;
     var agg_expr = {};
@@ -50,5 +82,6 @@ var calcAggregate = function (collection, start, stop, obs_type, aggregate_type,
 
 module.exports = {
     createCollection: createCollection,
+    find            : find,
     calcAggregate   : calcAggregate
 };

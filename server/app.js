@@ -105,10 +105,11 @@ var setup_routes = function (callback) {
     app.get('/api/loop', function (req, res) {
         var start = +req.query.start;
         var stop = +req.query.stop || Date.now();
+        var limit = +req.query.limit || 0;
         var instrument = req.query.instrument;
         console.log("Request for packets with start, stop times of", start, stop);
 
-        loop_manager.find(start, stop, instrument, function (err, packet_array) {
+        loop_manager.find(start, stop, instrument, limit, function (err, packet_array) {
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
                 res.sendStatus(400);
