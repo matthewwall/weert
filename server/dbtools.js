@@ -20,10 +20,13 @@ var createCollection = function (db, collectionName, options, callback) {
 };
 
 
-var find = function (db, collection_name, start, stop, limit, callback) {
+var find = function (db, collection_name, options, callback) {
     var self = this;
-    if (limit === undefined)
-        limit = 0;
+    var start = options.start === undefined ? 0 : options.start;
+    var stop = options.stop === undefined ? Date.now() : options.stop;
+    var limit = options.limit === undefined ? 0 : options.limit;
+    var sort = options.sort === undefined ? {_id: 1} : options.sort;
+
     db.collection(collection_name, function (err, coln) {
             if (err) return callback(err);
             coln.find(
@@ -35,6 +38,7 @@ var find = function (db, collection_name, start, stop, limit, callback) {
                 }
             )
                 .limit(limit)
+                .sort(sort)
                 .toArray(function (err, results) {
                     if (err) return callback(err);
                     // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
@@ -51,21 +55,28 @@ var find = function (db, collection_name, start, stop, limit, callback) {
 };
 
 
-var calcAggregate = function (collection, start, stop, obs_type, aggregate_type, callback) {
+var calcAggregate = function (collection, obs_type, options, callback) {
+    var self = this;
+    var start = options.start === undefined ? 0 : options.start;
+    var stop = options.stop === undefined ? Date.now() : options.stop;
+    var aggregate_type = options.aggregate_type === undefined ? 'avg' : options.aggregate_type;
+
     var agg_operator = "$" + aggregate_type;
     var agg_expr = {};
     agg_expr[agg_operator] = "$" + obs_type;
+    var match_expr = {
+        $match: {
+            _id : {
+                $gt : new Date(start),
+                $lte: new Date(stop)
+            }
+        }
+    };
+    match_expr["$match"][obs_type] = {$ne : null};
+
     collection.aggregate(
         [
-            {
-                $match: {
-                    _id                : {
-                        $gt : new Date(start),
-                        $lte: new Date(stop)
-                    },
-                    outside_temperature: {$ne: null}
-                }
-            },
+            match_expr,
             {
                 $group: {
                     _id      : null,
@@ -76,7 +87,8 @@ var calcAggregate = function (collection, start, stop, obs_type, aggregate_type,
         {},
         function (err, result) {
             if (err) return callback(err);
-            return callback(null, result[0].agg_value)
+            var val = result[0] === undefined ? null : result[0].agg_value;
+            return callback(null, val)
         })
 };
 
