@@ -40,6 +40,12 @@ LoopManager.prototype.insertOne = function (in_packet, callback) {
 LoopManager.prototype.find = function (instrument, options, callback) {
     var self = this;
     var collection_name = "loop_" + instrument;
+    if (options.sort !== undefined){
+        if (options.sort._id !== undefined){
+            options.sort[timestamp] = options.sort._id;
+            delete options.sort._id;
+        }
+    }
 
     dbtools.find(self.db, collection_name, options, function (err, result){
         if (err) return callback(err);

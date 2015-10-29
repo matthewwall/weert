@@ -50,3 +50,44 @@ only supported by v3.3+
 7. Run `weewxd`
 
 8. Open up a client at [http://localhost:3000](http://localhost:3000).
+
+# RESTful API
+
+## /api/loop
+### GET
+
+    /api/loop?instrumentID=UUID&start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
+    
+Get all packets from the instrument with ID `UUID` and with timestamps between `XXXXX` and `YYYYY`, inclusive. 
+If `XXXXX` is missing, then start with the first available packet. If `YYYYY` is missing, then end with the last available packet.
+
+If `limit` is given, then limit the number of returned packets to `N`.
+
+If `sort` is given, then sort the results using <i>sortspec</i>, an escaped JSON object.
+An example <i>sortspec</i> would be `{timestamp:-1}`, that is, return the results with descending timestamps.
+
+Sample URL (with a <i>sortspec</i> of `{timestamp:-1}`):
+
+    http://localhost:3000/api/loop?instrument=801a8409cd&start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
+  
+Result would be an array holding the packets satisfying the search criteria:
+
+    [{"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000},
+     {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":252,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159218000},
+     {"wind_speed":2.6822,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":276,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159216000},
+     {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159214000},
+     {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159212000}]
+
+### POST
+
+    /api/loop
+
+Post a LOOP packet to the database. The packet should be contained as a JSON payload in the body of the POST. The packet
+must contain keyword `timestamp`, holding the unix epoch time in <i>milliseconds</i> (JavaScript style).
+
+There is no enforcement of unix, but best practices is to use the weewx `METRICWX` system.
+
+Example packet:
+
+    {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,
+     "outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000}
