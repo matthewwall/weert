@@ -37,11 +37,11 @@ LoopManager.prototype.insertOne = function (in_packet, callback) {
 };
 
 
-LoopManager.prototype.find = function (start, stop, instrument, limit, callback) {
+LoopManager.prototype.find = function (instrument, options, callback) {
     var self = this;
     var collection_name = "loop_" + instrument;
 
-    dbtools.find(self.db, collection_name, start, stop, limit, function (err, result){
+    dbtools.find(self.db, collection_name, options, function (err, result){
         if (err) return callback(err);
         return callback(null, result);
     });

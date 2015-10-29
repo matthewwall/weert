@@ -103,13 +103,10 @@ var setup_routes = function (callback) {
     // RESTful interface for requesting packets from a platform and instrument
     // between a start and stop time.
     app.get('/api/loop', function (req, res) {
-        var start = +req.query.start;
-        var stop = +req.query.stop || Date.now();
-        var limit = +req.query.limit || 0;
         var instrument = req.query.instrument;
         console.log("Request for packets with start, stop times of", start, stop);
 
-        loop_manager.find(start, stop, instrument, limit, function (err, packet_array) {
+        loop_manager.find(instrument, req.query, function (err, packet_array) {
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
                 res.sendStatus(400);
