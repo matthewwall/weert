@@ -104,7 +104,11 @@ var setup_routes = function (callback) {
     // between a start and stop time.
     app.get('/api/loop', function (req, res) {
         var instrument = req.query.instrument;
-        console.log("Request for packets with start, stop times of", start, stop);
+        console.log("Request for packets with start, stop times of", req.query.start, req.query.stop);
+        // If a 'sort' parameter is included, convert it from JSON
+        if (req.query.sort !== undefined){
+            req.query.sort = JSON.parse(req.query.sort);
+        }
 
         loop_manager.find(instrument, req.query, function (err, packet_array) {
             if (err) {

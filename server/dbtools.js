@@ -21,11 +21,13 @@ var createCollection = function (db, collectionName, options, callback) {
 
 
 var find = function (db, collection_name, options, callback) {
-    var self = this;
-    var start = options.start === undefined ? 0 : options.start;
-    var stop = options.stop === undefined ? Date.now() : options.stop;
-    var limit = options.limit === undefined ? 0 : options.limit;
-    var sort = options.sort === undefined ? {_id: 1} : options.sort;
+    var self  = this;
+    // Dig any parameters out of the options hash. Make sure to convert any
+    // strings to numbers.
+    var start = options.start === undefined ? 0          : +options.start;
+    var stop  = options.stop  === undefined ? Date.now() : +options.stop;
+    var limit = options.limit === undefined ? 0          : +options.limit;
+    var sort  = options.sort  === undefined ? {_id: 1}   :  options.sort;
 
     db.collection(collection_name, function (err, coln) {
             if (err) return callback(err);

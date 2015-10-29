@@ -1,8 +1,10 @@
 SERVER
 
-Check on error codes going from the Node server back to weewx.
+Add aggregation to the LOOP api.
 
-Need to implement the rest of the WeeRT data model, in particular metadata and location.
+Add code for implementing platform model.
+
+Check on error codes going from the Node server back to weewx.
 
 Look at using EventEmitters instead of PubSub.
 
