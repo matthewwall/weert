@@ -85,7 +85,8 @@ Result would be an array holding the packets satisfying the search criteria:
 Post a LOOP packet to the database. The packet should be contained as a JSON payload in the body of the POST. The packet
 must contain keyword `timestamp`, holding the unix epoch time in <i>milliseconds</i> (JavaScript style).
 
-There is no enforcement of unix, but best practices is to use the weewx `METRICWX` system.
+There is no enforcement of the unit system used in the packet, 
+but best practices is to use the weewx `METRICWX` system.
 
 Example packet:
 
