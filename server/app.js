@@ -80,38 +80,37 @@ var setup_routes = function (callback) {
     app.get('/api/loop/:instrumentID', function (req, res) {
         // Get the instrumentID out of the route path
         var instrumentID = req.params.instrumentID;
-        console.log("Request for packets with start, stop times of", req.query.start, req.query.stop);
-        // If a 'sort' parameter is included, convert it from JSON
-        if (req.query.sort !== undefined){
-            req.query.sort = JSON.parse(req.query.sort);
+        // Is an aggregation being requested?
+        if (req.query.aggregate_type !== undefined){
+            // Yes, an aggregation is being requested.
+            console.log("Request for aggregation", req.query.aggregate_type,
+                "with start, stop times of", req.query.start, req.query.stop);
+            var obs_type = req.query.obs_type;
+            loop_manager.aggregate(instrumentID, obs_type, req.query, function (err, result) {
+                if (err) {
+                    console.log("Unable to satisfy request. Reason", err);
+                    res.status(400).send(err.message);
+                } else {
+                    res.send(JSON.stringify(result));
+                }
+            });
+        } else {
+            console.log("Request for packets with start, stop times of", req.query.start, req.query.stop);
+            // If a 'sort' parameter is included, convert it from JSON
+            if (req.query.sort !== undefined) {
+                req.query.sort = JSON.parse(req.query.sort);
+            }
+
+            loop_manager.find(instrumentID, req.query, function (err, packet_array) {
+                if (err) {
+                    console.log("Unable to satisfy request. Reason", err);
+                    res.status(400).send(err.message);
+                } else {
+                    console.log("# of packets=", packet_array.length);
+                    res.send(JSON.stringify(packet_array));
+                }
+            });
         }
-
-        loop_manager.find(instrumentID, req.query, function (err, packet_array) {
-            if (err) {
-                console.log("Unable to satisfy request. Reason", err);
-                res.status(400).send(err.message);
-            } else {
-                console.log("# of packets=", packet_array.length);
-                res.send(JSON.stringify(packet_array));
-            }
-        });
-    });
-
-    // RESTful interface for requesting aggregated results of an observation type
-    // between a start and stop time
-    app.get('/api/loop/:instrumentID/:obs_type', function (req, res) {
-        // Get the instrumentID and observation type
-        var instrumentID = req.params.instrumentID;
-        var obs_type = req.params.obs_type;
-
-        loop_manager.aggregate(instrumentID, obs_type, req.query, function (err, result) {
-            if (err) {
-                console.log("Unable to satisfy request. Reason", err);
-                res.status(400).send(err.message);
-            } else {
-                res.send(JSON.stringify(result));
-            }
-        });
     });
 
     // RESTful interface that listens for incoming loop packets and then

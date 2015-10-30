@@ -56,6 +56,10 @@ only supported by v3.3+
 ## /api/loop/:instrumentID
 ### GET
 
+The GET API takes two forms.
+
+#### 1. GET packets
+
     /api/loop/:instrumentID?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
     
     
@@ -83,6 +87,31 @@ in JSON.
 
 Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
 
+#### 2. GET aggregate
+
+    /api/loop/:instrumentID?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
+    
+If the parameter `aggregate_type` appears, then an *aggregate* is returned. For this form,
+get the aggregate `agg` of observation type *obs_name* from instrument *instrumentID* between 
+timestamps `XXXXX` and `YYYYY` inclusive.
+If `XXXXX` is missing, then start with the first available packet. 
+If `YYYYY` is missing, then end with the last available packet.
+
+Choices for the aggregation type `agg` include `min`, `max`, `sum`, `avg`, `first` and `last`. 
+If the aggregation type `agg` is missing, then use `avg`.
+
+Null observation values are ignored.
+
+If the observation type *obs_name* is not in the collection, then `null` will be returned.
+
+Example request:
+
+    http://localhost:3000/api/loop/801a8409cd?start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
+    
+Result is returned in the response body as a single value, encoded in JSON.
+
+Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
+
 
 ### POST
 
@@ -102,29 +131,4 @@ Example packet:
 
     {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,
      "outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000}
-
-## /api/loop/:instrumentID/:obs_type
-### GET
-
-    /api/loop/:instrumentID/:obs_type?start=XXXXX&stop=YYYYY&aggregate_type=agg
-    
-Get the aggregate `agg` of observation type *obs_type* from instrument *instrumentID* between 
-timestamps `XXXXX` and `YYYYY` inclusive.
-If `XXXXX` is missing, then start with the first available packet. 
-If `YYYYY` is missing, then end with the last available packet.
-
-Choices for the aggregation type `agg` include `min`, `max`, `sum`, `avg`, `first` and `last`. 
-If the aggregation type `agg` is missing, then use `avg`.
-
-Null observation values are ignored.
-
-If the observation type *obs_type* is not in the collection, then `null` will be returned.
-
-Example request:
-
-    http://localhost:3000/api/loop/801a8409cd/outside_temperature?start=1446158201000&stop=1449260201000&aggregate_type=min
-    
-Result is returned in the response body as a single value, encoded in JSON.
-
-Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
 
