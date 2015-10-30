@@ -101,7 +101,7 @@ Example packet:
 ## /api/loop/aggregate
 ### GET
 
-    /api/loop?instrumentID=UUID&start=XXXXX&stop=YYYYY&obs_type=observation&aggregate_type=agg
+    /api/loop/aggregate?instrumentID=UUID&start=XXXXX&stop=YYYYY&obs_type=observation&aggregate_type=agg
 
 Get the aggregate `agg` of observation type `observation` between timestamps `XXXXX` and `YYYYY` inclusive.
 If `XXXXX` is missing, then start with the first available packet. 
