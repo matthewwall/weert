@@ -107,8 +107,10 @@ Get the aggregate `agg` of observation type `observation` between timestamps `XX
 If `XXXXX` is missing, then start with the first available packet. 
 If `YYYYY` is missing, then end with the last available packet.
 
-Choices for the aggregation type `agg` include `min`, `max`, `sum`, and `avg`. 
+Choices for the aggregation type `agg` include `min`, `max`, `sum`, `avg`, `first` and `last`. 
 If the aggregation type `agg` is missing, then use `avg`.
+
+Null observation values are ignored.
 
 If the observation type `observation` is not in the collection, then `null` will be returned.
 
