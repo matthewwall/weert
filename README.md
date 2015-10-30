@@ -78,6 +78,9 @@ Result would be an array holding the packets satisfying the search criteria:
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159214000},
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159212000}]
 
+Returns a status of `400` if the `instrumentID` does not exist. Additional details are in the HTTP response.
+
+
 ### POST
 
     /api/loop
