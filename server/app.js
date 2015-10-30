@@ -100,6 +100,21 @@ var setup_routes = function (callback) {
         });
     });
 
+    // RESTful interface for requesting aggregated results of an observation type
+    // between a start and stop time
+    app.get('/api/loop/aggregate', function (req, res) {
+        var instrument = req.query.instrument;
+
+        loop_manager.aggregate(instrument, req.query.obs_type, req.query, function (err, result) {
+            if (err) {
+                console.log("Unable to satisfy request. Reason", err);
+                res.status(400).send(err.message);
+            } else {
+                res.send(JSON.stringify(result));
+            }
+        });
+    });
+
     // RESTful interface for requesting packets from a platform and instrument
     // between a start and stop time.
     app.get('/api/loop', function (req, res) {

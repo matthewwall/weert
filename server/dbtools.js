@@ -55,8 +55,8 @@ var find = function (collection, options, callback) {
 
 var calcAggregate = function (collection, obs_type, options, callback) {
     var self = this;
-    var start = options.start === undefined ? 0 : options.start;
-    var stop = options.stop === undefined ? Date.now() : options.stop;
+    var start = options.start === undefined ? 0          : +options.start;
+    var stop  = options.stop  === undefined ? Date.now() : +options.stop;
     var aggregate_type = options.aggregate_type === undefined ? 'avg' : options.aggregate_type;
 
     var agg_operator = "$" + aggregate_type;

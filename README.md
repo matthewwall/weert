@@ -59,7 +59,8 @@ only supported by v3.3+
     /api/loop?instrumentID=UUID&start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
     
 Get all packets from the instrument with ID `UUID` and with timestamps between `XXXXX` and `YYYYY`, inclusive. 
-If `XXXXX` is missing, then start with the first available packet. If `YYYYY` is missing, then end with the last available packet.
+If `XXXXX` is missing, then start with the first available packet. 
+If `YYYYY` is missing, then end with the last available packet.
 
 If `limit` is given, then limit the number of returned packets to `N`.
 
@@ -70,7 +71,8 @@ Sample URL (with a <i>sortspec</i> of `{timestamp:-1}`):
 
     http://localhost:3000/api/loop?instrument=801a8409cd&start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
   
-Result would be an array holding the packets satisfying the search criteria:
+Result is returned in the response body as an array holding the packets satisfying the search criteria, encoded
+in JSON.
 
     [{"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000},
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":252,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159218000},
@@ -78,7 +80,7 @@ Result would be an array holding the packets satisfying the search criteria:
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159214000},
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159212000}]
 
-Returns a status of `400` if the `instrumentID` does not exist. Additional details are in the HTTP response.
+Returns a status of `400` if the `instrumentID` does not exist. Additional details are in the HTTP response body.
 
 
 ### POST
@@ -95,3 +97,25 @@ Example packet:
 
     {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,
      "outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000}
+
+## /api/loop/aggregate
+### GET
+
+    /api/loop?instrumentID=UUID&start=XXXXX&stop=YYYYY&obs_type=observation&aggregate_type=agg
+
+Get the aggregate `agg` of observation type `observation` between timestamps `XXXXX` and `YYYYY` inclusive.
+If `XXXXX` is missing, then start with the first available packet. 
+If `YYYYY` is missing, then end with the last available packet.
+
+Choices for the aggregation type `agg` include `min`, `max`, `sum`, and `avg`. 
+If the aggregation type `agg` is missing, then use `avg`.
+
+If the observation type `observation` is not in the collection, then `null` will be returned.
+
+Example request:
+
+    http://localhost:3000/api/loop/aggregate?instrument=801a8409cd&start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
+    
+Result is returned in the response body as a single value, encoded in JSON.
+
+Returns a status of `400` if the `instrumentID` does not exist. Additional details are in the HTTP response body.
