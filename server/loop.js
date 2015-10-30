@@ -7,24 +7,22 @@ var LoopManager = function (db, options) {
     this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
 };
 
-LoopManager.prototype.insertOne = function (in_packet, callback) {
+LoopManager.prototype.insertOne = function (instrumentID, in_packet, callback) {
     var self = this;
-    if (in_packet.instrument === undefined)
+    if (instrumentID === undefined)
         return callback("Missing instrument ID");
-    // Clone the packet, changing timestamp to _id, and not passing on the instrument name
+    // Clone the packet, changing timestamp to _id
     var packet = {};
     for (var k in in_packet) {
         if (in_packet.hasOwnProperty(k)) {
             if (k === 'timestamp') {
                 packet["_id"] = new Date(in_packet[k]);
             } else {
-                if (k !== 'instrument') {
-                    packet[k] = in_packet[k];
-                }
+                packet[k] = in_packet[k];
             }
         }
     }
-    var collection_name = "loop_" + in_packet.instrument;
+    var collection_name = "loop_" + instrumentID;
     // Create the collection if it doesn't exist already
     dbtools.createCollection(this.db, collection_name, self.options.collection, function (err, coln) {
         if (err) return callback(err);

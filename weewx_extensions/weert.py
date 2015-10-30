@@ -1,7 +1,9 @@
 import json
+import os.path
 import sys
 import syslog
 import time
+import urlparse
 import urllib2
 import Queue
 
@@ -10,7 +12,8 @@ import weewx.restx
 
 from weewx.restx import StdRESTful, RESTThread
 
-DEFAULT_NODE_URL = "http://localhost:3000/api/loop"
+DEFAULT_NODE_URL = "http://localhost:3000"
+WEERT_ENDPOINT_ROOT = "/api/loop"
 
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.
@@ -94,7 +97,7 @@ class WeeRTThread(RESTThread):
         
         Optional parameters:
         
-          node_url: The endpoint URL for the Node server
+          node_url: The URL for the Node server
         
           obs_types: A list of observation types to be sent to the Node
           server [optional]
@@ -154,15 +157,14 @@ class WeeRTThread(RESTThread):
         # Convert timestamps to JavaScript style:
         _abridged['timestamp'] = record['dateTime'] * 1000
         
-        # Add the instrument ID:
-        _abridged['instrument'] = self.instrument_uuid
-        
         _mapped = {}
         for k in _abridged:
             _new_k = WeeRTThread.map.get(k, k)
             _mapped[_new_k] = _abridged[k] 
         
-        _req = urllib2.Request(self.node_url)
+        _full_url = urlparse.urljoin(self.node_url, WEERT_ENDPOINT_ROOT + '/' + self.instrument_uuid)
+        
+        _req = urllib2.Request(_full_url)
         _req.add_header('Content-Type', 'application/json')
         _req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
 

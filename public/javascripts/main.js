@@ -4,7 +4,7 @@
 
 "use strict";
 var platform = "p1";
-var instrument = "i1";
+var instrumentID = "i1";
 // Initial request of data from MongoDB in seconds
 var max_initial_age_secs = 1200;
 // Max retained age in seconds:
@@ -66,8 +66,7 @@ var getInitialData = function (callback) {
     var stop = Date.now();
     var start = stop - max_initial_age_secs * 1000;
     // Use a simple GET request
-    var url = "http://" + window.location.host + "/api/loop?start=" + start + "&stop=" + stop
-        + "&instrument=" + instrument;
+    var url = "http://" + window.location.host + "/api/loop/" + instrumentID + "?start=" + start + "&stop=" + stop;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {
@@ -122,7 +121,7 @@ var updatePlot = function (err) {
     charts.render();
 
     // Subscriptions are of the form 'packet-i1':
-    var subscription_name = "packet-" + instrument;
+    var subscription_name = "packet-" + instrumentID;
 
     socket.on(subscription_name, function (packet) {
         console.log("Client got packet", new Date(packet.timestamp));

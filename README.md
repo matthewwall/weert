@@ -53,12 +53,13 @@ only supported by v3.3+
 
 # RESTful API
 
-## /api/loop
+## /api/loop/:instrumentID
 ### GET
 
-    /api/loop?instrumentID=UUID&start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
+    /api/loop/:instrumentID?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
     
-Get all packets from the instrument with ID `UUID` and with timestamps between `XXXXX` and `YYYYY`, inclusive. 
+    
+Get all packets from the instrument with ID *instrumentID* and with timestamps between `XXXXX` and `YYYYY`, inclusive. 
 If `XXXXX` is missing, then start with the first available packet. 
 If `YYYYY` is missing, then end with the last available packet.
 
@@ -69,7 +70,7 @@ An example <i>sortspec</i> would be `{timestamp:-1}`, that is, return the result
 
 Sample URL (with a <i>sortspec</i> of `{timestamp:-1}`):
 
-    http://localhost:3000/api/loop?instrument=801a8409cd&start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
+    http://localhost:3000/api/loop/801a8409cd?start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
   
 Result is returned in the response body as an array holding the packets satisfying the search criteria, encoded
 in JSON.
@@ -80,30 +81,35 @@ in JSON.
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159214000},
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159212000}]
 
-Returns a status of `400` if the `instrumentID` does not exist. Additional details are in the HTTP response body.
+Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
 
 
 ### POST
 
-    /api/loop
+    /api/loop/:instrumentID
 
-Post a LOOP packet to the database. The packet should be contained as a JSON payload in the body of the POST. The packet
+Post a LOOP packet for the instrument with ID *instrumentID*. The packet should be contained as a JSON payload in the body of the POST. The packet
 must contain keyword `timestamp`, holding the unix epoch time in <i>milliseconds</i> (JavaScript style).
 
 There is no enforcement of the unit system used in the packet, 
 but best practices is to use the weewx `METRICWX` system.
+
+Sample URL:
+
+    http://localhost:3000/api/loop/801a8409cd
 
 Example packet:
 
     {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,
      "outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000}
 
-## /api/loop/aggregate
+## /api/loop/:instrumentID/:obs_type
 ### GET
 
-    /api/loop/aggregate?instrumentID=UUID&start=XXXXX&stop=YYYYY&obs_type=observation&aggregate_type=agg
-
-Get the aggregate `agg` of observation type `observation` between timestamps `XXXXX` and `YYYYY` inclusive.
+    /api/loop/:instrumentID/:obs_type?start=XXXXX&stop=YYYYY&aggregate_type=agg
+    
+Get the aggregate `agg` of observation type *obs_type* from instrument *instrumentID* between 
+timestamps `XXXXX` and `YYYYY` inclusive.
 If `XXXXX` is missing, then start with the first available packet. 
 If `YYYYY` is missing, then end with the last available packet.
 
@@ -112,12 +118,13 @@ If the aggregation type `agg` is missing, then use `avg`.
 
 Null observation values are ignored.
 
-If the observation type `observation` is not in the collection, then `null` will be returned.
+If the observation type *obs_type* is not in the collection, then `null` will be returned.
 
 Example request:
 
-    http://localhost:3000/api/loop/aggregate?instrument=801a8409cd&start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
+    http://localhost:3000/api/loop/801a8409cd/outside_temperature?start=1446158201000&stop=1449260201000&aggregate_type=min
     
 Result is returned in the response body as a single value, encoded in JSON.
 
-Returns a status of `400` if the `instrumentID` does not exist. Additional details are in the HTTP response body.
+Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
+

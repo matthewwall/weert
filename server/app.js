@@ -40,11 +40,10 @@ io.on('connection', function (socket) {
     // New client has connected. Subscribe him/her to any new packets.
     // Save the unsubscribe handle so we can unsubscribe the client should
     // his connection go away.
-    var unsubscribe_handle = pubsub.subscribe('new_packet', function (packet) {
+    var unsubscribe_handle = pubsub.subscribe('new_packet', function (packet_info) {
         // New packet has arrived. Figure out which websocket subscription to push it out on.
-        var instrument = packet.instrument;
-        var subscription_name = "packet-" + instrument;
-        socket.emit(subscription_name, packet);
+        var subscription_name = "packet-" + packet_info.instrumentID;
+        socket.emit(subscription_name, packet_info.packet);
     });
 
     socket.on('disconnect', function () {
@@ -76,14 +75,55 @@ var setup_databases = function (callback){
 
 var setup_routes = function (callback) {
 
+    // RESTful interface for requesting packets from a platform and instrument
+    // between a start and stop time.
+    app.get('/api/loop/:instrumentID', function (req, res) {
+        // Get the instrumentID out of the route path
+        var instrumentID = req.params.instrumentID;
+        console.log("Request for packets with start, stop times of", req.query.start, req.query.stop);
+        // If a 'sort' parameter is included, convert it from JSON
+        if (req.query.sort !== undefined){
+            req.query.sort = JSON.parse(req.query.sort);
+        }
+
+        loop_manager.find(instrumentID, req.query, function (err, packet_array) {
+            if (err) {
+                console.log("Unable to satisfy request. Reason", err);
+                res.status(400).send(err.message);
+            } else {
+                console.log("# of packets=", packet_array.length);
+                res.send(JSON.stringify(packet_array));
+            }
+        });
+    });
+
+    // RESTful interface for requesting aggregated results of an observation type
+    // between a start and stop time
+    app.get('/api/loop/:instrumentID/:obs_type', function (req, res) {
+        // Get the instrumentID and observation type
+        var instrumentID = req.params.instrumentID;
+        var obs_type = req.params.obs_type;
+
+        loop_manager.aggregate(instrumentID, obs_type, req.query, function (err, result) {
+            if (err) {
+                console.log("Unable to satisfy request. Reason", err);
+                res.status(400).send(err.message);
+            } else {
+                res.send(JSON.stringify(result));
+            }
+        });
+    });
+
     // RESTful interface that listens for incoming loop packets and then
     // stores them in the MongoDB database
-    app.post('/api/loop', function (req, res) {
+    app.post('/api/loop/:instrumentID', function (req, res) {
+        // Get the instrumentID
+        var instrumentID = req.params.instrumentID;
         // Get the packet out of the request body:
         var packet = req.body.packet;
         var ts = new Date(packet.timestamp);
         // Insert it into the database
-        loop_manager.insertOne(packet, function (err, result) {
+        loop_manager.insertOne(instrumentID, packet, function (err, result) {
             // Send back an appropriate acknowledgement:
             if (err) {
                 console.log("Unable to insert packet with timestamp", ts);
@@ -95,64 +135,12 @@ var setup_routes = function (callback) {
             } else {
                 res.sendStatus(200);
                 // Let any interested subscribers know there is a new packet:
-                pubsub.publish('new_packet', packet, this);
+                pubsub.publish('new_packet', {"packet": packet, "instrumentID" : instrumentID}, this);
             }
         });
     });
 
-    // RESTful interface for requesting aggregated results of an observation type
-    // between a start and stop time
-    app.get('/api/loop/aggregate', function (req, res) {
-        var instrument = req.query.instrument;
-
-        loop_manager.aggregate(instrument, req.query.obs_type, req.query, function (err, result) {
-            if (err) {
-                console.log("Unable to satisfy request. Reason", err);
-                res.status(400).send(err.message);
-            } else {
-                res.send(JSON.stringify(result));
-            }
-        });
-    });
-
-    // RESTful interface for requesting packets from a platform and instrument
-    // between a start and stop time.
-    app.get('/api/loop', function (req, res) {
-        var instrument = req.query.instrument;
-        console.log("Request for packets with start, stop times of", req.query.start, req.query.stop);
-        // If a 'sort' parameter is included, convert it from JSON
-        if (req.query.sort !== undefined){
-            req.query.sort = JSON.parse(req.query.sort);
-        }
-
-        loop_manager.find(instrument, req.query, function (err, packet_array) {
-            if (err) {
-                console.log("Unable to satisfy request. Reason", err);
-                res.status(400).send(err.message);
-            } else {
-                console.log("# of packets=", packet_array.length);
-                res.send(JSON.stringify(packet_array));
-            }
-        });
-    });
-
-    // RESTful interface that listens for incoming archive records and then
-    // stores them in the MongoDB database
-    app.post('/api/archive', function (req, res) {
-        // Get the record out of the request body:
-        var record = req.body.record;
-        console.log("got archive record with timestamp", new Date(record.dateTime));
-
-        archive.insertOne(record, function (err, result) {
-            if (err) {
-                console.log("Unable to insert record with timestamp", record['dateTime']);
-                res.sendStatus(500);
-            } else {
-                res.sendStatus(200);
-            }
-        });
-    });
-    console.log("routes read");
+    console.log("routes ready");
     // Signal that the routes are set up and with no errors
     callback(null);
 };
