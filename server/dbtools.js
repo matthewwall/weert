@@ -20,7 +20,7 @@ var createCollection = function (db, collectionName, options, callback) {
 };
 
 
-var find = function (db, collection_name, options, callback) {
+var find = function (collection, options, callback) {
     var self  = this;
     // Dig any parameters out of the options hash. Make sure to convert any
     // strings to numbers.
@@ -29,29 +29,25 @@ var find = function (db, collection_name, options, callback) {
     var limit = options.limit === undefined ? 0          : +options.limit;
     var sort  = options.sort  === undefined ? {_id: 1}   :  options.sort;
 
-    db.collection(collection_name, function (err, coln) {
+    collection.find(
+        {
+            _id: {
+                $gt : new Date(start),
+                $lte: new Date(stop)
+            }
+        }
+    )
+        .limit(limit)
+        .sort(sort)
+        .toArray(function (err, results) {
             if (err) return callback(err);
-            coln.find(
-                {
-                    _id: {
-                        $gt : new Date(start),
-                        $lte: new Date(stop)
-                    }
-                }
-            )
-                .limit(limit)
-                .sort(sort)
-                .toArray(function (err, results) {
-                    if (err) return callback(err);
-                    // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
-                    // instead of a Date() object:
-                    for (var i = 0; i < results.length; i++) {
-                        results[i].timestamp = results[i]._id.getTime();
-                        delete results[i]._id;
-                    }
-                    return callback(null, results);
-                }
-            )
+            // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+            // instead of a Date() object:
+            for (var i = 0; i < results.length; i++) {
+                results[i].timestamp = results[i]._id.getTime();
+                delete results[i]._id;
+            }
+            return callback(null, results);
         }
     )
 };

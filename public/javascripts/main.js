@@ -6,7 +6,7 @@
 var platform = "p1";
 var instrument = "i1";
 // Initial request of data from MongoDB in seconds
-var max_initial_age_secs = 300;
+var max_initial_age_secs = 1200;
 // Max retained age in seconds:
 var max_age_secs = 3600;
 
@@ -77,6 +77,7 @@ var getInitialData = function (callback) {
                 return callback(null);
             } else {
                 console.log("Unable to retrieve initial dataset. Status=", xmlhttp.status);
+                console.log("Reason:", xmlhttp.response);
                 // For whatever reason, the server is unable to satisfy the request. That's OK, we don't
                 // absolutely need the initial dataset, so just return.
                 return callback(null);

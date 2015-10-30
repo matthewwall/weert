@@ -39,18 +39,23 @@ LoopManager.prototype.insertOne = function (in_packet, callback) {
 
 LoopManager.prototype.find = function (instrument, options, callback) {
     var self = this;
-    var collection_name = "loop_" + instrument;
-    if (options.sort !== undefined){
-        if (options.sort._id !== undefined){
-            options.sort[timestamp] = options.sort._id;
-            delete options.sort._id;
-        }
+
+    // If "_id" is the sort key, convert it to "timestamp"
+    if (options.sort !== undefined && options.sort._id !== undefined){
+        options.sort.timestamp = options.sort._id;
+        delete options.sort._id;
     }
 
-    dbtools.find(self.db, collection_name, options, function (err, result){
+    var collection_name = "loop_" + instrument;
+    // Open up the collection
+    self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
-        return callback(null, result);
+        dbtools.find(collection, options, function (err, result){
+            if (err) return callback(err);
+            return callback(null, result);
+        });
     });
+
 };
 
 module.exports = {

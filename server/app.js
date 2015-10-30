@@ -113,7 +113,7 @@ var setup_routes = function (callback) {
         loop_manager.find(instrument, req.query, function (err, packet_array) {
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
-                res.sendStatus(400);
+                res.status(400).send(err.message);
             } else {
                 console.log("# of packets=", packet_array.length);
                 res.send(JSON.stringify(packet_array));
