@@ -53,6 +53,60 @@ only supported by v3.3+
 
 # RESTful API
 
+## API summary
+
+<table>
+  <tr style="font-style:italic; font-weight:bold">
+    <td>HTTP verb</td><td>Endpoint</td><td>Description</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/instruments</td><td>Return an array of URIs to all the instruments.</td>
+  </tr>
+  <tr>
+    <td>POST</td><td>/api/instruments</td><td>Create a new instrument. Return its URI.</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/instruments/:instrumentID/metadata</td><td>Get the metadata for a given instrument.</td>
+  </tr>
+  <tr>
+    <td>PUT</td><td>/api/instruments/:instrumentID/metadata</td><td>Set or update the metadata for a given instrument.</td>
+  </tr>
+  <tr>
+    <td>POST</td><td>/api/instruments/:instrumentID/packets</td><td>Post a new packet, returning its URI.</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/instruments/:instrumentID/packets</td><td>Get all packets of a given instrument,
+     satisfying a search or aggregation query.</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/instruments/:instrumentID/packets/:timestamp</td><td>Get a packet with given timestamp.</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/platforms</td><td>Get an array of URIs to all platforms.</td>
+  </tr>
+  <tr>
+    <td>POST</td><td>/api/platforms</td><td>Create a new platform. Return its URI.</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/platforms/:platformID/metadata</td><td>Get the metadata for a given platform.</td>
+  </tr>
+  <tr>
+    <td>PUT</td><td>/api/platforms/:platformID/metadata</td><td>Set or update the metadata for a given platform.</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/platforms/:platformID/instruments</td><td>Get an array of URIs to all 
+    member instruments of a given platform.</td>
+  </tr>
+  <tr>
+    <td>GET</td><td>/api/platforms/:platformID/locations</td><td>Get all locations of a given platform, 
+    satisfying search query.</td>
+  </tr>
+  <tr>
+    <td>POST</td><td>/api/platforms/:platformID/locations</td><td>Post a new location for a platform, 
+    returning its URI.</td>
+  </tr>
+</table>
+
 ## /api/instruments/:instrumentID/packets
 ### GET
 
