@@ -60,6 +60,7 @@ The GET API for the collection of LOOP data takes two forms.
 
 #### 1. GET packets
 
+    GET
     /api/:instrumentID/loop?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
     
     
@@ -90,6 +91,7 @@ Returns a status of `400` if the *instrumentID* does not exist. Additional detai
 
 #### 2. GET aggregate
 
+    GET
     /api/:instrumentID/loop?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
     
 If the parameter `aggregate_type` appears, then an *aggregate* is returned. For this form,
@@ -116,6 +118,7 @@ Returns a status of `400` if the *instrumentID* does not exist. Additional detai
 
 ### POST
 
+    POST
     /api/:instrumentID/loop
 
 Post a LOOP packet for the instrument with ID *instrumentID*. 
@@ -136,6 +139,9 @@ Example packet:
 
 ## /api/:instrumentID/loop/:timestamp
 ### GET
+
+    GET
+    /api/:instrumentID/loop/:timestamp
 
 Get a single packet from the LOOP collection for instrument *instrumentID* with timestamp *timestamp*.
 
