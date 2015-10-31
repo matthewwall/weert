@@ -42,7 +42,7 @@ io.on('connection', function (socket) {
     // his connection go away.
     var unsubscribe_handle = pubsub.subscribe('new_packet', function (packet_info) {
         // New packet has arrived. Figure out which websocket subscription to push it out on.
-        var subscription_name = "packet-" + packet_info.instrumentID;
+        var subscription_name = "packet-" + packet_info.streamID;
         socket.emit(subscription_name, packet_info.packet);
     });
 
@@ -75,18 +75,18 @@ var setup_databases = function (callback){
 
 var setup_routes = function (callback) {
 
-    // RESTful interface for requesting packets from a platform and instrument
+    // RESTful interface for requesting packets from a platform and stream
     // between a start and stop time.
-    app.get('/api/instruments/:instrumentID/packets', function (req, res) {
-        // Get the instrumentID out of the route path
-        var instrumentID = req.params.instrumentID;
+    app.get('/api/streams/:streamID/packets', function (req, res) {
+        // Get the streamID out of the route path
+        var streamID = req.params.streamID;
         // Is an aggregation being requested?
         if (req.query.aggregate_type !== undefined){
             // Yes, an aggregation is being requested.
             console.log("Request for aggregation", req.query.aggregate_type,
                 "with start, stop times of", req.query.start, req.query.stop);
             var obs_type = req.query.obs_type;
-            packets_manager.aggregate(instrumentID, obs_type, req.query, function (err, result) {
+            packets_manager.aggregate(streamID, obs_type, req.query, function (err, result) {
                 if (err) {
                     console.log("Unable to satisfy request. Reason", err);
                     res.status(400).send(err.message);
@@ -101,7 +101,7 @@ var setup_routes = function (callback) {
                 req.query.sort = JSON.parse(req.query.sort);
             }
 
-            packets_manager.find(instrumentID, req.query, function (err, packet_array) {
+            packets_manager.find(streamID, req.query, function (err, packet_array) {
                 if (err) {
                     console.log("Unable to satisfy request. Reason", err);
                     res.status(400).send(err.message);
@@ -115,14 +115,14 @@ var setup_routes = function (callback) {
 
     // RESTful interface that listens for incoming loop packets and then
     // stores them in the MongoDB database
-    app.post('/api/instruments/:instrumentID/packets', function (req, res) {
-        // Get the instrumentID
-        var instrumentID = req.params.instrumentID;
+    app.post('/api/streams/:streamID/packets', function (req, res) {
+        // Get the streamID
+        var streamID = req.params.streamID;
         // Get the packet out of the request body:
         var packet = req.body.packet;
         var ts = new Date(packet.timestamp);
         // Insert it into the database
-        packets_manager.insertOne(instrumentID, packet, function (err, result) {
+        packets_manager.insertOne(streamID, packet, function (err, result) {
             // Send back an appropriate acknowledgement:
             if (err) {
                 console.log("Unable to insert packet with timestamp", ts);
@@ -141,19 +141,19 @@ var setup_routes = function (callback) {
                 });
                 res.status(201).location(resource_url).send(JSON.stringify(packet.timestamp));
                 // Let any interested subscribers know there is a new packet:
-                pubsub.publish('new_packet', {"packet": packet, "instrumentID" : instrumentID}, this);
+                pubsub.publish('new_packet', {"packet": packet, "streamID" : streamID}, this);
             }
         });
     });
 
     // RESTful interface for requesting packet with a specific timestamp
-    app.get('/api/instruments/:instrumentID/packets/:timestamp', function (req, res) {
-        // Get the instrumentID out of the route path
-        var instrumentID = req.params.instrumentID;
+    app.get('/api/streams/:streamID/packets/:timestamp', function (req, res) {
+        // Get the streamID out of the route path
+        var streamID = req.params.streamID;
         var timestamp = req.params.timestamp;
         console.log("Request for timestamp", timestamp);
 
-        packets_manager.findOne(instrumentID, {timestamp: timestamp}, function (err, packet) {
+        packets_manager.findOne(streamID, {timestamp: timestamp}, function (err, packet) {
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
                 res.status(400).send(err.message);

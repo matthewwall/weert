@@ -60,26 +60,26 @@ only supported by v3.3+
     <td>HTTP verb</td><td>Endpoint</td><td>Description</td>
   </tr>
   <tr>
-    <td>GET</td><td>/api/instruments</td><td>Return an array of URIs to all the instruments.</td>
+    <td>GET</td><td>/api/streams</td><td>Return an array of URIs to all the streams.</td>
   </tr>
   <tr>
-    <td>POST</td><td>/api/instruments</td><td>Create a new instrument. Return its URI.</td>
+    <td>POST</td><td>/api/streams</td><td>Create a new stream. Return its URI.</td>
   </tr>
   <tr>
-    <td>GET</td><td>/api/instruments/:instrumentID/metadata</td><td>Get the metadata for a given instrument.</td>
+    <td>GET</td><td>/api/streams/:streamID/metadata</td><td>Get the metadata for a given stream.</td>
   </tr>
   <tr>
-    <td>PUT</td><td>/api/instruments/:instrumentID/metadata</td><td>Set or update the metadata for a given instrument.</td>
+    <td>PUT</td><td>/api/streams/:streamID/metadata</td><td>Set or update the metadata for a given stream.</td>
   </tr>
   <tr>
-    <td>POST</td><td>/api/instruments/:instrumentID/packets</td><td>Post a new packet, returning its URI.</td>
+    <td>POST</td><td>/api/streams/:streamID/packets</td><td>Post a new packet, returning its URI.</td>
   </tr>
   <tr>
-    <td>GET</td><td>/api/instruments/:instrumentID/packets</td><td>Get all packets of a given instrument,
+    <td>GET</td><td>/api/streams/:streamID/packets</td><td>Get all packets of a given stream,
      satisfying a search or aggregation query.</td>
   </tr>
   <tr>
-    <td>GET</td><td>/api/instruments/:instrumentID/packets/:timestamp</td><td>Get a packet with given timestamp.</td>
+    <td>GET</td><td>/api/streams/:streamID/packets/:timestamp</td><td>Get a packet with given timestamp.</td>
   </tr>
   <tr>
     <td>GET</td><td>/api/platforms</td><td>Get an array of URIs to all platforms.</td>
@@ -94,8 +94,8 @@ only supported by v3.3+
     <td>PUT</td><td>/api/platforms/:platformID/metadata</td><td>Set or update the metadata for a given platform.</td>
   </tr>
   <tr>
-    <td>GET</td><td>/api/platforms/:platformID/instruments</td><td>Get an array of URIs to all 
-    member instruments of a given platform.</td>
+    <td>GET</td><td>/api/platforms/:platformID/streams</td><td>Get an array of URIs to all 
+    member streams of a given platform.</td>
   </tr>
   <tr>
     <td>GET</td><td>/api/platforms/:platformID/locations</td><td>Get all locations of a given platform, 
@@ -107,7 +107,7 @@ only supported by v3.3+
   </tr>
 </table>
 
-## /api/instruments/:instrumentID/packets
+## /api/streams/:streamID/packets
 ### GET
 
 The GET API for the collection of LOOP packets takes two forms.
@@ -115,10 +115,10 @@ The GET API for the collection of LOOP packets takes two forms.
 #### 1. GET packets
 
     GET
-    /api/instruments/:instrumentID/packets?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
+    /api/streams/:streamID/packets?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
     
     
-Get all packets from the LOOP collection for instrument with ID *instrumentID* and with timestamps greater than `XXXXX` 
+Get all packets from the LOOP collection for stream with ID *streamID* and with timestamps greater than `XXXXX` 
 and less than or equal to `YYYYY`. 
 If `XXXXX` is missing, then start with the first available packet. 
 If `YYYYY` is missing, then end with the last available packet.
@@ -130,7 +130,7 @@ An example <i>sortspec</i> would be `{timestamp:-1}`, that is, return the result
 
 Sample URL (with a <i>sortspec</i> of `{timestamp:-1}`):
 
-    http://localhost:3000/api/instruments/801a8409cd/packets?start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
+    http://localhost:3000/api/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
   
 Result is returned in the response body as an array holding the packets satisfying the search criteria, encoded
 in JSON.
@@ -141,16 +141,16 @@ in JSON.
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159214000},
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159212000}]
 
-Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
+Returns a status of `400` if the *streamID* does not exist. Additional details are in the HTTP response body.
 
 #### 2. GET aggregate
 
     GET
-    /api/instruments/:instrumentID/packets?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
+    /api/streams/:streamID/packets?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
     
 The second form of the GET API applies if the parameter `aggregate_type` appears, 
 in which case an *aggregate* is returned. For this form,
-get the aggregate `agg` of observation type *obs_name* from instrument *instrumentID* between 
+get the aggregate `agg` of observation type *obs_name* from stream *streamID* between 
 timestamps `XXXXX` and `YYYYY` inclusive.
 If `XXXXX` is missing, then start with the first available packet. 
 If `YYYYY` is missing, then end with the last available packet.
@@ -164,19 +164,19 @@ If the observation type *obs_name* is not in the collection, then `null` will be
 
 Example request:
 
-    http://localhost:3000/api/instruments/801a8409cd/packets?start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
+    http://localhost:3000/api/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
     
 Result is returned in the response body as a single value, encoded in JSON.
 
-Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
+Returns a status of `400` if the *streamID* does not exist. Additional details are in the HTTP response body.
 
 
 ### POST
 
     POST
-    /api/instruments/:instrumentID/packets
+    /api/streams/:streamID/packets
 
-Post a LOOP packet for the instrument with ID *instrumentID*. 
+Post a LOOP packet for the stream with ID *streamID*. 
 The packet should be contained as a JSON payload in the body of the POST. The packet
 must contain keyword `timestamp`, holding the unix epoch time in <i>milliseconds</i> (JavaScript style).
 
@@ -185,7 +185,7 @@ but best practices is to use the weewx `METRICWX` system.
 
 Sample URL:
 
-    http://localhost:3000/api/instruments/801a8409cd/packets
+    http://localhost:3000/api/streams/801a8409cd/packets
 
 Example packet:
 
@@ -196,17 +196,17 @@ Example packet:
 If successful, the server will return a response code of `202`, with the response `location` field set to the URL
 of the newly created resource (packet).
 
-## /api/instruments/:instrumentID/packets/:timestamp
+## /api/streams/:streamID/packets/:timestamp
 ### GET
 
     GET
-    /api/instruments/:instrumentID/packets/:timestamp
+    /api/streams/:streamID/packets/:timestamp
 
-Get a single packet from the collection of LOOP packets of instrument *instrumentID* with timestamp *timestamp*.
+Get a single packet from the collection of LOOP packets of stream *streamID* with timestamp *timestamp*.
 
 Sample URL:
 
-    http://localhost:3000/api/instruments/801a8409cd/packets/1446159220000
+    http://localhost:3000/api/streams/801a8409cd/packets/1446159220000
     
 Result is returned in the response body as a single packet, encoded in JSON:
 
@@ -216,4 +216,4 @@ Result is returned in the response body as a single packet, encoded in JSON:
 
 Returns a null value if the timestamp does not exist within the LOOP collection.
 
-Returns a status of `400` if the *instrumentID* does not exist. Additional details are in the HTTP response body.
+Returns a status of `400` if the *streamID* does not exist. Additional details are in the HTTP response body.

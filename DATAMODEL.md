@@ -1,30 +1,29 @@
 # WeeRT Data Model
 ## Definitions
 ### Platform
-A group of *instruments* that have a location in common. This might be a stationary location, such 
-as an industrial siting, or a mobile location, such as a vehicle or boat. A platform can have multiple instruments.
+A group of *streams* that have a location in common. This might be a stationary location, such 
+as an industrial siting, or a mobile location, such as a vehicle or boat. A platform can have multiple streams.
 
 The location may change with time, in which case the “present location” would be the last location.
 
 A platform is identified by a unique *platformID*. This may or may not be a UUID.
 
-A platform has zero or more instruments associated with it.
+A platform has zero or more streams associated with it.
 
-### Instrument
+### Stream
 A unique piece of hardware or software that emits a stream of *packets*. 
-It is known by unique *instrumentID*. This may or may not be a UUID.
+It is known by unique *streamID*. This may or may not be a UUID.
  
 ### Packet
-A group of observations that have a *instrument*, and *timestamp*, in common. 
-This is commonly data that comes straight off the instrument (raw data). 
-A timestamp must be unique within a stream of packets coming off an instrument (no duplicates).
+A group of observations that have a *stream*, and *timestamp*, in common. 
+This is commonly data that comes straight off an instrument of some kind(raw data). 
+Timestamps within a stream must be unique (no duplicates).
 The interval between packets may be highly irregular.
 
 Sample packet:
 
     {
      timestamp : 1446158201379,
-     instrument : instrumentID-4
      outside_temperature : 22.14,
      inside_temperature : 20.51
      barometer_pressure: 1004.2
@@ -33,7 +32,7 @@ Sample packet:
 
 ### Observation type
 A specific measurable type, such as “outside temperature,” known by a name, such as `outside_temperature`. 
-The name must be unique within an instrument. 
+The name must be unique within a stream. 
 
 ### Timestamp
 The time, in milliseconds, since the unix epoch. This is the same definition that JavaScript uses. 
@@ -49,21 +48,21 @@ Inside, each document describes a single platform.
     {
       _id         : platformID-15,
       description : “Description of 1st platform”,
-      instruments : [
-                     instrumentID-4, 
-                     instrumentID-2,
+      streams : [
+                     streamID-4, 
+                     streamID-2,
                      ...
-                    ]
+                ]
     }
     
     {
       _id         : platformID-21,
       description : “Description of 2nd platform”,
-      instruments : [
-                     instrumentID-22, 
-                     instrumentID-29,
+      streams : [
+                     streamID-22, 
+                     streamID-29,
                      ...
-                    ]
+                ]
     }
 
     ...
@@ -79,8 +78,8 @@ Description of fields:
     <td style="font-family:monospace">description</td><td>"Car number 54"</td><td>A free form description of the platform</td>
   </tr>
   <tr>
-    <td style="font-family:monospace">instruments</td><td>[a881bc, d0785a, 09e45]</td><td>An array holding 
-    the instrumentIDs of the member instruments</td>
+    <td style="font-family:monospace">streams</td><td>[a881bc, d0785a, 09e45]</td><td>An array holding 
+    the streamIDs of the member streams</td>
   </tr>
 </table>
 
@@ -116,13 +115,13 @@ Description of fields:
 For a given time, the "position" of the platform is the last available position for that time. Interpolation between
 locations is not done.
 
-## Instrument data model
+## Stream data model
 
-### packets_<i>instrumentID</i>
+### packets_<i>streamID</i>
 
-The raw packet data coming off an instrument is stored in a collection with name
-<span style="font-family:monospace; font-weight:bold">packets_<i>instrumentID</i></span>, where
-<i><b>instrumentID</b></i> is the ID of the instrument. Inside, each document describes a single packet
+The raw packet data coming off a stream is stored in a collection with name
+<span style="font-family:monospace; font-weight:bold">packets_<i>streamID</i></span>, where
+<i><b>streamID</b></i> is the ID of the stream. Inside, each document describes a single packet
 
     {
       _id : 1446158201379,

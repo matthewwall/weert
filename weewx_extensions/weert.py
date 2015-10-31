@@ -13,7 +13,7 @@ import weewx.restx
 from weewx.restx import StdRESTful, RESTThread
 
 DEFAULT_NODE_URL = "http://localhost:3000"
-WEERT_ENDPOINT_ROOT = "/api/instruments/"
+WEERT_ENDPOINT_ROOT = "/api/streams/"
 
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.
@@ -26,7 +26,7 @@ class WeeRT(StdRESTful):
 
         _node_dict = weewx.restx.check_enable(config_dict, 'WeeRT', 
                                               'platform_uuid',
-                                              'instrument_uuid')
+                                              'stream_uuid')
 
         if _node_dict is None:
             return        
@@ -73,7 +73,7 @@ class WeeRTThread(RESTThread):
     def __init__(self, queue,
                  manager_dict,
                  platform_uuid,
-                 instrument_uuid,
+                 stream_uuid,
                  protocol_name = "WeeRT",
                  node_url = DEFAULT_NODE_URL,
                  obs_types = default_obs_types,
@@ -93,7 +93,7 @@ class WeeRTThread(RESTThread):
           
           platform_uuid: The UUID for the platform.
           
-          instrument_uuid: The UUID for the instrument.
+          stream_uuid: The UUID for the stream.
         
         Optional parameters:
         
@@ -137,7 +137,7 @@ class WeeRTThread(RESTThread):
                                           retry_wait=retry_wait)
 
         self.platform_uuid = platform_uuid
-        self.instrument_uuid = instrument_uuid
+        self.stream_uuid = stream_uuid
         self.node_url = node_url
         self.obs_types = obs_types
         syslog.syslog(syslog.LOG_NOTICE, "wee_node: publishing to Node server at %s" % self.node_url)
@@ -162,7 +162,7 @@ class WeeRTThread(RESTThread):
             _new_k = WeeRTThread.map.get(k, k)
             _mapped[_new_k] = _abridged[k] 
         
-        _full_url = urlparse.urljoin(self.node_url, WEERT_ENDPOINT_ROOT + self.instrument_uuid + '/packets')
+        _full_url = urlparse.urljoin(self.node_url, WEERT_ENDPOINT_ROOT + self.stream_uuid + '/packets')
         
         _req = urllib2.Request(_full_url)
         _req.add_header('Content-Type', 'application/json')
