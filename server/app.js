@@ -126,13 +126,15 @@ var setup_routes = function (callback) {
             // Send back an appropriate acknowledgement:
             if (err) {
                 console.log("Unable to insert packet with timestamp", ts);
-                if (err.code === 11000)
+                if (err.code === 11000) {
                     console.log("Reason: duplicate time stamp");
-                else
+                    res.status(409).send(err);
+                } else {
                     console.log("Error code:", err.code);
-                res.status(400).send("Error code " + err.code);
+                    res.status(400).send(err);
+                }
             } else {
-                res.sendStatus(200);
+                res.status(200).send(JSON.stringify(packet.timestamp));
                 // Let any interested subscribers know there is a new packet:
                 pubsub.publish('new_packet', {"packet": packet, "instrumentID" : instrumentID}, this);
             }
