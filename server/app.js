@@ -77,7 +77,7 @@ var setup_routes = function (callback) {
 
     // RESTful interface for requesting packets from a platform and instrument
     // between a start and stop time.
-    app.get('/api/loop/:instrumentID', function (req, res) {
+    app.get('/api/:instrumentID/loop', function (req, res) {
         // Get the instrumentID out of the route path
         var instrumentID = req.params.instrumentID;
         // Is an aggregation being requested?
@@ -115,7 +115,7 @@ var setup_routes = function (callback) {
 
     // RESTful interface that listens for incoming loop packets and then
     // stores them in the MongoDB database
-    app.post('/api/loop/:instrumentID', function (req, res) {
+    app.post('/api/:instrumentID/loop', function (req, res) {
         // Get the instrumentID
         var instrumentID = req.params.instrumentID;
         // Get the packet out of the request body:
@@ -137,6 +137,23 @@ var setup_routes = function (callback) {
                 res.status(200).send(JSON.stringify(packet.timestamp));
                 // Let any interested subscribers know there is a new packet:
                 pubsub.publish('new_packet', {"packet": packet, "instrumentID" : instrumentID}, this);
+            }
+        });
+    });
+
+    // RESTful interface for requesting packet with a specific timestamp
+    app.get('/api/:instrumentID/loop/:timestamp', function (req, res) {
+        // Get the instrumentID out of the route path
+        var instrumentID = req.params.instrumentID;
+        var timestamp = req.params.timestamp;
+        console.log("Request for timestamp", timestamp);
+
+        loop_manager.findOne(instrumentID, {timestamp: timestamp}, function (err, packet) {
+            if (err) {
+                console.log("Unable to satisfy request. Reason", err);
+                res.status(400).send(err.message);
+            } else {
+                res.send(JSON.stringify(packet));
             }
         });
     });

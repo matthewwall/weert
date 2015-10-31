@@ -53,6 +53,35 @@ var find = function (collection, options, callback) {
 };
 
 
+var findOne = function(collection, options, callback){
+    var self = this;
+    var timestamp = +options.timestamp;
+    collection.find(
+        {
+            _id: {
+                $eq : new Date(timestamp)
+            }
+        }
+    )
+        .limit(1)
+        .toArray(function (err, results) {
+            if (err) return callback(err);
+            // We are only interested in the single returned record
+            if (results.length < 1){
+                // No matching timestamp. Return null.
+                return callback(null, null);
+            } else {
+                var record = results[0];
+                // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+                // instead of a Date() object:
+                record.timestamp = record._id.getTime();
+                delete record._id;
+                return callback(null, record);
+            }
+        }
+    )
+};
+
 var calcAggregate = function (collection, obs_type, options, callback) {
     var self = this;
     var start = options.start === undefined ? 0          : +options.start;
@@ -93,5 +122,6 @@ var calcAggregate = function (collection, obs_type, options, callback) {
 module.exports = {
     createCollection: createCollection,
     find            : find,
+    findOne         : findOne,
     calcAggregate   : calcAggregate
 };

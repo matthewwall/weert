@@ -55,6 +55,20 @@ LoopManager.prototype.find = function (instrument, options, callback) {
     });
 };
 
+LoopManager.prototype.findOne = function(instrument, options, callback){
+    var self = this;
+    var collection_name = "loop_" + instrument;
+    // Open up the collection
+    self.db.collection(collection_name, {strict:true}, function(err, collection){
+        if (err) return callback(err);
+        dbtools.findOne(collection, options, function (err, result){
+            if (err) return callback(err);
+            return callback(null, result);
+        });
+    });
+};
+
+
 LoopManager.prototype.aggregate = function (instrument, obs_type, options, callback) {
     var self = this;
 
