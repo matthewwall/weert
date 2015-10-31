@@ -2,12 +2,12 @@
 
 var dbtools = require('./dbtools');
 
-var LoopManager = function (db, options) {
+var PacketsManager = function (db, options) {
     this.db = db;
     this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
 };
 
-LoopManager.prototype.insertOne = function (instrumentID, in_packet, callback) {
+PacketsManager.prototype.insertOne = function (instrumentID, in_packet, callback) {
     var self = this;
     if (instrumentID === undefined)
         return callback("Missing instrument ID");
@@ -22,7 +22,7 @@ LoopManager.prototype.insertOne = function (instrumentID, in_packet, callback) {
             }
         }
     }
-    var collection_name = "loop_" + instrumentID;
+    var collection_name = "packets_" + instrumentID;
     // Create the collection if it doesn't exist already
     dbtools.createCollection(this.db, collection_name, self.options.collection, function (err, coln) {
         if (err) return callback(err);
@@ -35,7 +35,7 @@ LoopManager.prototype.insertOne = function (instrumentID, in_packet, callback) {
 };
 
 
-LoopManager.prototype.find = function (instrument, options, callback) {
+PacketsManager.prototype.find = function (instrument, options, callback) {
     var self = this;
 
     // If "_id" is the sort key, convert it to "timestamp"
@@ -44,7 +44,7 @@ LoopManager.prototype.find = function (instrument, options, callback) {
         delete options.sort._id;
     }
 
-    var collection_name = "loop_" + instrument;
+    var collection_name = "packets_" + instrument;
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
@@ -55,9 +55,9 @@ LoopManager.prototype.find = function (instrument, options, callback) {
     });
 };
 
-LoopManager.prototype.findOne = function(instrument, options, callback){
+PacketsManager.prototype.findOne = function(instrument, options, callback){
     var self = this;
-    var collection_name = "loop_" + instrument;
+    var collection_name = "packets_" + instrument;
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
@@ -69,10 +69,10 @@ LoopManager.prototype.findOne = function(instrument, options, callback){
 };
 
 
-LoopManager.prototype.aggregate = function (instrument, obs_type, options, callback) {
+PacketsManager.prototype.aggregate = function (instrument, obs_type, options, callback) {
     var self = this;
 
-    var collection_name = "loop_" + instrument;
+    var collection_name = "packets_" + instrument;
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
@@ -84,5 +84,5 @@ LoopManager.prototype.aggregate = function (instrument, obs_type, options, callb
 };
 
 module.exports = {
-    LoopManager: LoopManager
+    PacketsManager: PacketsManager
 };

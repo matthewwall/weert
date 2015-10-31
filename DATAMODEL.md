@@ -41,9 +41,9 @@ The time, in milliseconds, since the unix epoch. This is the same definition tha
 
 ##Platform data model
 
-### platform_metadata
+### platforms
 
-Metadata associated with a platform is stored in a MongoDB collection with name `platform_metadata`. 
+Metadata associated with a platform is stored in a MongoDB collection with name `platforms`. 
 Inside, each document describes a single platform.
 
     {
@@ -118,10 +118,10 @@ locations is not done.
 
 ## Instrument data model
 
-### loop_<i>instrumentID</i>
+### packets_<i>instrumentID</i>
 
 The raw packet data coming off an instrument is stored in a collection with name
-<span style="font-family:monospace; font-weight:bold">loop_<i>instrumentID</i></span>, where
+<span style="font-family:monospace; font-weight:bold">packets_<i>instrumentID</i></span>, where
 <i><b>instrumentID</b></i> is the ID of the instrument. Inside, each document describes a single packet
 
     {

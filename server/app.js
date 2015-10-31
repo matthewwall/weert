@@ -6,7 +6,7 @@
 
 var mongo_url = "mongodb://localhost:27017/weert";
 var port = process.env.PORT || 3000;
-var loop_manager_options = {collection:{capped: true, size: 1000000, max: 3600}};
+var packets_manager_options = {collection:{capped: true, size: 1000000, max: 3600}};
 
 // requires
 var http = require('http');
@@ -19,8 +19,7 @@ var async = require('async');
 var MongoClient = require('mongodb').MongoClient;
 var url = require('url');
 
-//var archive = require('./archive');
-var loop = require('./loop');
+var packets = require('./packets');
 
 var app = express();
 var server = http.createServer(app);
@@ -60,15 +59,15 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, '../public')));
 
 var db = undefined;
-var loop_manager = undefined;
+var packets_manager = undefined;
 
 var setup_databases = function (callback){
     // Initialize connection once
     MongoClient.connect(mongo_url, function(err, database) {
         if(err) throw err;
         db = database;
-        loop_manager = new loop.LoopManager(db, loop_manager_options);
-        console.log("loop collection ready");
+        packets_manager = new packets.PacketsManager(db, packets_manager_options);
+        console.log("packets collection ready");
         // Signal that the databases are set up with no errors.
         return callback(null);
     });
@@ -87,7 +86,7 @@ var setup_routes = function (callback) {
             console.log("Request for aggregation", req.query.aggregate_type,
                 "with start, stop times of", req.query.start, req.query.stop);
             var obs_type = req.query.obs_type;
-            loop_manager.aggregate(instrumentID, obs_type, req.query, function (err, result) {
+            packets_manager.aggregate(instrumentID, obs_type, req.query, function (err, result) {
                 if (err) {
                     console.log("Unable to satisfy request. Reason", err);
                     res.status(400).send(err.message);
@@ -102,7 +101,7 @@ var setup_routes = function (callback) {
                 req.query.sort = JSON.parse(req.query.sort);
             }
 
-            loop_manager.find(instrumentID, req.query, function (err, packet_array) {
+            packets_manager.find(instrumentID, req.query, function (err, packet_array) {
                 if (err) {
                     console.log("Unable to satisfy request. Reason", err);
                     res.status(400).send(err.message);
@@ -123,7 +122,7 @@ var setup_routes = function (callback) {
         var packet = req.body.packet;
         var ts = new Date(packet.timestamp);
         // Insert it into the database
-        loop_manager.insertOne(instrumentID, packet, function (err, result) {
+        packets_manager.insertOne(instrumentID, packet, function (err, result) {
             // Send back an appropriate acknowledgement:
             if (err) {
                 console.log("Unable to insert packet with timestamp", ts);
@@ -154,7 +153,7 @@ var setup_routes = function (callback) {
         var timestamp = req.params.timestamp;
         console.log("Request for timestamp", timestamp);
 
-        loop_manager.findOne(instrumentID, {timestamp: timestamp}, function (err, packet) {
+        packets_manager.findOne(instrumentID, {timestamp: timestamp}, function (err, packet) {
             if (err) {
                 console.log("Unable to satisfy request. Reason", err);
                 res.status(400).send(err.message);
