@@ -66,7 +66,7 @@ var getInitialData = function (callback) {
     var stop = Date.now();
     var start = stop - max_initial_age_secs * 1000;
     // Use a simple GET request
-    var url = "http://" + window.location.host + "/api/loop/" + instrumentID + "?start=" + start + "&stop=" + stop;
+    var url = "http://" + window.location.host + "/api/instruments/" + instrumentID + "/packets?start=" + start + "&stop=" + stop;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {

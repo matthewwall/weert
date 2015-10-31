@@ -53,15 +53,15 @@ only supported by v3.3+
 
 # RESTful API
 
-## /api/:instrumentID/loop
+## /api/instruments/:instrumentID/packets
 ### GET
 
-The GET API for the collection of LOOP data takes two forms.
+The GET API for the collection of LOOP packets takes two forms.
 
 #### 1. GET packets
 
     GET
-    /api/:instrumentID/loop?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
+    /api/instruments/:instrumentID/packets?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
     
     
 Get all packets from the LOOP collection for instrument with ID *instrumentID* and with timestamps greater than `XXXXX` 
@@ -76,7 +76,7 @@ An example <i>sortspec</i> would be `{timestamp:-1}`, that is, return the result
 
 Sample URL (with a <i>sortspec</i> of `{timestamp:-1}`):
 
-    http://localhost:3000/api/801a8409cd/loop?start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
+    http://localhost:3000/api/instruments/801a8409cd/packets?start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
   
 Result is returned in the response body as an array holding the packets satisfying the search criteria, encoded
 in JSON.
@@ -92,9 +92,10 @@ Returns a status of `400` if the *instrumentID* does not exist. Additional detai
 #### 2. GET aggregate
 
     GET
-    /api/:instrumentID/loop?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
+    /api/instruments/:instrumentID/packets?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
     
-If the parameter `aggregate_type` appears, then an *aggregate* is returned. For this form,
+The second form of the GET API applies if the parameter `aggregate_type` appears, 
+in which case an *aggregate* is returned. For this form,
 get the aggregate `agg` of observation type *obs_name* from instrument *instrumentID* between 
 timestamps `XXXXX` and `YYYYY` inclusive.
 If `XXXXX` is missing, then start with the first available packet. 
@@ -109,7 +110,7 @@ If the observation type *obs_name* is not in the collection, then `null` will be
 
 Example request:
 
-    http://localhost:3000/api/801a8409cd/loop?start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
+    http://localhost:3000/api/instruments/801a8409cd/packets?start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
     
 Result is returned in the response body as a single value, encoded in JSON.
 
@@ -119,7 +120,7 @@ Returns a status of `400` if the *instrumentID* does not exist. Additional detai
 ### POST
 
     POST
-    /api/:instrumentID/loop
+    /api/instruments/:instrumentID/packets
 
 Post a LOOP packet for the instrument with ID *instrumentID*. 
 The packet should be contained as a JSON payload in the body of the POST. The packet
@@ -130,28 +131,34 @@ but best practices is to use the weewx `METRICWX` system.
 
 Sample URL:
 
-    http://localhost:3000/api/801a8409cd/loop
+    http://localhost:3000/api/instruments/801a8409cd/packets
 
 Example packet:
 
-    {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,
-     "outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000}
+    {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,
+     "wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,
+     "dewpoint_temperature":11.30,"timestamp":1446159220000}
 
-## /api/:instrumentID/loop/:timestamp
+If successful, the server will return a response code of `202`, with the response `location` field set to the URL
+of the newly created resource (packet).
+
+## /api/instruments/:instrumentID/packets/:timestamp
 ### GET
 
     GET
-    /api/:instrumentID/loop/:timestamp
+    /api/instruments/:instrumentID/packets/:timestamp
 
-Get a single packet from the LOOP collection for instrument *instrumentID* with timestamp *timestamp*.
+Get a single packet from the collection of LOOP packets of instrument *instrumentID* with timestamp *timestamp*.
 
 Sample URL:
 
-    http://localhost:3000/api/801a8409cd/loop/1446159220000
+    http://localhost:3000/api/instruments/801a8409cd/packets/1446159220000
     
 Result is returned in the response body as a single packet, encoded in JSON:
 
-    {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159220000}
+    {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,
+     "wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,
+     "dewpoint_temperature":11.30,"timestamp":1446159220000}
 
 Returns a null value if the timestamp does not exist within the LOOP collection.
 

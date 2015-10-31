@@ -13,7 +13,7 @@ import weewx.restx
 from weewx.restx import StdRESTful, RESTThread
 
 DEFAULT_NODE_URL = "http://localhost:3000"
-WEERT_ENDPOINT_ROOT = "/api/loop"
+WEERT_ENDPOINT_ROOT = "/api/instruments/"
 
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.
@@ -162,7 +162,7 @@ class WeeRTThread(RESTThread):
             _new_k = WeeRTThread.map.get(k, k)
             _mapped[_new_k] = _abridged[k] 
         
-        _full_url = urlparse.urljoin(self.node_url, WEERT_ENDPOINT_ROOT + '/' + self.instrument_uuid)
+        _full_url = urlparse.urljoin(self.node_url, WEERT_ENDPOINT_ROOT + self.instrument_uuid + '/packets')
         
         _req = urllib2.Request(_full_url)
         _req.add_header('Content-Type', 'application/json')
@@ -172,7 +172,7 @@ class WeeRTThread(RESTThread):
         
     def check_response(self, response):
         """Check the HTTP response code."""
-        if response.getcode() == 200:
+        if response.getcode() == 201:
             # Success. Just return
             return
         else:
