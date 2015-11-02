@@ -53,6 +53,36 @@ only supported by v3.3+
 
 # RESTful API
 
+## Time queries
+Some of the WeeRT APIs involve a *time query*. For example, to get a set of packets from a stream with ID 12345,
+one performs an HTTP GET like this:
+
+    GET /api/streams/12345/packets?start=XXXXX&stop=YYYYY
+
+This would return all packets with timestamps between XXXXX and YYYYY. However, this is *exclusive* on the left,
+inclusive on the right. So, what is really being returned is packets satisfying the criteria
+
+    XXXXX < timestamp <= YYYYY
+    
+There are 2 reasons for arranging queries this way.
+
+1. While a packet with a timestamp XXXXX represents the "instantaneous" value of the observation types at time XXXXX,
+the variables were actually observed for some time period leading up to the timestamp. For example, the packet may
+record a rain bucket tip, but that tip was the result of some accumulation of rain leading up to the timestamp.
+So, we regard a packet with timestamp XXXXX as representing the world leading up to the time XXXXX.
+
+2. When doing aggregations for adjacent time intervals, it is important that the same packet not be included twice.
+By making the interval be exclusive on the left, inclusive on the right, we avoid this. So, if one wanted to
+create an array of values aggregated over 1 minute, this is a simple matter:
+
+        XXXXX          < timestamp <= YYYYY
+        XXXXX +  60000 < timestamp <= YYYYY +  60000
+        XXXXX + 120000 < timestamp <= YYYYY + 120000
+        etc.
+If we did not do this strategy and, instead, the explicit times on both the left and right had to be given,
+then the client would have to know the first available timestamp after time XXXXX to perform the 2nd aggregation.
+This is impossible without another query.
+
 ## API summary
 
 <table>

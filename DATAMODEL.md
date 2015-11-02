@@ -40,14 +40,15 @@ The time, in milliseconds, since the unix epoch. This is the same definition tha
 
 ##Platform data model
 
-### platforms
+### platforms_metadata
 
-Metadata associated with a platform is stored in a MongoDB collection with name `platforms`. 
+Metadata associated with WeeRT platforms are stored in a MongoDB collection with name `platforms_metadata`. 
 Inside, each document describes a single platform.
 
     {
       _id         : platformID-15,
       description : “Description of 1st platform”,
+      join        : "7620",
       streams : [
                      streamID-4, 
                      streamID-2,
@@ -58,6 +59,7 @@ Inside, each document describes a single platform.
     {
       _id         : platformID-21,
       description : “Description of 2nd platform”,
+      join        : "7621",
       streams : [
                      streamID-22, 
                      streamID-29,
@@ -78,16 +80,20 @@ Description of fields:
     <td style="font-family:monospace">description</td><td>"Car number 54"</td><td>A free form description of the platform</td>
   </tr>
   <tr>
+    <td style="font-family:monospace">join</td><td>"32038"</td><td>Frequently, data about a platform is held in
+     an external database. The key to this external data can be stored here. [optional]</td>
+  </tr>
+  <tr>
     <td style="font-family:monospace">streams</td><td>[a881bc, d0785a, 09e45]</td><td>An array holding 
     the streamIDs of the member streams</td>
   </tr>
 </table>
 
-### location_<i>platformID</i>
+### platforms_<i>platformID</i>_locations
 
-The location of the platform is given by a MongoDB collection with 
-name <span style="font-family:monospace; font-weight:bold">location_<i>platformID</i></span>, where
-<i><b>platformID</b></i> is the ID of the platform. Inside, each document describes the position of th
+The location of a specific platform is given by a MongoDB collection with 
+name <span style="font-family:monospace; font-weight:bold">platforms_<i>platformID</i>_locations</span>, where
+<i><b>platformID</b></i> is the ID of the platform. Inside, each document describes the position of the
 platform at a given time.
 
     {
@@ -117,11 +123,53 @@ locations is not done.
 
 ## Stream data model
 
-### packets_<i>streamID</i>
+### streams_metadata
+
+Metadata associated with WeeRT streams are stored in a MongoDB collection with name `streams_metadata`. 
+Inside, each document describes a single stream:
+
+    {
+      _id         : streamID-4,
+      description : “Onewire feed from boiler”,
+      join        : "87340",
+      model:      : "DS18B20"
+    }
+    
+    {
+      _id         : streamID-22,
+      description : “Weather station on roof of Bldg J-42”,
+      join        : "912",
+      model       : "Davis VantagePro2"
+    }
+
+    ...
+    
+Description of fields:
+<table>
+  <tr style="font-style:italic; font-weight:bold">
+    <td>Field</td><td>Example</td><td>Explanation</td>
+  <tr>
+    <td style="font-family:monospace">_id</td><td>98184b8e2</td><td>The <i>streamID</i> for the stream</td>
+  </tr>
+  <tr>
+    <td style="font-family:monospace">description</td><td>"Feed from HVAC modbus gateway"</td><td>A free form description of the stream.</td>
+  </tr>
+  <tr>
+    <td style="font-family:monospace">join</td><td>"32038"</td><td>Frequently, data about a stream is held in
+     an external database. The key to this external data can be stored here. [optional]</td>
+  </tr>
+  <tr>
+    <td style="font-family:monospace">model</td><td>"MB_GW-2"</td><td>A string with the hardware name [optional]</td>
+  </tr>
+</table>
+
+### streams_<i>streamID</i>_packets
 
 The raw packet data coming off a stream is stored in a collection with name
-<span style="font-family:monospace; font-weight:bold">packets_<i>streamID</i></span>, where
-<i><b>streamID</b></i> is the ID of the stream. Inside, each document describes a single packet
+<span style="font-family:monospace; font-weight:bold">streams_<i>streamID</i>_packets</span>, where
+<i><b>streamID</b></i> is the ID of the stream. 
+
+Inside, each document describes a single packet
 
     {
       _id : 1446158201379,

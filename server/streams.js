@@ -2,12 +2,16 @@
 
 var dbtools = require('./dbtools');
 
-var PacketsManager = function (db, options) {
+var _getPacketCollectionName = function(streamID){
+    return "streams_" + streamID + "_packets"
+};
+
+var StreamsManager = function (db, options) {
     this.db = db;
     this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
 };
 
-PacketsManager.prototype.insertOne = function (streamID, in_packet, callback) {
+StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     var self = this;
     if (streamID === undefined)
         return callback("Missing stream ID");
@@ -22,7 +26,7 @@ PacketsManager.prototype.insertOne = function (streamID, in_packet, callback) {
             }
         }
     }
-    var collection_name = "packets_" + streamID;
+    var collection_name = _getPacketCollectionName(streamID);
     // Create the collection if it doesn't exist already
     dbtools.createCollection(this.db, collection_name, self.options.collection, function (err, coln) {
         if (err) return callback(err);
@@ -35,7 +39,7 @@ PacketsManager.prototype.insertOne = function (streamID, in_packet, callback) {
 };
 
 
-PacketsManager.prototype.find = function (streamID, options, callback) {
+StreamsManager.prototype.find = function (streamID, options, callback) {
     var self = this;
 
     // If "_id" is the sort key, convert it to "timestamp"
@@ -44,7 +48,7 @@ PacketsManager.prototype.find = function (streamID, options, callback) {
         delete options.sort._id;
     }
 
-    var collection_name = "packets_" + streamID;
+    var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
@@ -55,9 +59,9 @@ PacketsManager.prototype.find = function (streamID, options, callback) {
     });
 };
 
-PacketsManager.prototype.findOne = function(streamID, options, callback){
+StreamsManager.prototype.findOne = function(streamID, options, callback){
     var self = this;
-    var collection_name = "packets_" + streamID;
+    var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
@@ -69,10 +73,10 @@ PacketsManager.prototype.findOne = function(streamID, options, callback){
 };
 
 
-PacketsManager.prototype.aggregate = function (streamID, obs_type, options, callback) {
+StreamsManager.prototype.aggregate = function (streamID, obs_type, options, callback) {
     var self = this;
 
-    var collection_name = "packets_" + streamID;
+    var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
@@ -84,5 +88,5 @@ PacketsManager.prototype.aggregate = function (streamID, obs_type, options, call
 };
 
 module.exports = {
-    PacketsManager: PacketsManager
+    StreamsManager: StreamsManager
 };
