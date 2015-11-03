@@ -93,7 +93,8 @@ This is impossible without another query.
     <td>GET</td><td>/api/streams</td><td>Return an array of URIs to all the streams.</td>
   </tr>
   <tr>
-    <td>POST</td><td>/api/streams</td><td>Create a new stream. Return its URI.</td>
+    <td>POST</td><td>/api/streams</td><td>Create a new stream and return its URI. It will not
+    be associated with any platform.</td>
   </tr>
   <tr>
     <td>GET</td><td>/api/streams/:streamID/metadata</td><td>Get the metadata for a given stream.</td>
@@ -126,6 +127,10 @@ This is impossible without another query.
   <tr>
     <td>GET</td><td>/api/platforms/:platformID/streams</td><td>Get an array of URIs to all 
     member streams of a given platform.</td>
+  </tr>
+  <tr>
+    <td>POST</td><td>/api/platforms/:platformID/streams</td><td>Create a new stream and associate it with
+    the platform <i>platformID</i>. Return the URI of the new stream.</td>
   </tr>
   <tr>
     <td>GET</td><td>/api/platforms/:platformID/locations</td><td>Get all locations of a given platform, 
