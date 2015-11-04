@@ -11,6 +11,13 @@ var StreamsManager = function (db, options) {
     this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
 };
 
+//StreamsManager.prototype.newStream = function(metadata){
+//    var self = this;
+//    dbtools.createCollection(self.db, "streams_metadata", {}, function (err, collection){
+//        collection.insertOne(...)
+//    });
+//};
+
 StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     var self = this;
     if (streamID === undefined)
@@ -28,7 +35,7 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     }
     var collection_name = _getPacketCollectionName(streamID);
     // Create the collection if it doesn't exist already
-    dbtools.createCollection(this.db, collection_name, self.options.collection, function (err, coln) {
+    self.db.createCollection(collection_name, self.options.collection, function (err, coln) {
         if (err) return callback(err);
         coln.insertOne(packet, null, function (err, result) {
             if (err) return callback(err);

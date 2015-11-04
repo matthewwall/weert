@@ -1,25 +1,5 @@
 "use strict";
 
-var createCollection = function (db, collectionName, options, callback) {
-    // See if the collection exists already
-    db.listCollections({name: collectionName}).toArray(function (err, names) {
-        if (err) return callback(err);
-        if (names.length) {
-            // The collection already exists. Just retrieve it.
-            db.collection(collectionName, function (err, coln) {
-                return callback(null, coln);
-            })
-        } else {
-            // The collection does not exist yet. Create it, then return it.
-            db.createCollection(collectionName, options, function (err, coln) {
-                console.log("Created collection", collectionName);
-                return callback(null, coln);
-            });
-        }
-    });
-};
-
-
 var find = function (collection, options, callback) {
     var self  = this;
     // Dig any parameters out of the options hash. Make sure to convert any
@@ -120,7 +100,6 @@ var calcAggregate = function (collection, obs_type, options, callback) {
 };
 
 module.exports = {
-    createCollection: createCollection,
     find            : find,
     findOne         : findOne,
     calcAggregate   : calcAggregate
