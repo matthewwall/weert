@@ -51,7 +51,7 @@ var io = socket_io(server);
 io.on('connection', function (socket) {
     "use strict";
 
-    console.log(new Date(), "A new client has connected");
+    debug(new Date(), "A new client has connected");
 
     socket.emit('news', {hello: 'You are connected to the WeeRT server'});
 
@@ -66,7 +66,7 @@ io.on('connection', function (socket) {
 
     socket.on('disconnect', function () {
         var N = pubsub.unsubscribe(unsubscribe_handle);
-        console.log(Date.now(), "A client has disconnected, leaving", N, "subscriber(s).");
+        debug(Date.now(), "A client has disconnected, leaving", N, "subscriber(s).");
     });
 });
 
@@ -95,7 +95,7 @@ var setup_routes = function (callback) {
 
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {
-        console.log("caught 404");
+        debug("caught 404");
         var err = new Error('Not Found');
         err.status = 404;
         next(err);
@@ -136,7 +136,7 @@ async.series(
                 ],
                 function (err, results) {
                     if (err) return callback(err);
-                    console.log("ready", results);
+                    debug("ready", results);
                     return callback(null);
                 }
             );
@@ -156,10 +156,10 @@ async.series(
     ],
     function (err) {
         if (err) {
-            console.log("Got error attempting to set up Mongo or the RESTful interfaces:", err);
+            debug("Got error attempting to set up Mongo or the RESTful interfaces:", err);
             throw err;
         }
-        console.log("Finished setup.");
+        debug("Finished setup.");
     }
 );
 
