@@ -1,4 +1,4 @@
-# weert
+# WeeRT
 A real-time interface to weewx using MongoDB, Express, Node, and D3 (MEND?)
 
 ## General architecture
@@ -60,11 +60,12 @@ only supported by v3.3+
 In case of an error, an `error` object is returned in the body of the response.
 
 #### Definition
-|Attribute | Type | Description |
-| --------:|:-----|:------------|
-| `code`        | integer | HTTP status code.|
-| `message`     | string  | A string describing the error.|
-| `description` | string  | A more detailed description of the error. [Not always available]|
+
+|     Attribute | Type    | Description                                                      |
+|--------------:|---------|------------------------------------------------------------------|
+|        `code` | integer | HTTP status code.                                                |
+|     `message` | string  | A string describing the error.                                   |
+| `description` | string  | A more detailed description of the error. [Not always available] |
 
 #### Example
 
@@ -76,16 +77,16 @@ In case of an error, an `error` object is returned in the body of the response.
 }
 ```
 
-### The `streams` object
+### The `stream` object
 
 #### Definition
 
-|Attribute | Type | Description |
-| --------:|:-----|:------------|
-| `_id`      | string | A unique identifier for the stream.|
-| `description` | string | A free-form description of the stream.|
-| `join`        | string | A key to an external database, holding additional information about the stream. [Optional]|
-| `model`       | string | The hardware model. [Optional]|
+|     Attribute | Type   | Description                                                                                |
+|--------------:|--------|--------------------------------------------------------------------------------------------|
+|         `_id` | string | A unique identifier for the stream.                                                        |
+| `description` | string | A free-form description of the stream.                                                     |
+|        `join` | string | A key to an external database, holding additional information about the stream. [Optional] |
+|       `model` | string | The hardware model. [Optional]                                                             |
 
 #### Example
 ```
@@ -97,15 +98,40 @@ In case of an error, an `error` object is returned in the body of the response.
 }
 ```
 
+
+### The `platform` object
+
+#### Definition
+
+|     Attribute | Type   | Description                                                                                 |
+|--------------:|--------|---------------------------------------------------------------------------------------------|
+|         `_id` | string | A unique identifier for the platform.                                                       |
+|        `name` | string | A name or nickname for the platform. Need not be unique.                                    |
+| `description` | string | A free-form description of the platform.                                                    |
+|     `streams` | array  | An array holding the IDs of any streams located on the platform.                            |
+|        `join` | string | A key to an external database, holding additional information about the platform. [Optional] |
+
+#### Example
+```
+{
+  "_id"         : "29e8a6bc",
+  "name"        : "Benny's Ute",
+  "description" : “Yellow Chevy with a cap”,
+  "streams"     : ["663f5e", "d65e3a", "2a9b9a"],
+  "join"        : "benny_ute"
+}
+```
+
 ### The `location` object
 
 #### Definition
 
-|Attribute | Type | Description |
-| --------:|:-----|:------------|
-| `timestamp`      | integer | Unix epoch time in milliseconds.|
-| `latitude` | real | The latitude in decimal degrees; negative for southern hemisphere.|
-| `longitude` | real | The longitude in decimal degrees; negative for western hemisphere.|
+|   Attribute | Type    | Description                                                        |
+|------------:|---------|--------------------------------------------------------------------|
+| `timestamp` | integer | Unix epoch time in milliseconds.                                   |
+|  `latitude` | real    | The latitude in decimal degrees; negative for southern hemisphere. |
+| `longitude` | real    | The longitude in decimal degrees; negative for western hemisphere. |
+|  `altitude` | real    | The altitude of the platform in meters.                            |
 
 #### Example
 ```
@@ -120,10 +146,10 @@ In case of an error, an `error` object is returned in the body of the response.
 
 #### Definition
 
-|Attribute | Type | Description |
-| --------:|:-----|:------------|
-| `timestamp`      | integer | Unix epoch time in milliseconds.|
-| _observation type_ | _unspecified_ | The type of observation (_e.g._, `outside_temperature`). Generally, these are real values, but WeeRT does not require this.|
+|          Attribute | Type          | Description                                                                                                                 |
+|-------------------:|---------------|-----------------------------------------------------------------------------------------------------------------------------|
+|        `timestamp` | integer       | Unix epoch time in milliseconds.                                                                                            |
+| _observation type_ | _unspecified_ | The type of observation (_e.g._, `outside_temperature`). Generally, these are real values, but WeeRT does not require this. |
 
 #### Example
 ```
@@ -170,22 +196,22 @@ This is impossible without another query.
 
 ## API summary
 
-|*HTTP verb* | *Endpoint* | *Description* |
-|--------------|----------|-------------|
-|`GET` | `/api/v1/streams` | Return an array of URIs to all the streams.|
-|`POST`| `/api/v1/streams` | Create a new stream. Return its URI. |
-|`GET` | `/api/v1/streams/:streamID/metadata` | Get the metadata for stream with id *streamID* |
-|`PUT` | `/api/v1/streams/:streamID/metadata` | Set or update the metadata for the stream with id *streamID* |
-|`POST`| `/api/v1/streams/:streamID/packets`  | Post a new packet to the stream with id *streamID*, returning its URI. |
-|`GET` | `/api/v1/streams/:streamID/packets`  | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria.|
-|`GET` | `/api/v1/streams/:streamID/packets/:timestamp` | Get a packet from the stream with id *stream*D* with the given timestamp |
-|`GET` | `/api/v1/platforms` | Get an array of URIs to all platforms.|
-|`POST`| `/api/v1/platforms` | Create a new platform and return its URI.|
-|`GET` | `/api/v1/platforms/:platformID/metadata` | Get the metadata for the platform with id *platformID*.|
-|`PUT` | `/api/v1/platforms/:platformID/metadata` | Set or update the metadata for platform with id *platformID*.|
-|`GET` | `/api/v1/platforms/:platformID/streams`   | Get an array of URIs to all member streams of the platform with id *platformID*.|
-|`GET` | `/api/v1/platforms/:platformID/locations` | Get all locations for the platform with id *platformID*, satisfying certain search criteria.|
-|`POST`| `/api/v1/platforms/:platformID/locations` | Post a new location for the platform with id *platformID*, returning its URI.|
+| *HTTP verb* | *Endpoint*                                     | *Description*                                                                                          |
+|-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            |
+| `POST`      | `/api/v1/streams`                              | Create a new stream. Return its URI.                                                                   |
+| `GET`       | `/api/v1/streams/:streamID/metadata`           | Get the metadata for stream with id *streamID*                                                         |
+| `PUT`       | `/api/v1/streams/:streamID/metadata`           | Set or update the metadata for the stream with id *streamID*                                           |
+| `POST`      | `/api/v1/streams/:streamID/packets`            | Post a new packet to the stream with id *streamID*, returning its URI.                                 |
+| `GET`       | `/api/v1/streams/:streamID/packets`            | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria. |
+| `GET`       | `/api/v1/streams/:streamID/packets/:timestamp` | Get a packet from the stream with id *stream*D* with the given timestamp                               |
+| `GET`       | `/api/v1/platforms`                            | Get an array of URIs to all platforms.                                                                 |
+| `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              |
+| `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                |
+| `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |
+| `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |
+| `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           |
+| `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*, returning its URI.                          |
 
 ## `/api/v1/streams/:streamID/packets`
 ### GET
