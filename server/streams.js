@@ -45,21 +45,20 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     });
 };
 
-
 StreamsManager.prototype.find = function (streamID, options, callback) {
     var self = this;
-
-    // If "_id" is the sort key, convert it to "timestamp"
-    if (options.sort !== undefined && options.sort._id !== undefined){
-        options.sort.timestamp = options.sort._id;
-        delete options.sort._id;
+    // Clone the options object because we will be modifying it:
+    var options_copy = {};
+    for (var attr in options) {
+        if (options.hasOwnProperty(attr))
+            options_copy[attr] = options[attr];
     }
-
+    options_copy.sort = dbtools.getSortSpec(options.sort);
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
-        dbtools.find(collection, options, function (err, result){
+        dbtools.find(collection, options_copy, function (err, result){
             if (err) return callback(err);
             return callback(null, result);
         });

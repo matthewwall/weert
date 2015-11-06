@@ -55,6 +55,27 @@ only supported by v3.3+
 
 ## Objects
 
+### The `error` object
+
+In case of an error, an `error` object is returned in the body of the response.
+
+#### Definition
+|Attribute | Type | Description |
+| --------:|:-----|:------------|
+| `code`        | integer | HTTP status code.|
+| `message`     | string  | A string describing the error.|
+| `description` | string  | A more detailed description of the error. [Not always available]|
+
+#### Example
+
+```
+{
+  "code" : 409,
+  "message" : "Duplicate time stamp",
+  "description" : "E11000 duplicate key error index: weert.streams_s1_packets.$_id_ dup key: { : new Date(1446239529521) }"
+}
+```
+
 ### The `streams` object
 
 #### Definition
@@ -149,64 +170,24 @@ This is impossible without another query.
 
 ## API summary
 
-<table>
-  <tr style="font-style:italic; font-weight:bold">
-    <td>HTTP verb</td><td>Endpoint</td><td>Description</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/streams</td><td>Return an array of URIs to all the streams.</td>
-  </tr>
-  <tr>
-    <td>POST</td><td>/api/streams</td><td>Create a new stream and return its URI. It will not
-    be associated with any platform.</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/streams/:streamID/metadata</td><td>Get the metadata for a given stream.</td>
-  </tr>
-  <tr>
-    <td>PUT</td><td>/api/streams/:streamID/metadata</td><td>Set or update the metadata for a given stream.</td>
-  </tr>
-  <tr>
-    <td>POST</td><td>/api/streams/:streamID/packets</td><td>Post a new packet, returning its URI.</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/streams/:streamID/packets</td><td>Get all packets of a given stream,
-     satisfying a search or aggregation query.</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/streams/:streamID/packets/:timestamp</td><td>Get a packet with given timestamp.</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/platforms</td><td>Get an array of URIs to all platforms.</td>
-  </tr>
-  <tr>
-    <td>POST</td><td>/api/platforms</td><td>Create a new platform. Return its URI.</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/platforms/:platformID/metadata</td><td>Get the metadata for a given platform.</td>
-  </tr>
-  <tr>
-    <td>PUT</td><td>/api/platforms/:platformID/metadata</td><td>Set or update the metadata for a given platform.</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/platforms/:platformID/streams</td><td>Get an array of URIs to all 
-    member streams of a given platform.</td>
-  </tr>
-  <tr>
-    <td>POST</td><td>/api/platforms/:platformID/streams</td><td>Create a new stream and associate it with
-    the platform <i>platformID</i>. Return the URI of the new stream.</td>
-  </tr>
-  <tr>
-    <td>GET</td><td>/api/platforms/:platformID/locations</td><td>Get all locations of a given platform, 
-    satisfying search query.</td>
-  </tr>
-  <tr>
-    <td>POST</td><td>/api/platforms/:platformID/locations</td><td>Post a new location for a platform, 
-    returning its URI.</td>
-  </tr>
-</table>
+|*HTTP verb* | *Endpoint* | *Description* |
+|--------------|----------|-------------|
+|`GET` | `/api/streams` | Return an array of URIs to all the streams.|
+|`POST`| `/api/streams` | Create a new stream. Return its URI. |
+|`GET` | `/api/streams/:streamID/metadata` | Get the metadata for stream with id *streamID* |
+|`PUT` | `/api/streams/:streamID/metadata` | Set or update the metadata for the stream with id *streamID* |
+|`POST`| `/api/streams/:streamID/packets`  | Post a new packet to the stream with id *streamID*, returning its URI. |
+|`GET` | `/api/streams/:streamID/packets`  | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria.|
+|`GET` | `/api/streams/:streamID/packets/:timestamp` | Get a packet from the stream with id *stream*D* with the given timestamp |
+|`GET` | `/api/platforms` | Get an array of URIs to all platforms.|
+|`POST`| `/api/platforms` | Create a new platform and return its URI.|
+|`GET` | `/api/platforms/:platformID/metadata` | Get the metadata for the platform with id *platformID*.|
+|`PUT` | `/api/platforms/:platformID/metadata` | Set or update the metadata for platform with id *platformID*.|
+|`GET` | `/api/platforms/:platformID/streams`   | Get an array of URIs to all member streams of the platform with id *platformID*.|
+|`GET` | `/api/platforms/:platformID/locations` | Get all locations for the platform with id *platformID*, satisfying certain search criteria.|
+|`POST`| `/api/platforms/:platformID/locations` | Post a new location for the platform with id *platformID*, returning its URI.|
 
-## /api/streams/:streamID/packets
+## `/api/streams/:streamID/packets`
 ### GET
 
 The GET API for the collection of LOOP packets takes two forms.
@@ -224,12 +205,12 @@ If `YYYYY` is missing, then end with the last available packet.
 
 If `limit` is given, then limit the number of returned packets to `N`.
 
-If `sort` is given, then sort the results using <i>sortspec</i>, an escaped JSON object.
-An example <i>sortspec</i> would be `{timestamp:-1}`, that is, return the results with descending timestamps.
+If `sort` is given, then sort the results using *sortspec*.
+An example *sortspec* would be `timestamp,asc`, that is, sort the results with ascending timestamps.
 
-Sample URL (with a <i>sortspec</i> of `{timestamp:-1}`):
+Sample URL:
 
-    http://localhost:3000/api/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&limit=5&sort=%7B%22timestamp%22%3A-1%7D
+    http://localhost:3000/api/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&limit=5&sort=timestamp,desc
   
 Result is returned in the response body as an array holding the packets satisfying the search criteria, encoded
 in JSON.
@@ -240,7 +221,7 @@ in JSON.
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159214000},
      {"wind_speed":2.2352,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,"wind_direction":232,"outside_temperature":14.72,"outside_humidity":80,"dewpoint_temperature":11.30,"timestamp":1446159212000}]
 
-Returns a status of `400` if the *streamID* does not exist. Additional details are in the HTTP response body.
+Returns a status of `400` if the *streamID* does not exist. Additional details are in the response body.
 
 #### 2. GET aggregate
 
@@ -277,7 +258,7 @@ Returns a status of `400` if the *streamID* does not exist. Additional details a
 
 Post a LOOP packet for the stream with ID *streamID*. 
 The packet should be contained as a JSON payload in the body of the POST. The packet
-must contain keyword `timestamp`, holding the unix epoch time in <i>milliseconds</i> (JavaScript style).
+must contain keyword `timestamp`, holding the unix epoch time in *milliseconds* (JavaScript style).
 
 There is no enforcement of the unit system used in the packet, 
 but best practices is to use the weewx `METRICWX` system.
@@ -288,14 +269,16 @@ Sample URL:
 
 Example packet:
 
-    {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,
-     "wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,
-     "dewpoint_temperature":11.30,"timestamp":1446159220000}
+```
+{"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,
+ "wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,
+ "dewpoint_temperature":11.30,"timestamp":1446159220000}
+```
 
 If successful, the server will return a response code of `202`, with the response `location` field set to the URL
 of the newly created resource (packet).
 
-## /api/streams/:streamID/packets/:timestamp
+## `/api/streams/:streamID/packets/:timestamp`
 ### GET
 
     GET
