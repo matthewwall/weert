@@ -53,6 +53,70 @@ only supported by v3.3+
 
 # RESTful API
 
+## Objects
+
+### The `streams` object
+
+#### Definition
+
+|Attribute | Type | Description |
+| --------:|:-----|:------------|
+| `_id`      | string | A unique identifier for the stream.|
+| `description` | string | A free-form description of the stream.|
+| `join`        | string | A key to an external database, holding additional information about the stream. [Optional]|
+| `model`       | string | The hardware model. [Optional]|
+
+#### Example
+```
+{
+  "_id"         : "309ae56b8d",
+  "description" : “Onewire feed from boiler”,
+  "join"        : "87340",
+  "model":      : "DS18B20"
+}
+```
+
+### The `location` object
+
+#### Definition
+
+|Attribute | Type | Description |
+| --------:|:-----|:------------|
+| `timestamp`      | integer | Unix epoch time in milliseconds.|
+| `latitude` | real | The latitude in decimal degrees; negative for southern hemisphere.|
+| `longitude` | real | The longitude in decimal degrees; negative for western hemisphere.|
+
+#### Example
+```
+{
+  "timestamp" : 1446767591000,
+  "latitude"  : 45.1082,
+  "longitude" : -122.0395
+}
+```
+
+### The `packets` object
+
+#### Definition
+
+|Attribute | Type | Description |
+| --------:|:-----|:------------|
+| `timestamp`      | integer | Unix epoch time in milliseconds.|
+| _observation type_ | _unspecified_ | The type of observation (_e.g._, `outside_temperature`). Generally, these are real values, but WeeRT does not require this.|
+
+#### Example
+```
+{
+ "timestamp" : 1446158201379,
+ "outside_temperature" : 22.14,
+ "inside_temperature" : 20.51,
+ "barometer_pressure": 1004.2
+ ...
+}
+```
+
+
+
 ## Time queries
 Some of the WeeRT APIs involve a *time query*. For example, to get a set of packets from a stream with ID 12345,
 one performs an HTTP GET like this:

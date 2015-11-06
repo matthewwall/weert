@@ -25,7 +25,7 @@ Sample packet:
     {
      timestamp : 1446158201379,
      outside_temperature : 22.14,
-     inside_temperature : 20.51
+     inside_temperature : 20.51,
      barometer_pressure: 1004.2
      ...
     }
