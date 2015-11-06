@@ -13,7 +13,7 @@ import weewx.restx
 from weewx.restx import StdRESTful, RESTThread
 
 DEFAULT_NODE_URL = "http://localhost:3000"
-WEERT_ENDPOINT_ROOT = "/api/streams/"
+WEERT_ENDPOINT_ROOT = "/api/v1/streams/"
 
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.

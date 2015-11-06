@@ -91,7 +91,7 @@ var setup_routes = function (callback) {
     // Serve all static files from the "public" subdirectory:
     app.use(express.static(path.join(__dirname, '../public')));
 
-    app.use('/api', stream_routes(streams_manager));
+    app.use('/api/v1', stream_routes(streams_manager));
 
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {

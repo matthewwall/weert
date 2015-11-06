@@ -66,7 +66,7 @@ var getInitialData = function (callback) {
     var stop = Date.now();
     var start = stop - max_initial_age_secs * 1000;
     // Use a simple GET request
-    var url = "http://" + window.location.host + "/api/streams/" + streamID + "/packets?start=" + start + "&stop=" + stop;
+    var url = "http://" + window.location.host + "/api/v1/streams/" + streamID + "/packets?start=" + start + "&stop=" + stop;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4) {

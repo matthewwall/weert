@@ -28,7 +28,7 @@ router.get('/streams/:streamID/packets', function (req, res) {
                 debug("Unable to satisfy request. Reason", err);
                 res.status(400).send({code: 400, message: "Unable to satisfy request", error: err.message});
             } else {
-                res.send(JSON.stringify(result));
+                res.json(result);
             }
         });
     } else {
@@ -39,7 +39,7 @@ router.get('/streams/:streamID/packets', function (req, res) {
                 res.status(400).send({code: 400, message: "Unable to satisfy request", error: err.message});
             } else {
                 debug("# of packets=", packet_array.length);
-                res.send(JSON.stringify(packet_array));
+                res.json(packet_array);
             }
         });
     }
@@ -62,10 +62,10 @@ router.post('/streams/:streamID/packets', function (req, res) {
                 debug("Unable to insert packet with timestamp", ts);
                 if (err.code === 11000) {
                     debug("Reason: duplicate time stamp");
-                    res.status(409).send({code: 409, message: "Duplicate time stamp", error: err.message});
+                    res.status(409).json({code: 409, message: "Duplicate time stamp", error: err.message});
                 } else {
                     debug("Error code:", err.code);
-                    res.status(400).send({code: 400, message: "Unable to insert packet", error: err.message});
+                    res.status(400).json({code: 400, message: "Unable to insert packet", error: err.message});
                 }
             } else {
                 var resource_url = url.format({
@@ -73,13 +73,13 @@ router.post('/streams/:streamID/packets', function (req, res) {
                     host: req.get('host'),
                     pathname: req.originalUrl + "/" + packet.timestamp
                 });
-                res.status(201).location(resource_url).send(JSON.stringify(packet.timestamp));
+                res.status(201).location(resource_url).json(packet.timestamp);
                 // Let any interested subscribers know there is a new packet:
                 pubsub.publish('new_packet', {"packet": packet, "streamID": streamID}, this);
             }
         });
     } else {
-        res.status(415).send({code:415, message:"Invalid Content-type", error: req.get('Content-Type')});
+        res.status(415).json({code:415, message:"Invalid Content-type", error: req.get('Content-Type')});
     }
 });
 
@@ -93,9 +93,9 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
     streams_manager.findOne(streamID, {timestamp: timestamp}, function (err, packet) {
         if (err) {
             console.log("Unable to satisfy request. Reason", err);
-            res.status(400).send({code:400, message: "Unable to satisfy request", error: err.message});
+            res.status(400).json({code:400, message: "Unable to satisfy request", error: err.message});
         } else {
-            res.send(JSON.stringify(packet));
+            res.json(packet);
         }
     });
 });

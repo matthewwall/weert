@@ -51,7 +51,7 @@ only supported by v3.3+
 
 8. Open up a client at [http://localhost:3000](http://localhost:3000).
 
-# RESTful API
+# RESTful API Version 1
 
 ## Objects
 
@@ -142,7 +142,7 @@ In case of an error, an `error` object is returned in the body of the response.
 Some of the WeeRT APIs involve a *time query*. For example, to get a set of packets from a stream with ID 12345,
 one performs an HTTP GET like this:
 
-    GET /api/streams/12345/packets?start=XXXXX&stop=YYYYY
+    GET /api/v1/streams/12345/packets?start=XXXXX&stop=YYYYY
 
 This would return all packets with timestamps between XXXXX and YYYYY. However, this is *exclusive* on the left,
 inclusive on the right. So, what is really being returned is packets satisfying the criteria
@@ -172,22 +172,22 @@ This is impossible without another query.
 
 |*HTTP verb* | *Endpoint* | *Description* |
 |--------------|----------|-------------|
-|`GET` | `/api/streams` | Return an array of URIs to all the streams.|
-|`POST`| `/api/streams` | Create a new stream. Return its URI. |
-|`GET` | `/api/streams/:streamID/metadata` | Get the metadata for stream with id *streamID* |
-|`PUT` | `/api/streams/:streamID/metadata` | Set or update the metadata for the stream with id *streamID* |
-|`POST`| `/api/streams/:streamID/packets`  | Post a new packet to the stream with id *streamID*, returning its URI. |
-|`GET` | `/api/streams/:streamID/packets`  | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria.|
-|`GET` | `/api/streams/:streamID/packets/:timestamp` | Get a packet from the stream with id *stream*D* with the given timestamp |
-|`GET` | `/api/platforms` | Get an array of URIs to all platforms.|
-|`POST`| `/api/platforms` | Create a new platform and return its URI.|
-|`GET` | `/api/platforms/:platformID/metadata` | Get the metadata for the platform with id *platformID*.|
-|`PUT` | `/api/platforms/:platformID/metadata` | Set or update the metadata for platform with id *platformID*.|
-|`GET` | `/api/platforms/:platformID/streams`   | Get an array of URIs to all member streams of the platform with id *platformID*.|
-|`GET` | `/api/platforms/:platformID/locations` | Get all locations for the platform with id *platformID*, satisfying certain search criteria.|
-|`POST`| `/api/platforms/:platformID/locations` | Post a new location for the platform with id *platformID*, returning its URI.|
+|`GET` | `/api/v1/streams` | Return an array of URIs to all the streams.|
+|`POST`| `/api/v1/streams` | Create a new stream. Return its URI. |
+|`GET` | `/api/v1/streams/:streamID/metadata` | Get the metadata for stream with id *streamID* |
+|`PUT` | `/api/v1/streams/:streamID/metadata` | Set or update the metadata for the stream with id *streamID* |
+|`POST`| `/api/v1/streams/:streamID/packets`  | Post a new packet to the stream with id *streamID*, returning its URI. |
+|`GET` | `/api/v1/streams/:streamID/packets`  | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria.|
+|`GET` | `/api/v1/streams/:streamID/packets/:timestamp` | Get a packet from the stream with id *stream*D* with the given timestamp |
+|`GET` | `/api/v1/platforms` | Get an array of URIs to all platforms.|
+|`POST`| `/api/v1/platforms` | Create a new platform and return its URI.|
+|`GET` | `/api/v1/platforms/:platformID/metadata` | Get the metadata for the platform with id *platformID*.|
+|`PUT` | `/api/v1/platforms/:platformID/metadata` | Set or update the metadata for platform with id *platformID*.|
+|`GET` | `/api/v1/platforms/:platformID/streams`   | Get an array of URIs to all member streams of the platform with id *platformID*.|
+|`GET` | `/api/v1/platforms/:platformID/locations` | Get all locations for the platform with id *platformID*, satisfying certain search criteria.|
+|`POST`| `/api/v1/platforms/:platformID/locations` | Post a new location for the platform with id *platformID*, returning its URI.|
 
-## `/api/streams/:streamID/packets`
+## `/api/v1/streams/:streamID/packets`
 ### GET
 
 The GET API for the collection of LOOP packets takes two forms.
@@ -195,7 +195,7 @@ The GET API for the collection of LOOP packets takes two forms.
 #### 1. GET packets
 
     GET
-    /api/streams/:streamID/packets?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
+    /api/v1/streams/:streamID/packets?start=XXXXX&stop=YYYYY&limit=N&sort=sortspec
     
     
 Get all packets from the LOOP collection for stream with ID *streamID* and with timestamps greater than `XXXXX` 
@@ -210,7 +210,7 @@ An example *sortspec* would be `timestamp,asc`, that is, sort the results with a
 
 Sample URL:
 
-    http://localhost:3000/api/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&limit=5&sort=timestamp,desc
+    http://localhost:3000/api/v1/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&limit=5&sort=timestamp,desc
   
 Result is returned in the response body as an array holding the packets satisfying the search criteria, encoded
 in JSON.
@@ -226,7 +226,7 @@ Returns a status of `400` if the *streamID* does not exist. Additional details a
 #### 2. GET aggregate
 
     GET
-    /api/streams/:streamID/packets?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
+    /api/v1/streams/:streamID/packets?start=XXXXX&stop=YYYYY&aggregate_type=agg&obs_type=obs_name
     
 The second form of the GET API applies if the parameter `aggregate_type` appears, 
 in which case an *aggregate* is returned. For this form,
@@ -244,7 +244,7 @@ If the observation type *obs_name* is not in the collection, then `null` will be
 
 Example request:
 
-    http://localhost:3000/api/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
+    http://localhost:3000/api/v1/streams/801a8409cd/packets?start=1446158201000&stop=1449260201000&aggregate_type=min&obs_type=outside_temperature
     
 Result is returned in the response body as a single value, encoded in JSON.
 
@@ -254,7 +254,7 @@ Returns a status of `400` if the *streamID* does not exist. Additional details a
 ### POST
 
     POST
-    /api/streams/:streamID/packets
+    /api/v1/streams/:streamID/packets
 
 Post a LOOP packet for the stream with ID *streamID*. 
 The packet should be contained as a JSON payload in the body of the POST. The packet
@@ -265,7 +265,7 @@ but best practices is to use the weewx `METRICWX` system.
 
 Sample URL:
 
-    http://localhost:3000/api/streams/801a8409cd/packets
+    http://localhost:3000/api/v1/streams/801a8409cd/packets
 
 Example packet:
 
@@ -278,17 +278,17 @@ Example packet:
 If successful, the server will return a response code of `202`, with the response `location` field set to the URL
 of the newly created resource (packet).
 
-## `/api/streams/:streamID/packets/:timestamp`
+## `/api/v1/streams/:streamID/packets/:timestamp`
 ### GET
 
     GET
-    /api/streams/:streamID/packets/:timestamp
+    /api/v1/streams/:streamID/packets/:timestamp
 
 Get a single packet from the collection of LOOP packets of stream *streamID* with timestamp *timestamp*.
 
 Sample URL:
 
-    http://localhost:3000/api/streams/801a8409cd/packets/1446159220000
+    http://localhost:3000/api/v1/streams/801a8409cd/packets/1446159220000
     
 Result is returned in the response body as a single packet, encoded in JSON:
 
