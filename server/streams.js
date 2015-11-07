@@ -1,30 +1,31 @@
 "use strict";
 
 var streams_metadata_options = {};
-var streams_metadata_name = 'streams_metadata';
+var streams_metadata_name    = 'streams_metadata';
 
+var mongodb = require('mongodb');
 var dbtools = require('./dbtools');
 
-var _getPacketCollectionName = function(streamID){
+var _getPacketCollectionName = function (streamID) {
     return "streams_" + streamID + "_packets"
 };
 
 var StreamsManager = function (db, options) {
-    this.db = db;
+    this.db      = db;
     this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
 };
 
-StreamsManager.prototype.findStreams = function (options, callback){
+StreamsManager.prototype.findStreams = function (options, callback) {
     "use strict";
-    var self = this;
+    var self         = this;
     var options_copy = dbtools.getOptions(options);
-    var limit = options_copy.limit === undefined ? 0 : +options_copy.limit;
+    var limit        = options_copy.limit === undefined ? 0 : +options_copy.limit;
     // Test to make sure 'limit' is a number
-    if (typeof limit !== 'number' || (limit % 1) !== 0){
-        return callback({message:"Invalid value for 'limit': " + limit})
+    if (typeof limit !== 'number' || (limit % 1) !== 0) {
+        return callback({message: "Invalid value for 'limit': " + limit})
     }
 
-    self.db.collection(streams_metadata_name, {strict:true}, function(err, collection){
+    self.db.collection(streams_metadata_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
         collection.find()
             .limit(limit)
@@ -33,13 +34,33 @@ StreamsManager.prototype.findStreams = function (options, callback){
     });
 };
 
-StreamsManager.prototype.createStream = function (stream_metadata, callback){
+StreamsManager.prototype.findStream = function (streamID, callback) {
+    "use strict";
+    var self = this;
+
+    self.db.collection(streams_metadata_name, {strict: true}, function (err, collection) {
+        if (err) return callback(err);
+        try {
+            collection.find(
+                {
+                    _id: {$eq: new mongodb.ObjectID(streamID)}
+                }
+                )
+                .toArray(callback);
+        } catch(err) {
+            // Error, perhaps because of an invalid streamID
+            return callback(err);
+        }
+    });
+};
+
+StreamsManager.prototype.createStream = function (stream_metadata, callback) {
     "use strict";
     var self = this;
     // TODO: Check to see if the metadata has an _id field
-    self.db.collection(streams_metadata_name, {strict: false}, function (err, collection){
+    self.db.collection(streams_metadata_name, {strict: false}, function (err, collection) {
         if (err) return callback(err);
-        collection.insertOne(stream_metadata, {}, function (err, result){
+        collection.insertOne(stream_metadata, {}, function (err, result) {
             var stream_final_metadata = result.ops[0];
             console.log("insert stream result=", stream_final_metadata);
             return callback(err, stream_final_metadata);
@@ -77,27 +98,27 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
 
 StreamsManager.prototype.find = function (streamID, options, callback) {
     "use strict";
-    var self = this;
-    var options_copy = dbtools.getOptions(options);
+    var self            = this;
+    var options_copy    = dbtools.getOptions(options);
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
-    self.db.collection(collection_name, {strict:true}, function(err, collection){
+    self.db.collection(collection_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
-        dbtools.findByTimestamp(collection, options_copy, function (err, result){
+        dbtools.findByTimestamp(collection, options_copy, function (err, result) {
             if (err) return callback(err);
             return callback(null, result);
         });
     });
 };
 
-StreamsManager.prototype.findOne = function(streamID, options, callback){
+StreamsManager.prototype.findOne = function (streamID, options, callback) {
     "use strict";
-    var self = this;
+    var self            = this;
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
-    self.db.collection(collection_name, {strict:true}, function(err, collection){
+    self.db.collection(collection_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
-        dbtools.findOneByTimestamp(collection, options, function (err, result){
+        dbtools.findOneByTimestamp(collection, options, function (err, result) {
             if (err) return callback(err);
             return callback(null, result);
         });
@@ -111,9 +132,9 @@ StreamsManager.prototype.aggregate = function (streamID, obs_type, options, call
 
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
-    self.db.collection(collection_name, {strict:true}, function(err, collection){
+    self.db.collection(collection_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
-        dbtools.calcAggregate(collection, obs_type, options, function (err, result){
+        dbtools.calcAggregate(collection, obs_type, options, function (err, result) {
             if (err) return callback(err);
             return callback(null, result);
         });

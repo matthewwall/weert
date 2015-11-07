@@ -30,6 +30,28 @@ router.get('/streams', function (req,res){
     });
 });
 
+// RESTful interface that returns the metadata for a single stream
+router.get('/streams/:streamID', function (req, res){
+    "use strict";
+    // Get the streamID out of the route path
+    var streamID = req.params.streamID;
+    debug("Request for streamID", streamID);
+
+    streams_manager.findStream(streamID, function (err, stream_metadata) {
+        if (err) {
+            console.log("Unable to satisfy request. Reason", err);
+            res.status(400).json({code:400, message: "Unable to satisfy request for stream with _id " + streamID, error: err.message});
+        } else {
+            if (stream_metadata.length) {
+                res.json(stream_metadata[0]);
+            } else {
+                res.json(null);
+            }
+        }
+    });
+
+});
+
 // RESTful interface that creates a new stream
 router.post('/streams', function (req, res) {
     "use strict";
