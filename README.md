@@ -131,14 +131,15 @@ In case of an error, an `error` object is returned in the body of the response.
 | `timestamp` | integer | Unix epoch time in milliseconds.                                   |
 |  `latitude` | real    | The latitude in decimal degrees; negative for southern hemisphere. |
 | `longitude` | real    | The longitude in decimal degrees; negative for western hemisphere. |
-|  `altitude` | real    | The altitude of the platform in meters.                            |
+|  `altitude` | real    | The altitude of the platform in meters. [Optional]                 |
 
 #### Example
 ```
 {
   "timestamp" : 1446767591000,
   "latitude"  : 45.1082,
-  "longitude" : -122.0395
+  "longitude" : -122.0395,
+  "altitude"  : 235.2
 }
 ```
 
