@@ -1,5 +1,8 @@
 "use strict";
 
+var streams_metadata_options = {};
+var streams_metadata_name = 'streams_metadata';
+
 var dbtools = require('./dbtools');
 
 var _getPacketCollectionName = function(streamID){
@@ -11,14 +14,41 @@ var StreamsManager = function (db, options) {
     this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
 };
 
-//StreamsManager.prototype.newStream = function(metadata){
-//    var self = this;
-//    dbtools.createCollection(self.db, "streams_metadata", {}, function (err, collection){
-//        collection.insertOne(...)
-//    });
-//};
+StreamsManager.prototype.findStreams = function (options, callback){
+    "use strict";
+    var self = this;
+    var options_copy = dbtools.getOptions(options);
+    var limit = options_copy.limit === undefined ? 0 : +options_copy.limit;
+    // Test to make sure 'limit' is a number
+    if (typeof limit !== 'number' || (limit % 1) !== 0){
+        return callback({message:"Invalid value for 'limit': " + limit})
+    }
+
+    self.db.collection(streams_metadata_name, {strict:true}, function(err, collection){
+        if (err) return callback(err);
+        collection.find()
+            .limit(limit)
+            .sort(options_copy.sort)
+            .toArray(callback);
+    });
+};
+
+StreamsManager.prototype.createStream = function (stream_metadata, callback){
+    "use strict";
+    var self = this;
+    // TODO: Check to see if the metadata has an _id field
+    self.db.collection(streams_metadata_name, {strict: false}, function (err, collection){
+        if (err) return callback(err);
+        collection.insertOne(stream_metadata, {}, function (err, result){
+            var stream_final_metadata = result.ops[0];
+            console.log("insert stream result=", stream_final_metadata);
+            return callback(err, stream_final_metadata);
+        });
+    });
+};
 
 StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
+    "use strict";
     var self = this;
     if (streamID === undefined)
         return callback("Missing stream ID");
@@ -46,19 +76,14 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
 };
 
 StreamsManager.prototype.find = function (streamID, options, callback) {
+    "use strict";
     var self = this;
-    // Clone the options object because we will be modifying it:
-    var options_copy = {};
-    for (var attr in options) {
-        if (options.hasOwnProperty(attr))
-            options_copy[attr] = options[attr];
-    }
-    options_copy.sort = dbtools.getSortSpec(options.sort);
+    var options_copy = dbtools.getOptions(options);
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
-        dbtools.find(collection, options_copy, function (err, result){
+        dbtools.findByTimestamp(collection, options_copy, function (err, result){
             if (err) return callback(err);
             return callback(null, result);
         });
@@ -66,12 +91,13 @@ StreamsManager.prototype.find = function (streamID, options, callback) {
 };
 
 StreamsManager.prototype.findOne = function(streamID, options, callback){
+    "use strict";
     var self = this;
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
     self.db.collection(collection_name, {strict:true}, function(err, collection){
         if (err) return callback(err);
-        dbtools.findOne(collection, options, function (err, result){
+        dbtools.findOneByTimestamp(collection, options, function (err, result){
             if (err) return callback(err);
             return callback(null, result);
         });
@@ -80,6 +106,7 @@ StreamsManager.prototype.findOne = function(streamID, options, callback){
 
 
 StreamsManager.prototype.aggregate = function (streamID, obs_type, options, callback) {
+    "use strict";
     var self = this;
 
     var collection_name = _getPacketCollectionName(streamID);

@@ -7,8 +7,48 @@ var pubsub = require('../pubsub');
 
 var streams_manager = undefined;
 
-// RESTful interface that creates new streams
+// RESTful interface that returns references to all streams
+router.get('/streams', function (req,res){
+    "use strict";
+    streams_manager.findStreams(req.query, function(err, streams_array) {
+        if (err) {
+            debug("Unable to find streams. Reason", err);
+            res.status(400).send({code:400, message: "Unable to satisfy request for streams", error: err.message});
+        } else {
+            debug("# of streams=", streams_array.length);
+            var stream_uris = [];
+            for (var i=0; i<streams_array.length; i++){
+                stream_uris[i]= url.format({
+                    protocol: req.protocol,
+                    host: req.get('host'),
+                    pathname: req.originalUrl + "/" + streams_array[i]._id
+                });
+            }
+            res.json(stream_uris);
+        }
+
+    });
+});
+
+// RESTful interface that creates a new stream
 router.post('/streams', function (req, res) {
+    "use strict";
+    // Get the metadata
+    var metadata = req.body;
+    // Make sure it does not contain an _id field:
+    if (metadata._id !== undefined){
+        debug("Request to create stream has _id field:", metadata._id);
+        res.status(400).json({code:400, message: "Request to create stream includes an _id field", error: metadata._id});
+    } else {
+        streams_manager.createStream(metadata, function (err, result) {
+            var resource_url = url.format({
+                protocol: req.protocol,
+                host: req.get('host'),
+                pathname: req.originalUrl + "/" + result._id
+            });
+            res.status(201).location(resource_url).json(result);
+        })
+    }
 
 });
 
@@ -26,7 +66,7 @@ router.get('/streams/:streamID/packets', function (req, res) {
         streams_manager.aggregate(streamID, obs_type, req.query, function (err, result) {
             if (err) {
                 debug("Unable to satisfy request. Reason", err);
-                res.status(400).send({code: 400, message: "Unable to satisfy request", error: err.message});
+                res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
             } else {
                 res.json(result);
             }
@@ -35,8 +75,8 @@ router.get('/streams/:streamID/packets', function (req, res) {
         debug("Request for packets with start, stop times of", req.query.start, req.query.stop);
         streams_manager.find(streamID, req.query, function (err, packet_array) {
             if (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).send({code: 400, message: "Unable to satisfy request", error: err.message});
+                debug("Unable to satisfy request for packets. Reason", err);
+                res.status(400).json({code: 400, message: "Unable to satisfy request for packets", error: err.message});
             } else {
                 debug("# of packets=", packet_array.length);
                 res.json(packet_array);

@@ -84,6 +84,7 @@ In case of an error, an `error` object is returned in the body of the response.
 |     Attribute | Type   | Description                                                                                |
 |--------------:|--------|--------------------------------------------------------------------------------------------|
 |         `_id` | string | A unique identifier for the stream.                                                        |
+|        `name` | string | A name or nickname for the stream. Need not be unique.                                     |
 | `description` | string | A free-form description of the stream.                                                     |
 |        `join` | string | A key to an external database, holding additional information about the stream. [Optional] |
 |       `model` | string | The hardware model. [Optional]                                                             |
@@ -92,7 +93,8 @@ In case of an error, an `error` object is returned in the body of the response.
 ```
 {
   "_id"         : "309ae56b8d",
-  "description" : “Onewire feed from boiler”,
+  "name"        : "Boiler feed",
+  "description" : “Onewire feed from boiler; uses blue wire”,
   "join"        : "87340",
   "model":      : "DS18B20"
 }
@@ -116,7 +118,7 @@ In case of an error, an `error` object is returned in the body of the response.
 {
   "_id"         : "29e8a6bc",
   "name"        : "Benny's Ute",
-  "description" : “Yellow Chevy with a cap”,
+  "description" : “Benny's Ute. Yellow Chevy with a black cap”,
   "streams"     : ["663f5e", "d65e3a", "2a9b9a"],
   "join"        : "benny_ute"
 }

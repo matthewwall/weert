@@ -1,110 +1,132 @@
 "use strict";
 
-var find = function (collection, options, callback) {
-    var self  = this;
+var find = function (collection, find_criteria, options, callback) {
+    var limit = options.limit === undefined ? 0 : +options.limit;
+    var sort  = options.sort === undefined ? {_id: 1} : options.sort;
+
+    // Test to make sure 'limit' is a number
+    if (typeof limit !== 'number' || (limit % 1) !== 0) {
+        return callback({message: "Invalid value for 'limit': " + limit})
+    }
+
+    self.db.collection(collection, {strict: true}, function (err, collection) {
+        if (err) return callback(err);
+        collection.find(find_criteria)
+            .limit(limit)
+            .sort(sort)
+            .toArray(function (err, results) {
+                if (err) return callback(err);
+                return callback(null, results);
+            })
+    });
+
+};
+
+var findByTimestamp = function (collection, options, callback) {
+    var self = this;
     // Dig any parameters out of the options hash. Make sure to convert any
     // strings to numbers.
-    var start = options.start === undefined ? 0          : +options.start;
-    var stop  = options.stop  === undefined ? Date.now() : +options.stop;
-    var limit = options.limit === undefined ? 0          : +options.limit;
-    var sort  = options.sort  === undefined ? {_id : 1}  :  options.sort;
+    var start = options.start === undefined ? 0 : +options.start;
+    var stop  = options.stop === undefined ? Date.now() : +options.stop;
+    var limit = options.limit === undefined ? 0 : +options.limit;
+    var sort  = options.sort === undefined ? {_id: 1} : options.sort;
 
     // Test to make sure 'start' is a number
-    if (typeof start !== 'number' || (start % 1) !== 0){
-        return callback({message:"Invalid value for 'start': " + start})
+    if (typeof start !== 'number' || (start % 1) !== 0) {
+        return callback({message: "Invalid value for 'start': " + start})
     }
     // Test to make sure 'stop' is a number
-    if (typeof stop !== 'number' || (stop % 1) !== 0){
-        return callback({message:"Invalid value for 'stop': " + stop})
+    if (typeof stop !== 'number' || (stop % 1) !== 0) {
+        return callback({message: "Invalid value for 'stop': " + stop})
     }
     // Test to make sure 'limit' is a number
-    if (typeof limit !== 'number' || (limit%1) !== 0){
-        return callback({message:"Invalid value for 'limit': " + limit})
+    if (typeof limit !== 'number' || (limit % 1) !== 0) {
+        return callback({message: "Invalid value for 'limit': " + limit})
     }
     collection.find(
         {
             _id: {
-                $gt : new Date(start),
+                $gt: new Date(start),
                 $lte: new Date(stop)
             }
         }
-    )
+        )
         .limit(limit)
         .sort(sort)
         .toArray(function (err, results) {
-            if (err) return callback(err);
-            // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
-            // instead of a Date() object:
-            for (var i = 0; i < results.length; i++) {
-                results[i].timestamp = results[i]._id.getTime();
-                delete results[i]._id;
+                if (err) return callback(err);
+                // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+                // instead of a Date() object:
+                for (var i = 0; i < results.length; i++) {
+                    results[i].timestamp = results[i]._id.getTime();
+                    delete results[i]._id;
+                }
+                return callback(null, results);
             }
-            return callback(null, results);
-        }
-    )
+        )
 };
 
 
-var findOne = function(collection, options, callback){
-    var self = this;
+var findOneByTimestamp = function (collection, options, callback) {
+    var self      = this;
     var timestamp = +options.timestamp;
     // Test to make sure 'timestamp' is a number
-    if (typeof timestamp !== 'number' || (timestamp % 1) !== 0){
-        return callback({message:"Invalid value for 'timestamp': " + timestamp})
+    if (typeof timestamp !== 'number' || (timestamp % 1) !== 0) {
+        return callback({message: "Invalid value for 'timestamp': " + timestamp})
     }
     collection.find(
         {
             _id: {
-                $eq : new Date(timestamp)
+                $eq: new Date(timestamp)
             }
         }
-    )
+        )
         .limit(1)
         .toArray(function (err, results) {
-            if (err) return callback(err);
-            // We are only interested in the single returned record
-            if (results.length < 1){
-                // No matching timestamp. Return null.
-                return callback(null, null);
-            } else {
-                var record = results[0];
-                // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
-                // instead of a Date() object:
-                record.timestamp = record._id.getTime();
-                delete record._id;
-                return callback(null, record);
+                if (err) return callback(err);
+                // We are only interested in the single returned record
+                if (results.length < 1) {
+                    // No matching timestamp. Return null.
+                    return callback(null, null);
+                } else {
+                    var record = results[0];
+                    // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+                    // instead of a Date() object:
+                    record.timestamp = record._id.getTime();
+                    delete record._id;
+                    return callback(null, record);
+                }
             }
-        }
-    )
+        )
 };
 
 var calcAggregate = function (collection, obs_type, options, callback) {
-    var self = this;
-    var start = options.start === undefined ? 0          : +options.start;
-    var stop  = options.stop  === undefined ? Date.now() : +options.stop;
+    var self           = this;
+    var start          = options.start === undefined ? 0 : +options.start;
+    var stop           = options.stop === undefined ? Date.now() : +options.stop;
     var aggregate_type = options.aggregate_type === undefined ? 'avg' : options.aggregate_type;
 
     // Test to make sure 'start' is a number
-    if (typeof start !== 'number' || (start % 1) !== 0){
-        return callback({message:"Invalid value for 'start': " + start})
+    if (typeof start !== 'number' || (start % 1) !== 0) {
+        return callback({message: "Invalid value for 'start': " + start})
     }
     // Test to make sure 'stop' is a number
-    if (typeof stop !== 'number' || (stop % 1) !== 0){
-        return callback({message:"Invalid value for 'stop': " + stop})
+    if (typeof stop !== 'number' || (stop % 1) !== 0) {
+        return callback({message: "Invalid value for 'stop': " + stop})
     }
 
-    var agg_operator = "$" + aggregate_type;
-    var agg_expr = {};
-    agg_expr[agg_operator] = "$" + obs_type;
-    var match_expr = {
+    var agg_operator               = "$" + aggregate_type;
+    var agg_expr                   = {};
+    agg_expr[agg_operator]         = "$" + obs_type;
+    var match_expr                 = {
         $match: {
-            _id : {
+            _id: {
                 $gt : new Date(start),
                 $lte: new Date(stop)
             }
         }
     };
-    match_expr["$match"][obs_type] = {$ne : null};
+    match_expr["$match"][obs_type] = {$ne: null};
 
     collection.aggregate(
         [
@@ -124,11 +146,11 @@ var calcAggregate = function (collection, obs_type, options, callback) {
         })
 };
 
-var getSortSpec = function(sort_option){
+var getSortSpec = function (sort_option) {
     // The default sort spec:
-    var sort_spec  = {_id : 1};
+    var sort_spec = {_id: 1};
     // Has the user explicitly specified a sort?
-    if (sort_option !== undefined){
+    if (sort_option !== undefined) {
         // Yes. Split it into its parts
         var sort_string = sort_option.split(",");
         // Assume ascending order
@@ -136,7 +158,7 @@ var getSortSpec = function(sort_option){
         // Has the user explicitly specified a sort order?
         if (sort_string[1] !== undefined) {
             // Yes.
-            switch (sort_string[1].toLowerCase()){
+            switch (sort_string[1].toLowerCase()) {
                 case 'asc':
                     sort_order = 1;
                     break;
@@ -152,15 +174,27 @@ var getSortSpec = function(sort_option){
         // If it's 'timestamp', then change it to '_id':
         if (sort_column === 'timestamp')
             sort_column = '_id';
-        sort_spec = {};
+        sort_spec              = {};
         sort_spec[sort_column] = sort_order
     }
     return sort_spec;
 };
 
+var getOptions = function (options) {
+    // Clone the options object because we will be modifying it:
+    var options_copy = {};
+    for (var attr in options) {
+        if (options.hasOwnProperty(attr))
+            options_copy[attr] = options[attr];
+    }
+    options_copy.sort = getSortSpec(options.sort);
+    return options_copy;
+};
+
 module.exports = {
-    find            : find,
-    findOne         : findOne,
-    calcAggregate   : calcAggregate,
-    getSortSpec     : getSortSpec
+    findByTimestamp   : findByTimestamp,
+    findOneByTimestamp: findOneByTimestamp,
+    calcAggregate     : calcAggregate,
+    getSortSpec       : getSortSpec,
+    getOptions        : getOptions
 };
