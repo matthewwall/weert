@@ -1,26 +1,26 @@
-var debug = require('debug')('weert:server');
-var url = require('url');
+var debug   = require('debug')('weert:server');
+var url     = require('url');
 var express = require('express');
-var router = express.Router();
+var router  = express.Router();
 
 var pubsub = require('../pubsub');
 
 var streams_manager = undefined;
 
 // RESTful interface that returns references to all streams
-router.get('/streams', function (req,res){
+router.get('/streams', function (req, res) {
     "use strict";
-    streams_manager.findStreams(req.query, function(err, streams_array) {
+    streams_manager.findStreams(req.query, function (err, streams_array) {
         if (err) {
             debug("Unable to find streams. Reason", err);
-            res.status(400).send({code:400, message: "Unable to satisfy request for streams", error: err.message});
+            res.status(400).send({code: 400, message: "Unable to satisfy request for streams", error: err.message});
         } else {
             debug("# of streams=", streams_array.length);
             var stream_uris = [];
-            for (var i=0; i<streams_array.length; i++){
-                stream_uris[i]= url.format({
+            for (var i = 0; i < streams_array.length; i++) {
+                stream_uris[i] = url.format({
                     protocol: req.protocol,
-                    host: req.get('host'),
+                    host    : req.get('host'),
                     pathname: req.originalUrl + "/" + streams_array[i]._id
                 });
             }
@@ -31,7 +31,7 @@ router.get('/streams', function (req,res){
 });
 
 // RESTful interface that returns the metadata for a single stream
-router.get('/streams/:streamID', function (req, res){
+router.get('/streams/:streamID', function (req, res) {
     "use strict";
     // Get the streamID out of the route path
     var streamID = req.params.streamID;
@@ -40,7 +40,11 @@ router.get('/streams/:streamID', function (req, res){
     streams_manager.findStream(streamID, function (err, stream_metadata) {
         if (err) {
             console.log("Unable to satisfy request. Reason", err);
-            res.status(400).json({code:400, message: "Unable to satisfy request for stream with _id " + streamID, error: err.message});
+            res.status(400).json({
+                code   : 400,
+                message: "Unable to satisfy request for stream with _id " + streamID,
+                error  : err.message
+            });
         } else {
             if (stream_metadata.length) {
                 res.json(stream_metadata[0]);
@@ -58,14 +62,18 @@ router.post('/streams', function (req, res) {
     // Get the metadata
     var metadata = req.body;
     // Make sure it does not contain an _id field:
-    if (metadata._id !== undefined){
+    if (metadata._id !== undefined) {
         debug("Request to create stream has _id field:", metadata._id);
-        res.status(400).json({code:400, message: "Request to create stream includes an _id field", error: metadata._id});
+        res.status(400).json({
+            code   : 400,
+            message: "Request to create a stream must not include an _id field",
+            error  : {field: "_id", "message": "Cannot be included"}
+        });
     } else {
         streams_manager.createStream(metadata, function (err, result) {
             var resource_url = url.format({
                 protocol: req.protocol,
-                host: req.get('host'),
+                host    : req.get('host'),
                 pathname: req.originalUrl + "/" + result._id
             });
             res.status(201).location(resource_url).json(result);
@@ -116,7 +124,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
         var streamID = req.params.streamID;
         // Get the packet out of the request body:
         var packet = req.body.packet;
-        var ts = new Date(packet.timestamp);
+        var ts     = new Date(packet.timestamp);
         // Insert it into the database
         streams_manager.insertOne(streamID, packet, function (err, result) {
             // Send back an appropriate acknowledgement:
@@ -132,7 +140,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
             } else {
                 var resource_url = url.format({
                     protocol: req.protocol,
-                    host: req.get('host'),
+                    host    : req.get('host'),
                     pathname: req.originalUrl + "/" + packet.timestamp
                 });
                 res.status(201).location(resource_url).json(packet.timestamp);
@@ -141,21 +149,21 @@ router.post('/streams/:streamID/packets', function (req, res) {
             }
         });
     } else {
-        res.status(415).json({code:415, message:"Invalid Content-type", error: req.get('Content-Type')});
+        res.status(415).json({code: 415, message: "Invalid Content-type", error: req.get('Content-Type')});
     }
 });
 
 // RESTful interface for requesting packet with a specific timestamp
 router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
     // Get the streamID out of the route path
-    var streamID = req.params.streamID;
+    var streamID  = req.params.streamID;
     var timestamp = req.params.timestamp;
     debug("Request for timestamp", timestamp);
 
     streams_manager.findOne(streamID, {timestamp: timestamp}, function (err, packet) {
         if (err) {
             console.log("Unable to satisfy request. Reason", err);
-            res.status(400).json({code:400, message: "Unable to satisfy request", error: err.message});
+            res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
         } else {
             res.json(packet);
         }
