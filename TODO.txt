@@ -1,10 +1,9 @@
 SERVER
 
-Add aggregation to the LOOP api.
+Need try/catch block around parsing JSON. If it can't parse it, return a 400 Bad Request
+error code.
 
-Add code for implementing platform model.
-
-Check on error codes going from the Node server back to weewx.
+Check for missing timestamps when submitting a packet.
 
 Look at using EventEmitters instead of PubSub.
 

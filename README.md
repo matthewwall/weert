@@ -55,6 +55,9 @@ only supported by v3.3+
 
 ## Objects
 
+This section lists various objects that the WeeRT API uses, either passed in via the request body, or returned in
+the response body.
+
 ### The `error` object
 
 In case of an error, an `error` object is returned in the body of the response.

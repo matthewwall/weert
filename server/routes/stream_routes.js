@@ -59,25 +59,29 @@ router.get('/streams/:streamID', function (req, res) {
 // RESTful interface that creates a new stream
 router.post('/streams', function (req, res) {
     "use strict";
-    // Get the metadata
-    var metadata = req.body;
-    // Make sure it does not contain an _id field:
-    if (metadata._id !== undefined) {
-        debug("Request to create stream has _id field:", metadata._id);
-        res.status(400).json({
-            code   : 400,
-            message: "Request to create a stream must not include an _id field",
-            error  : {field: "_id", "message": "Cannot be included"}
-        });
-    } else {
-        streams_manager.createStream(metadata, function (err, result) {
-            var resource_url = url.format({
-                protocol: req.protocol,
-                host    : req.get('host'),
-                pathname: req.originalUrl + "/" + result._id
+    if (req.is('json')) {
+        // Get the metadata
+        var metadata = req.body;
+        // Make sure it does not contain an _id field:
+        if (metadata._id !== undefined) {
+            debug("Request to create stream has _id field:", metadata._id);
+            res.status(400).json({
+                code   : 400,
+                message: "Request to create a stream must not include an _id field",
+                error  : {field: "_id", "message": "Cannot be included"}
             });
-            res.status(201).location(resource_url).json(result);
-        })
+        } else {
+            streams_manager.createStream(metadata, function (err, result) {
+                var resource_url = url.format({
+                    protocol: req.protocol,
+                    host    : req.get('host'),
+                    pathname: req.originalUrl + "/" + result._id
+                });
+                res.status(201).location(resource_url).json(result);
+            })
+        }
+    } else {
+        res.status(415).json({code: 415, message: "Invalid Content-type", error: req.get('Content-Type')});
     }
 
 });
