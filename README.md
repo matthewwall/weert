@@ -206,7 +206,7 @@ So, we regard a packet with timestamp `XXXXX` as representing the world leading 
 and the same packet is not included twice.
 
 ## API summary
-Unless otherwise noted, data is returned in the response body formatted as JSON.
+Unless otherwise noted, data is returned in the response body, formatted as JSON.
 
 | *HTTP verb* | *Endpoint*                                     | *Description*                                                                                          | *STATUS* |
 |-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
@@ -237,8 +237,8 @@ GET /api/v1/streams/:streamID/packets
 
 | *Name*      | *Type*  | *Description*                                                                                                                      |
 |-------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
-| `start`     | integer | All packets greater than this value will be included in the results. If missing, then start with the first available packet.       |
-| `stop`      | integer | All packets less than or equal to this value will be included in the results. If missing, then end with the last available packet. |
+| `start`     | integer | All packets greater than this value will be included in the results. Default: first available packet.                              |
+| `stop`      | integer | All packets less than or equal to this value will be included in the results. Default: last available packet.                      |
 | `limit`     | integer | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
 | `sort`      | string  | What to sort results by. Default: `timestamp`.                                                                                     |
 | `direction` | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
