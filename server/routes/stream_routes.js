@@ -2,6 +2,7 @@ var debug   = require('debug')('weert:server');
 var url     = require('url');
 var express = require('express');
 var router  = express.Router();
+var normalizeUrl = require('normalize-url');
 
 var pubsub = require('../pubsub');
 
@@ -77,7 +78,7 @@ router.post('/streams', function (req, res) {
                     host    : req.get('host'),
                     pathname: req.originalUrl + "/" + result._id
                 });
-                res.status(201).location(resource_url).json(result);
+                res.status(201).location(normalizeUrl(resource_url)).json(result);
             })
         }
     } else {
@@ -147,7 +148,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
                     host    : req.get('host'),
                     pathname: req.originalUrl + "/" + packet.timestamp
                 });
-                res.status(201).location(resource_url).json(packet.timestamp);
+                res.status(201).location(normalizeUrl(resource_url)).json(packet);
                 // Let any interested subscribers know there is a new packet:
                 pubsub.publish('new_packet', {"packet": packet, "streamID": streamID}, this);
             }

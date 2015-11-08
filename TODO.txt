@@ -1,7 +1,6 @@
 SERVER
 
-Need try/catch block around parsing JSON. If it can't parse it, return a 400 Bad Request
-error code.
+Use a configuration tool. The npm tool 'config' seems to be popular.
 
 Check for missing timestamps when submitting a packet.
 

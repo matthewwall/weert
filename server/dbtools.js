@@ -146,19 +146,17 @@ var calcAggregate = function (collection, obs_type, options, callback) {
         })
 };
 
-var getSortSpec = function (sort_option) {
+var getSortSpec = function (sort_option, direction_option) {
     // The default sort spec:
     var sort_spec = {_id: 1};
     // Has the user explicitly specified a sort?
     if (sort_option !== undefined) {
-        // Yes. Split it into its parts
-        var sort_string = sort_option.split(",");
-        // Assume ascending order
+        // Yes. In what order? Assume ascending order
         var sort_order = 1;
         // Has the user explicitly specified a sort order?
-        if (sort_string[1] !== undefined) {
+        if (direction_option !== undefined) {
             // Yes.
-            switch (sort_string[1].toLowerCase()) {
+            switch (direction_option.toLowerCase()) {
                 case 'asc':
                     sort_order = 1;
                     break;
@@ -166,28 +164,28 @@ var getSortSpec = function (sort_option) {
                     sort_order = -1;
                     break;
                 default:
-                    return callback("Unknown sort order " + sort_string[1]);
+                    throw "Unknown sort order " + direction_option;
             }
         }
-        // Find what to sort on.
-        var sort_column = sort_string[0];
-        // If it's 'timestamp', then change it to '_id':
-        if (sort_column === 'timestamp')
-            sort_column = '_id';
-        sort_spec              = {};
-        sort_spec[sort_column] = sort_order
+        // If the sort option is 'timestamp', then change it to '_id':
+        if (sort_option === 'timestamp')
+            sort_option = '_id';
+        sort_spec = {};
+        sort_spec[sort_option] = sort_order
     }
     return sort_spec;
 };
 
 var getOptions = function (options) {
-    // Clone the options object because we will be modifying it:
+    // Clone the options object because we will be modifying it.
+    // Also, leave out 'direction', because it will be included in the
+    /// new 'sort' attribute.
     var options_copy = {};
     for (var attr in options) {
-        if (options.hasOwnProperty(attr))
+        if (options.hasOwnProperty(attr) && attr !== 'direction')
             options_copy[attr] = options[attr];
     }
-    options_copy.sort = getSortSpec(options.sort);
+    options_copy.sort = getSortSpec(options.sort, options.direction);
     return options_copy;
 };
 
