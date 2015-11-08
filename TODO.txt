@@ -2,6 +2,8 @@ SERVER
 
 Use a configuration tool. The npm tool 'config' seems to be popular.
 
+Test for a bad sort 'direction'. Right now, it raises an exception. Need to catch it.
+
 Check for missing timestamps when submitting a packet.
 
 Look at using EventEmitters instead of PubSub.

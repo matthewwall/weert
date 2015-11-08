@@ -1,9 +1,0 @@
-stream_test.yaml
-ERROR:Test Failed: Get the set of packets URL=http://localhost:3000/api/v1/streams/563ebb04238db0df572785a4/packets Group=Default HTTP Status Code: 200
-ERROR:Test Failure, failure type: Validator Failed, Reason: Comparison failed, evaluating eq(1422748800000, 1420070400000) returned False
-ERROR:Validator/Error details:Extractor: Extractor Type: jsonpath_mini,  Query: "0.timestamp", Templated?: False
-[{"outside_temperature":5,"timestamp":1422748800000}]
-[('x-powered-by', 'Express'), ('content-type', 'application/json; charset=utf-8'), ('content-length', '53'), ('etag', 'W/"35-+plj35XJG3+9/4doZpivfQ"'), ('date', 'Sun, 08 Nov 2015 03:01:24 GMT'), ('connection', 'close')]
-{"failures": 0, "aggregates": [["total_time", "total", 0.043536], ["total_time", "mean", 0.0043536]], "group": "Default", "results": {}, "name": "Post a bunch of packet"}
-Test Group Default FAILED: 10/11 Tests Passed!
-
