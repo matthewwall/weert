@@ -11,3 +11,4 @@ build
 dist
 MANIFEST
 node_modules
+test-results

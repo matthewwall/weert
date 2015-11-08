@@ -168,7 +168,7 @@ class WeeRTThread(RESTThread):
         _req.add_header('Content-Type', 'application/json')
         _req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
 
-        self.post_with_retries(_req, payload=json.dumps({'packet' : _mapped}))
+        self.post_with_retries(_req, payload=json.dumps(_mapped))
         
     def check_response(self, response):
         """Check the HTTP response code."""

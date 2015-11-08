@@ -127,7 +127,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
         // Get the streamID
         var streamID = req.params.streamID;
         // Get the packet out of the request body:
-        var packet = req.body.packet;
+        var packet = req.body;
         var ts     = new Date(packet.timestamp);
         // Insert it into the database
         streams_manager.insertOne(streamID, packet, function (err, result) {

@@ -6,14 +6,14 @@
     - name: "Create a stream without Content-type"
     - url: "/api/v1/streams"
     - method: "POST"
-    - body: '{"name" : "Test stream", "description" : "Created to test streams API", "join": "join_keyword", "name": "Stream nickname"}'
+    - body: '{"name" : "Test stream", "description" : "Created to test streams API", "join": "join_keyword"}'
     - expected_status: [415]
 
 - test:
     - name: "Create a stream"
     - url: "/api/v1/streams"
     - method: "POST"
-    - body: '{"name" : "Test stream", "description" : "Created to test streams API", "join": "join_keyword", "name": "Stream nickname"}'
+    - body: '{"name" : "Test stream", "description" : "Created to test streams API", "join": "join_keyword"}'
     - headers: {Content-Type: application/json}
     - expected_status: [201]
     - extract_binds:
@@ -26,7 +26,7 @@
     - expected_status: [200]
     - validators:
         - compare: {jsonpath_mini: '_id', comparator: 'str_eq', expected: {template: '$streamID1'}}
-        - compare: {jsonpath_mini: 'name', comparator: 'str_eq', expected: "Stream nickname"}
+        - compare: {jsonpath_mini: 'name', comparator: 'str_eq', expected: "Test stream"}
         - compare: {jsonpath_mini: 'join', comparator: 'str_eq', expected: "join_keyword"}
 
 - test:
@@ -45,7 +45,7 @@
     - name: "Create another stream"
     - url: "/api/v1/streams"
     - method: "POST"
-    - body: '{"name" : "Test stream 2", "description" : "Created a 2nd stream to test streams API", "join": "join_keyword2", "name": "Stream nickname2"}'
+    - body: '{"name" : "Test stream 2", "description" : "Created a 2nd stream to test streams API", "join": "join_keyword2"}'
     - headers: {Content-Type: application/json}
     - expected_status: [201]
     - extract_binds:
@@ -60,4 +60,33 @@
         - compare: {jsonpath_mini: '0', comparator: 'str_eq', expected: {template: '$URI1'}}
         - compare: {jsonpath_mini: '1', comparator: 'str_eq', expected: {template: '$URI2'}}
 
+
+- test:
+    - name: "Create a stream with garbled JSON"
+    - url: "/api/v1/streams"
+    - method: "POST"
+    - body: '{"name" - "Test stream 2", "description" : "Created a 2nd stream to test streams API", "join": "join_keyword2", "name": "Stream nickname2"}'
+    - headers: {Content-Type: application/json}
+    - expected_status: [400]
+
+# Time to test whether the stream is recording packets correctly.
+# Create a fresh stream
+- test:
+    - name: "Create a packet stream"
+    - url: "/api/v1/streams"
+    - method: "POST"
+    - body: '{"name" : "Packet test stream", "description" : "Created to test sending packets to the streams API"}'
+    - headers: {Content-Type: application/json}
+    - expected_status: [201]
+    - extract_binds:
+        - 'packetStreamID' : {'jsonpath_mini': '_id'}
+
+# Now post a packet to it:
+- test:
+    - name: "Post a packet"
+    - url: {'template': "/api/v1/streams/$packetStreamID/packets/"}
+    - method: "POST"
+    - body: '{"timestamp" : "1234567890000", "outside_temperature": "20.0"}'
+    - headers: {Content-Type: application/json}
+    - expected_status: [201]
 
