@@ -139,7 +139,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
                     debug("Reason: duplicate time stamp");
                     res.status(409).json({code: 409, message: "Duplicate time stamp", error: err.message});
                 } else {
-                    debug("Error code:", err.code);
+                    debug("Error code:", err.code, "error message:", err.message);
                     res.status(400).json({code: 400, message: "Unable to insert packet", error: err.message});
                 }
             } else {
