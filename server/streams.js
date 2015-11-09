@@ -4,6 +4,8 @@ var streams_metadata_options = {};
 var streams_metadata_name    = 'streams_metadata';
 
 var mongodb = require('mongodb');
+var debug = require('debug')('weert:server');
+
 var dbtools = require('./dbtools');
 
 var _getPacketCollectionName = function (streamID) {
@@ -85,12 +87,12 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
         }
     }
     var collection_name = _getPacketCollectionName(streamID);
-    // Create the collection if it doesn't exist already
-    self.db.createCollection(collection_name, self.options.collection, function (err, coln) {
+    // Open up the collection. It will be created if it doesn't exist already
+    self.db.collection(collection_name, self.options.collection, function (err, coln) {
         if (err) return callback(err);
         coln.insertOne(packet, null, function (err, result) {
             if (err) return callback(err);
-            console.log("inserted packet with timestamp", packet._id);
+            debug("inserted packet with timestamp", packet._id);
             return callback(null, result);
         })
     });
