@@ -3,26 +3,26 @@
 /*
  *  Default values
  */
-var mongo_url = "mongodb://localhost:27017/weert";
-var default_port = '3000';
+var mongo_url               = "mongodb://localhost:27017/weert";
+var default_port            = '3000';
 var streams_manager_options = {collection: {capped: true, size: 1000000, max: 3600}};
 
 /*
  * Requires
  */
-var async = require('async');
-var bodyParser = require('body-parser');
+var async        = require('async');
+var bodyParser   = require('body-parser');
 var cookieParser = require('cookie-parser');
-var debug = require('debug')('weert:server');
-var express = require('express');
-var http = require('http');
-var logger = require('morgan');
-var mongodb = require('mongodb');
-var path = require('path');
-var socket_io = require('socket.io');
+var debug        = require('debug')('weert:server');
+var express      = require('express');
+var http         = require('http');
+var logger       = require('morgan');
+var mongodb      = require('mongodb');
+var path         = require('path');
+var socket_io    = require('socket.io');
 
-var streams = require('./streams');
-var pubsub = require('./pubsub');
+var streams       = require('./streams');
+var pubsub        = require('./pubsub');
 var stream_routes = require('./routes/stream_routes');
 
 var app = express();
@@ -73,14 +73,14 @@ io.on('connection', function (socket) {
 /*
  * Set up the databases
  */
-var MongoClient = mongodb.MongoClient;
-var mongo_db = undefined;
+var MongoClient     = mongodb.MongoClient;
+var mongo_db        = undefined;
 var streams_manager = undefined;
 var setup_databases = function (callback) {
     "use strict";
     MongoClient.connect(mongo_url, function (err, database) {
         if (err) throw err;
-        mongo_db = database;
+        mongo_db        = database;
         streams_manager = new streams.StreamsManager(mongo_db, streams_manager_options);
         return callback(null);
     });
@@ -96,7 +96,7 @@ var setup_routes = function (callback) {
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {
         debug("caught 404");
-        var err = new Error('Not Found');
+        var err    = new Error('Not Found');
         err.status = 404;
         next(err);
     });

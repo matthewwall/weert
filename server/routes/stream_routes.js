@@ -1,7 +1,7 @@
-var debug   = require('debug')('weert:server');
-var url     = require('url');
-var express = require('express');
-var router  = express.Router();
+var debug        = require('debug')('weert:server');
+var url          = require('url');
+var express      = require('express');
+var router       = express.Router();
 var normalizeUrl = require('normalize-url');
 
 var pubsub = require('../pubsub');

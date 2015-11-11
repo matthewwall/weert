@@ -4,7 +4,7 @@ var streams_metadata_options = {};
 var streams_metadata_name    = 'streams_metadata';
 
 var mongodb = require('mongodb');
-var debug = require('debug')('weert:server');
+var debug   = require('debug')('weert:server');
 
 var dbtools = require('./dbtools');
 
@@ -49,7 +49,7 @@ StreamsManager.prototype.findStream = function (streamID, callback) {
                 }
                 )
                 .toArray(callback);
-        } catch(err) {
+        } catch (err) {
             // Error, perhaps because of an invalid streamID
             return callback(err);
         }

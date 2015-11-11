@@ -24,7 +24,7 @@ frisby.create('Create a WeeRT stream #1')
     .expectHeaderContains('content-type', 'application/json')
     .expectJSONTypes('', {_id: String, description: String, join: String})
     .expectJSON('', {name: "Test stream #1", description: "Created to test streams API", join: "join_keyword1"})
-    .after(function (error, res, body){
+    .after(function (error, res, body) {
         // Having created a stream, retrieve it and validate it
         "use strict";
         var stream_link1 = res.headers.location;
@@ -43,7 +43,7 @@ frisby.create('Create a WeeRT stream #1')
             .expectHeaderContains('content-type', 'application/json')
             .expectJSONTypes('', {_id: String, description: String, join: String})
             .expectJSON('', {name: "Test stream #2", description: "Created to test streams API", join: "join_keyword2"})
-            .after(function (error, res, body){
+            .after(function (error, res, body) {
                 var stream_link2 = res.headers.location;
                 // We have now created two streams. Fetch them.
                 frisby.create('GET and validate all created streams')
@@ -71,6 +71,6 @@ frisby.create('GET a stream with a malformed streamID')
     .get("http://localhost:3000/api/v1/streams/foo")
     .expectStatus(400)
     .expectHeaderContains('content-type', 'application/json')
-    .expectJSON('', {code : 400, message: "Unable to satisfy request for stream with _id foo" })
+    .expectJSON('', {code: 400, message: "Unable to satisfy request for stream with _id foo"})
     .toss();
 

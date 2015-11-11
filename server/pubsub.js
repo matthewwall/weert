@@ -15,7 +15,7 @@ var pubsub = (function () {
     };
 
     var unsubscribe = function (unsubscribe_handle) {
-        channel = unsubscribe_handle[0];
+        channel  = unsubscribe_handle[0];
         callback = unsubscribe_handle[1];
 
         if (channels[channel]) {

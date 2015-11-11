@@ -170,7 +170,7 @@ var getSortSpec = function (sort_option, direction_option) {
         // If the sort option is 'timestamp', then change it to '_id':
         if (sort_option === 'timestamp')
             sort_option = '_id';
-        sort_spec = {};
+        sort_spec              = {};
         sort_spec[sort_option] = sort_order
     }
     return sort_spec;
