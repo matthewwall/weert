@@ -6,9 +6,6 @@ var async        = require('async');
 var normalizeUrl = require('normalize-url');
 // var Client       = require('node-rest-client').Client;
 
-// The number of packets that should be posted.
-var N = 1;
-
 // This is 1-Jan-2015 0000 UTC:
 var timestamp   = 1420070400000;
 var temperature = 18.0;
@@ -55,6 +52,26 @@ frisby.create('Create a WeeRT stream to hold packets')
                             timestamp: timestamp,
                             temperature: temperature
                         })
+                    .after(function (error, res, body) {
+                        // We've retrieved it. Now delete it.
+                        frisby.create("DELETE a single packet")
+                            .delete(packet_link)
+                            .expectStatus(204)
+                            .after(function (error, res, body) {
+                                // Now make sure it is really deleted.
+                                frisby.create("Get a non-existent packet")
+                                    .get(packet_link)
+                                    .expectStatus(200)
+                                    .expectJSON('', null)
+                                    .toss();
+                                // Try deleting a non-existing packet
+                                frisby.create("DELETE a non-existing packet")
+                                    .delete(packet_link)
+                                    .expectStatus(404)
+                                    .toss();
+                            })
+                            .toss();
+                    })
                     .toss();
             })
             .toss();

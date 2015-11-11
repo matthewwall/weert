@@ -217,6 +217,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `POST`      | `/api/v1/streams/:streamID/packets`            | Post a new packet to the stream with id *streamID*, returning its URI in Locations field.              | Done.    |
 | `GET`       | `/api/v1/streams/:streamID/packets`            | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria. | Done.    |
 | `GET`       | `/api/v1/streams/:streamID/packets/:timestamp` | Return a packet from *streamID* with the given timestamp.                                              | Done.    |
+| `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp` | Delete a packet from *streamID* with the given timestamp.                                              | Done.    |
 | `GET`       | `/api/v1/platforms`                            | Get an array of URIs to all platforms.                                                                 |          |
 | `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              |          |
 | `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                |          |
@@ -249,11 +250,7 @@ Returns a status of `400` if the *streamID* does not exist. Additional details a
 *Example*
 
 ```Shell
-curl -i "http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&limit=3
-```
-
-*Results*
-```
+$ curl -i "http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&limit=3
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
@@ -289,11 +286,7 @@ Connection: keep-alive
 *Example of an invalid request*
 
 ```Shell
-curl -i "http://localhost:3000/api/v1/streams/foo/packets?start=1446239520000&stop=1549260201000&limit=3
-```
-
-*Results*
-```
+$ curl -i "http://localhost:3000/api/v1/streams/foo/packets?start=1446239520000&stop=1549260201000&limit=3
 HTTP/1.1 400 Bad Request
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
@@ -338,11 +331,7 @@ If the observation type *obs_type* is not in the collection, then `null` will be
 
 *Example*
 ```Shell
-curl -i "http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&aggregate_type=min&obs_type=outside_temperature"
-```
-
-*Results*
-```
+$ curl -i "http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&aggregate_type=min&obs_type=outside_temperature"
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
@@ -355,51 +344,123 @@ Connection: keep-alive
 ```
 
 
-### POST
+## Post a new packet
 
-    POST
-    /api/v1/streams/:streamID/packets
+Post a new packet to a specific stream.
 
-Post a LOOP packet for the stream with ID *streamID*. 
+```
+POST /api/v1/streams/:streamID/packets
+```
+
+*Return status*
+
+| *Status* | *Meaning* |
+|----------|-----------|
+| 201      | Success   |
+| 415      | Invalid content type |
+
+Post a LOOP packet for the stream with ID *streamID*.
 The packet should be contained as a JSON payload in the body of the POST. The packet
 must contain keyword `timestamp`, holding the unix epoch time in *milliseconds* (JavaScript style).
 
-There is no enforcement of the unit system used in the packet, 
+If successful, the server will return a response code of `201`, with the response `location` field set to the URL
+of the newly created resource (packet), the body holding a JSON representation of the posted packet.
+
+There is no enforcement of the unit system used in the packet,
 but best practices is to use the weewx `METRICWX` system.
 
-Sample URL:
+*Example*
+```Shell
+$ curl -H "Content-Type: application/json" -X POST -d '{"timestamp": 1420070400000,"outside_temperature":"18"}' http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
+Content-Type: application/json; charset=utf-8
+Content-Length: 54
+ETag: W/"36-AZNzWP7/+d3y44m6WZH2SA"
+Date: Wed, 11 Nov 2015 23:08:41 GMT
+Connection: keep-alive
 
-    http://localhost:3000/api/v1/streams/801a8409cd/packets
+{
+  "timestamp":1420070400000,
+  "outside_temperature":"18"
+}
+```
 
-Example packet:
+## Get a packet
+
+Get a packet from a specific stream with a specific timestamp
 
 ```
-{"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,
- "wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,
- "dewpoint_temperature":11.30,"timestamp":1446159220000}
+GET /api/v1/streams/:streamID/packets/:timestamp
 ```
 
-If successful, the server will return a response code of `202`, with the response `location` field set to the URL
-of the newly created resource (packet).
+*Return status*
 
-## `/api/v1/streams/:streamID/packets/:timestamp`
-### GET
+| *Status* | *Meaning*             |
+|----------|-----------------------|
+| 200      | Success               |
+| 400      | Stream does not exist |
 
-    GET
-    /api/v1/streams/:streamID/packets/:timestamp
+If successful, the server will return a response code of `200`, with the packet encoded as JSON in the response
+body. If the timestamp does not exist in the database, then a null value is returned.
 
-Get a single packet from the collection of LOOP packets of stream *streamID* with timestamp *timestamp*.
+*Example*
+```Shell
+$ curl -i http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 54
+ETag: W/"36-lLv2IFS6swiAlaeajBy9tA"
+Date: Wed, 11 Nov 2015 23:12:38 GMT
+Connection: keep-alive
 
-Sample URL:
+{
+  "outside_temperature":"18",
+  "timestamp":1420070400000
+}
+```
 
-    http://localhost:3000/api/v1/streams/801a8409cd/packets/1446159220000
-    
-Result is returned in the response body as a single packet, encoded in JSON:
+*Example of requesting a non-existent packet*
+```Shell
+$ curl -i http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400001
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 4
+ETag: W/"4-N6YlnMDB2uKZp4Zkid/wvQ"
+Date: Wed, 11 Nov 2015 23:13:46 GMT
+Connection: keep-alive
+```
 
-    {"wind_speed":4.4704,"barometer_pressure":1017.6623,"day_rain":5.842,"inside_temperature":20.22,
-     "wind_direction":263,"outside_temperature":14.72,"outside_humidity":80,
-     "dewpoint_temperature":11.30,"timestamp":1446159220000}
 
-Returns a null value if the timestamp does not exist within the LOOP collection.
 
-Returns a status of `400` if the *streamID* does not exist. Additional details are in the HTTP response body.
+## Delete a packet
+
+Delete a packet from a specific stream with a specific timestamp
+
+```
+DELETE /api/v1/streams/:streamID/packets/:timestamp
+```
+
+*Return status*
+
+| *Status* | *Meaning*             |
+|----------|-----------------------|
+| 204      | Success               |
+| 400      | Stream does not exist |
+| 404      | Packet does not exist |
+
+If successful, the server will return a response code of `204`, with nothing in the response body.
+If the timestamp does not exist in the database, then a response code of `404` is returned.
+
+*Example*
+```Shell
+$ curl -i -X DELETE http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
+Date: Wed, 11 Nov 2015 23:19:38 GMT
+Connection: keep-alive
+```

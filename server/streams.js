@@ -64,7 +64,6 @@ StreamsManager.prototype.createStream = function (stream_metadata, callback) {
         if (err) return callback(err);
         collection.insertOne(stream_metadata, {}, function (err, result) {
             var stream_final_metadata = result.ops[0];
-            console.log("insert stream result=", stream_final_metadata);
             return callback(err, stream_final_metadata);
         });
     });
@@ -124,6 +123,30 @@ StreamsManager.prototype.findOne = function (streamID, options, callback) {
             if (err) return callback(err);
             return callback(null, result);
         });
+    });
+};
+
+StreamsManager.prototype.deleteOne = function (streamID, options, callback) {
+    "use strict";
+    var self      = this;
+    var timestamp = +options.timestamp;
+    // Test to make sure 'timestamp' is a number
+    if (typeof timestamp !== 'number' || (timestamp % 1) !== 0) {
+        return callback({message: "Invalid value for 'timestamp': " + timestamp})
+    }
+    var collection_name = _getPacketCollectionName(streamID);
+    // Open up the collection
+    self.db.collection(collection_name, {strict: true}, function (err, collection) {
+        if (err) return callback(err);
+        collection.deleteOne(
+            {
+                _id: {
+                    $eq: new Date(timestamp)
+                }
+            },
+            {},
+            callback
+        )
     });
 };
 

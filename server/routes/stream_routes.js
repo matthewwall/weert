@@ -160,7 +160,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
 
 // RESTful interface for requesting packet with a specific timestamp
 router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
-    // Get the streamID out of the route path
+    // Get the streamID and timestamp out of the route path
     var streamID  = req.params.streamID;
     var timestamp = req.params.timestamp;
     debug("Request for timestamp", timestamp);
@@ -171,6 +171,25 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
             res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
         } else {
             res.json(packet);
+        }
+    });
+});
+
+// Delete a specific packet
+router.delete('/streams/:streamID/packets/:timestamp', function (req, res) {
+    console.log("Request to delete");
+    // Get the streamID and timestamp out of the route path
+    var streamID  = req.params.streamID;
+    var timestamp = req.params.timestamp;
+    console.log("Request to delete timestamp", timestamp);
+
+    streams_manager.deleteOne(streamID, {timestamp: timestamp}, function (err, result) {
+        if (err) {
+            console.log("Unable to satisfy request. Reason", err);
+            res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
+        } else {
+            var status = result.result.n ? 204 : 404;
+            res.sendStatus(status);
         }
     });
 });
