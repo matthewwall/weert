@@ -12,7 +12,7 @@ an hour's worth of loop data.
 - After that, the display is updated with every new loop packet
 - Real-time plots are done using [D3](http://d3js.org/).
 
-For experimental purposes.
+For experimental purposes. Tested on Node V4.2.2, although other versions should work fine.
 
 ## To install:
 

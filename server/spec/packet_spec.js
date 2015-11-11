@@ -6,14 +6,22 @@ var async        = require('async');
 var normalizeUrl = require('normalize-url');
 var Client       = require('node-rest-client').Client;
 
-// Create an array of timestamps. Base time is 1-Jan-2015 0000
+// The number of packets that should be posted.
+var N = 1;
+
 // Create an array of indices
 var indices = [];
-for (var i = 0; i < 10; i++) indices[i] = i;
+for (var i = 1; i < N+1; i++) indices[i] = i;
 
-// This is 1-Jan-2015 0000 UTC:
-var basetime = 1420070400000;
-var basetemp = 18.0;
+// Functions that return the temperature and time at index 'i'
+var temperature = function (i){
+    return 18.0 + i;
+};
+
+var timestamp = function(i){
+    // This is 1-Jan-2015 0000 UTC:
+    return 1420070400000 + i;
+};
 
 // Now try again, but with a Content-Type
 frisby.create('Create a WeeRT stream to hold packets')
@@ -28,35 +36,57 @@ frisby.create('Create a WeeRT stream to hold packets')
         var stream_link        = res.headers.location;
         var stream_packet_link = normalizeUrl(stream_link + '/packets');
 
-        describe("Launch 10 POSTs", function () {
-            var results_finished = false;
-            it("Should launch 10 POSTS", function () {
+        // POST a single packet to make sure that's working. Then POST a bunch.
+        frisby.create("POST a single packet")
+            .post(stream_packet_link,
+                {
+                    timestamp  : timestamp(0),
+                    temperature: temperature(0)
+                },
+                {json:true}
+            )
+            .expectStatus(201)
+            .expectHeaderContains('content-type', 'application/json')
+            .expectJSON('', {timestamp: timestamp(0), temperature: temperature(0)})
+            .toss();
 
-                // Run a function which will asynchronously launch 10 POSTs
+        describe("Launch " + N + " POSTs", function () {
+            var results_finished = false;
+            var results_successful = undefined;
+            it("Should launch " + N + " POSTS", function () {
+
+                // Run a function which will asynchronously launch N POSTs
                 runs(function () {
                     async.each(indices, function (i, callback) {
 
+                        // For reasons that are not clear to me, I can't get Frisby to work within this 'describe'
+                        // block. So, use a simple client code.
                         var client = new Client();
 
                         // set content-type header and data as json in args parameter
                         var args = {
                             data   : {
-                                timestamp  : basetime + i * 300000,
-                                temperature: basetemp + i
+                                timestamp  : timestamp(i),
+                                temperature: temperature(i)
                             },
                             headers: {
                                 "Content-Type": "application/json"
                             }
                         };
 
-                        // TODO: Maybe this should use Frisby?
                         client.post(stream_packet_link, args, function (data, response) {
-                            return callback(response.statusCode === 201 ? null : response.statusCode);
+                            // If the response code is anything other than 201, then we've failed.
+                            if (response.statusCode !== 201)
+                                return callback(response.statusCode);
+
+
+                            // Otherwise, press on by checking to make sure the packet actually got recorded.
+                            return callback(null);
                         });
 
-
                     }, function (err) {
-                        if (!err) results_finished = true;
+                        results_finished = true;
+                        results_successful = err;
                     });
                 });
 
@@ -66,7 +96,7 @@ frisby.create('Create a WeeRT stream to hold packets')
                 }, "The results to be finished", 2000);
 
                 runs(function(){
-                    // Can check the 10 POSTs here.
+                    expect(results_successful).toBeNull();
                 })
 
             });
