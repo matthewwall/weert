@@ -62,9 +62,7 @@ frisby.create('Create a WeeRT stream #1')
 // Get a non-existent stream:
 frisby.create('GET a non-existent stream')
     .get("http://localhost:3000/api/v1/streams/563e70fb5ebf66aa2e0ea7ee")
-    .expectStatus(200)
-    .expectHeaderContains('content-type', 'application/json')
-    .expectJSON('', null)
+    .expectStatus(404)
     .toss();
 
 frisby.create('GET a stream with a malformed streamID')

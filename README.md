@@ -226,8 +226,8 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | *HTTP verb* | *Endpoint*                                     | *Description*                                                                                          | *STATUS* |
 |-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
 | `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              | I, D, T  |
-| `GET`       | `/api/v1/platforms`                            | Get an array of URIs to all platforms.                                                                 |          |
-| `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                |          |
+| `GET`       | `/api/v1/platforms`                            | Get an array of URIs to all platforms.                                                                 | I, D, T  |
+| `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
 | `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |          |
 | `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           |          |
@@ -261,7 +261,7 @@ POST /api/v1/platforms
 | 201      | Success               |
 | 415      | Invalid content type  |
 
-If successful, the server will return the metadata of the new platform encoded as JSON in the response body.
+If successful, the server will return the metadata of the new platform.
 The URI of the new platform will be returned in the `Location` field.
 
 *Example*
@@ -286,6 +286,75 @@ Connection: keep-alive
   "_id":"5643e79193e06e8a3eeb7510"
 }
 ```
+
+## Get the URIs of all platforms
+
+Query the database for the URIs of all platforms
+
+```
+GET /api/v1/platforms
+```
+
+*Return status*
+
+| *Status* | *Meaning*             |
+|----------|-----------------------|
+| 200      | Success               |
+
+If successful, the server will return an array of URIs to all known platforms.
+
+*Example*
+
+```Shell
+$ curl -i http://localhost:3000/api/v1/platforms
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 133
+ETag: W/"85-Atj/gBD0JmNExVEVTm+QuA"
+Date: Thu, 12 Nov 2015 02:29:35 GMT
+Connection: keep-alive
+
+[
+  "http://localhost:3000/api/v1/platforms/5643f96b9b7a70494bce9763",
+  "http://localhost:3000/api/v1/platforms/5643f96c9b7a70494bce9764"
+]
+```
+
+## Get the metadata of a particular platform
+
+```
+GET /api/v1/platforms/:platformID
+```
+
+
+| *Status* | *Meaning*             |
+|----------|-----------------------|
+| 200      | Success               |
+| 404      | Platform not found    |
+
+
+*Example*
+
+```Shell
+$ curl -i http://localhost:3000/api/v1/platforms/5643f96b9b7a70494bce9763
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 132
+ETag: W/"84-H140aziFcSOUQAG7vvEEZg"
+Date: Thu, 12 Nov 2015 02:31:28 GMT
+Connection: keep-alive
+
+{
+  "_id":"5643f96b9b7a70494bce9763",
+  "name":"Benny's Ute",
+  "description":"Yellow, with a black cap",
+  "join":"join_keyword1",
+  "streams":[]}
+}
+```
+
 
 ## Post a new packet
 
@@ -314,7 +383,9 @@ but best practices is to use the weewx `METRICWX` system.
 
 *Example*
 ```Shell
-$ curl -i -H "Content-Type: application/json" -X POST -d '{"timestamp": 1420070400000,"outside_temperature":"18"}' http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets
+$ curl -i -H "Content-Type: application/json" -X POST \
+> -d '{"timestamp": 1420070400000,"outside_temperature":"18"}' \
+> http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets
 HTTP/1.1 201 Created
 X-Powered-By: Express
 Location: http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
@@ -354,7 +425,7 @@ Returns a status of `400` if the *streamID* does not exist. Additional details a
 *Example*
 
 ```Shell
-$ curl -i "http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&limit=3
+$ curl -i http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&limit=3
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8
@@ -390,7 +461,7 @@ Connection: keep-alive
 *Example of an invalid request*
 
 ```Shell
-$ curl -i "http://localhost:3000/api/v1/streams/foo/packets?start=1446239520000&stop=1549260201000&limit=3
+$ curl -i http://localhost:3000/api/v1/streams/foo/packets?start=1446239520000&stop=1549260201000&limit=3
 HTTP/1.1 400 Bad Request
 X-Powered-By: Express
 Content-Type: application/json; charset=utf-8

@@ -33,6 +33,46 @@ PlatformsManager.prototype.createPlatform = function (platform_metadata, callbac
     });
 };
 
+PlatformsManager.prototype.findPlatforms = function (options, callback) {
+    "use strict";
+    var self         = this;
+    var options_copy = dbtools.getOptions(options);
+    var limit        = options_copy.limit === undefined ? 0 : +options_copy.limit;
+    // Test to make sure 'limit' is a number
+    if (typeof limit !== 'number' || (limit % 1) !== 0) {
+        return callback({message: "Invalid value for 'limit': " + limit})
+    }
+
+    self.db.collection(platforms_metadata_name, {strict: true}, function (err, collection) {
+        if (err) return callback(err);
+        collection.find()
+            .limit(limit)
+            .sort(options_copy.sort)
+            .toArray(callback);
+    });
+};
+
+PlatformsManager.prototype.findPlatform = function (platformID, callback) {
+    "use strict";
+    var self = this;
+
+    self.db.collection(platforms_metadata_name, {strict: true}, function (err, collection) {
+        if (err) return callback(err);
+        try {
+            collection.find(
+                {
+                    _id: {$eq: new mongodb.ObjectID(platformID)}
+                }
+                )
+                .toArray(callback);
+        } catch (err) {
+            // Error, perhaps because of an invalid platformID
+            return callback(err);
+        }
+    });
+};
+
+
 module.exports = {
     PlatformsManager: PlatformsManager
 };
