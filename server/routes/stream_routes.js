@@ -5,6 +5,7 @@ var router       = express.Router();
 var normalizeUrl = require('normalize-url');
 
 var pubsub = require('../pubsub');
+var auxtools = require('../auxtools');
 
 var streams_manager = undefined;
 
@@ -24,12 +25,8 @@ router.post('/streams', function (req, res) {
             });
         } else {
             streams_manager.createStream(metadata, function (err, result) {
-                var resource_url = url.format({
-                    protocol: req.protocol,
-                    host    : req.get('host'),
-                    pathname: req.originalUrl + "/" + result._id
-                });
-                res.status(201).location(normalizeUrl(resource_url)).json(result);
+                var resource_url = auxtools.resourcePath(req, result._id);
+                res.status(201).location(resource_url).json(result);
             })
         }
     } else {
@@ -49,11 +46,7 @@ router.get('/streams', function (req, res) {
             debug("# of streams=", streams_array.length);
             var stream_uris = [];
             for (var i = 0; i < streams_array.length; i++) {
-                stream_uris[i] = url.format({
-                    protocol: req.protocol,
-                    host    : req.get('host'),
-                    pathname: req.originalUrl + "/" + streams_array[i]._id
-                });
+                stream_uris[i] = auxtools.resourcePath(req, streams_array[i]._id);
             }
             res.json(stream_uris);
         }
@@ -143,12 +136,8 @@ router.post('/streams/:streamID/packets', function (req, res) {
                     res.status(400).json({code: 400, message: "Unable to insert packet", error: err.message});
                 }
             } else {
-                var resource_url = url.format({
-                    protocol: req.protocol,
-                    host    : req.get('host'),
-                    pathname: req.originalUrl + "/" + packet.timestamp
-                });
-                res.status(201).location(normalizeUrl(resource_url)).json(packet);
+                var resource_url = auxtools.resourcePath(req, packet.timestamp);
+                res.status(201).location(resource_url).json(packet);
                 // Let any interested subscribers know there is a new packet:
                 pubsub.publish('new_packet', {"packet": packet, "streamID": streamID}, this);
             }

@@ -4,6 +4,8 @@ var express      = require('express');
 var router       = express.Router();
 var normalizeUrl = require('normalize-url');
 
+var auxtools     = require('../auxtools');
+
 var platforms_manager = undefined;
 
 // Create a new platform
@@ -22,12 +24,8 @@ router.post('/platforms', function (req, res) {
             });
         } else {
             platforms_manager.createPlatform(metadata, function (err, result) {
-                var resource_url = url.format({
-                    protocol: req.protocol,
-                    host    : req.get('host'),
-                    pathname: req.originalUrl + "/" + result._id
-                });
-                res.status(201).location(normalizeUrl(resource_url)).json(result);
+                var resource_url = auxtools.resourcePath(req, result._id);
+                res.status(201).location(resource_url).json(result);
             })
         }
     } else {
@@ -46,11 +44,7 @@ router.get('/platforms', function (req, res) {
             debug("# of platforms=", platforms_array.length);
             var platform_uris = [];
             for (var i = 0; i < platforms_array.length; i++) {
-                platform_uris[i] = url.format({
-                    protocol: req.protocol,
-                    host    : req.get('host'),
-                    pathname: req.originalUrl + "/" + platforms_array[i]._id
-                });
+                platform_uris[i] = auxtools.resourcePath(req, platforms_array[i]._id);
             }
             res.json(platform_uris);
         }

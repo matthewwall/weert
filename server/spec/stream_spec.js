@@ -52,7 +52,22 @@ frisby.create('Create a WeeRT stream #1')
                     .expectHeaderContains('content-type', 'application/json')
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
-                    .expectJSON([stream_link1, stream_link2])
+                    .afterJSON(function(json){
+                        // Make sure the array of returned links contains the two stream links, and that they
+                        // are in the right order
+                        describe("Test for array of returned stream URIs", function(){
+                            it("contains first stream link", function(){
+                                expect(json).toContain(stream_link1)
+                            });
+                            it("contains second stream link", function(){
+                                expect(json).toContain(stream_link2)
+                            });
+                            it("holds first link before second link", function(){
+                                expect(json.indexOf(stream_link1)).toBeLessThan(json.indexOf(stream_link2))
+                            });
+
+                        })
+                    })
                     .toss();
             })
             .toss()

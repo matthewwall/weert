@@ -54,6 +54,7 @@ frisby.create('Create a WeeRT stream to hold packets')
                         })
                     .after(function (error, res, body) {
                         // We've retrieved it. Now delete it.
+                        // TODO: Should post a 2nd packet, then retrieve them both.
                         frisby.create("DELETE a single packet")
                             .delete(packet_link)
                             .expectStatus(204)
