@@ -19,7 +19,7 @@ var StreamsManager = function (db, options) {
 StreamsManager.prototype.createStream = function (stream_metadata, callback) {
     "use strict";
     var self = this;
-    // TODO: Check to see if the metadata has an _id field
+
     self.db.collection(streams_metadata_name, {strict: false}, function (err, collection) {
         if (err) return callback(err);
         collection.insertOne(stream_metadata, {}, function (err, result) {

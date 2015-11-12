@@ -87,3 +87,10 @@ frisby.create('GET a stream with a malformed streamID')
     .expectJSON('', {code: 400, message: "Unable to satisfy request for stream with _id foo"})
     .toss();
 
+frisby.create('Try to create a stream that has an _id field already defined')
+    .post('http://localhost:3000/api/v1/streams',
+        {"name": "Test stream #1", "description": "Created to test streams API", "join": "join_keyword1", _id: "foo"},
+        {json: true}
+    )
+    .expectStatus(400)
+    .toss();

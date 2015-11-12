@@ -73,4 +73,14 @@ frisby.create('Create a WeeRT platform #1')
                     .toss();
             })
             .toss();
-    })    .toss();
+    })
+    .toss();
+
+frisby.create("Try to create a platform with an _id field")
+    .post('http://localhost:3000/api/v1/platforms',
+        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", _id: "foo"},
+        {json: true}
+    )
+    .expectStatus(400)
+    .toss()
+

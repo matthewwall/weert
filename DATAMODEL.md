@@ -45,30 +45,34 @@ The time, in milliseconds, since the unix epoch. This is the same definition tha
 Metadata associated with WeeRT platforms are stored in a MongoDB collection with name `platforms_metadata`. 
 Inside, each document describes a single platform.
 
-    {
-      _id         : platformID-15,
-      description : “Description of 1st platform”,
-      join        : "7620",
-      streams : [
-                     streamID-4, 
-                     streamID-2,
-                     ...
-                ]
-    }
-    
-    {
-      _id         : platformID-21,
-      description : “Description of 2nd platform”,
-      join        : "7621",
-      streams : [
-                     streamID-22, 
-                     streamID-29,
-                     ...
-                ]
-    }
+```
+{
+  _id         : platformID-15,
+  name        : "Name for 1st platform"
+  description : “Description of 1st platform”,
+  join        : "7620",
+  streams : [
+                 streamID-4,
+                 streamID-2,
+                 ...
+            ]
+}
 
-    ...
-    
+{
+  _id         : platformID-21,
+  name        : "Name for 2nd platform"
+  description : “Description of 2nd platform”,
+  join        : "7621",
+  streams : [
+                 streamID-22,
+                 streamID-29,
+                 ...
+            ]
+}
+
+...
+```
+
 Description of fields:
 <table>
   <tr style="font-style:italic; font-weight:bold">

@@ -120,8 +120,25 @@ router.post('/streams/:streamID/packets', function (req, res) {
         var streamID = req.params.streamID;
         // Get the packet out of the request body:
         var packet = req.body;
-        var ts     = new Date(packet.timestamp);
-        // Insert it into the database
+        if (packet.timestamp === undefined){
+            res.status(400).json({
+                code : 400,
+                message : "Request to create a packet does not include a timestamp",
+                error : {field: "timestamp", message : "missing"}
+            });
+            return;
+        }
+        var ts = new Date(packet.timestamp);
+        if (packet._id !== undefined) {
+            debug("Request to create a packet has _id field:", packet._id);
+            res.status(400).json({
+                code   : 400,
+                message: "Request to create a packet must not include an _id field",
+                error  : {field: "_id", message: "Cannot be included"}
+            });
+            return;
+        }
+        // Insert the packet into the database
         streams_manager.insertOne(streamID, packet, function (err, result) {
             // Send back an appropriate acknowledgement:
             if (err) {

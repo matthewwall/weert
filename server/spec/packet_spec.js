@@ -83,6 +83,28 @@ var testSinglePacket = function () {
                         .toss();
                 })
                 .toss();
+
+            frisby.create("Post a packet with no timestamp")
+                .post(stream_packet_link,
+                    {
+                        outside_temperature: temperature(0)
+                    },
+                    {json: true}
+                )
+                .expectStatus(400)
+                .toss();
+
+            frisby.create("Post a packet with an _id field")
+                .post(stream_packet_link,
+                    {
+                        timestamp : timestamp(0),
+                        outside_temperature: temperature(0),
+                        _id : "foo"
+                    },
+                    {json: true}
+                )
+                .expectStatus(400)
+                .toss()
         })
         .toss();
 };

@@ -22,13 +22,20 @@ PlatformsManager.prototype.createPlatform = function (platform_metadata, callbac
     if (platform_metadata.streams === undefined) {
         platform_metadata.streams = [];
     }
-    // TODO: Check to see if the metadata has an _id field
+
     self.db.collection(platforms_metadata_name, {strict: false}, function (err, collection) {
         if (err) return callback(err);
         collection.insertOne(platform_metadata, {}, function (err, result) {
-            // TODO: Check to see if ops is defined
+            if (err) return callback(err);
+            if (result.ops === undefined)
+                return callback({message:"internal error. ops undefined"});
             var platform_final_metadata = result.ops[0];
-            return callback(err, platform_final_metadata);
+
+            // Now create the "locations" collection for this platform
+            var locations_name = _getLocationsCollectionName(platform_final_metadata._id);
+            self.db.createCollection(locations_name, {strict: true}, function (err, location_collection){
+                return callback(err, platform_final_metadata);
+            })
         });
     });
 };

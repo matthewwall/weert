@@ -76,6 +76,41 @@ router.get('/platforms/:platformID', function (req, res) {
 
 });
 
+router.post('platforms/:platformID/locations', function (req, res) {
+    "use strict";
+    if (req.is('json')) {
+        var platformID = req.params.platformID;
+        // Get the location record out of the request body:
+        var location_record = req.body;
+        if (location_record.timestamp === undefined){
+            res.status(400).json({
+                code : 400,
+                message : "Request to create a location record does not include a timestamp",
+                error : {field: "timestamp", message : "missing"}
+            });
+            return;
+        }
+        var ts = new Date(location_record.timestamp);
+        // Make sure location record does not contain an _id field:
+        if (location_record._id !== undefined) {
+            debug("Request to create location record has _id field:", location_record._id);
+            res.status(400).json({
+                code   : 400,
+                message: "Request to create a location record must not include an _id field",
+                error  : {field: "_id", message: "Cannot be included"}
+            });
+        } else {
+            platforms_manager.createLocationRecord(location_record, function (err, result) {
+                var resource_url = auxtools.resourcePath(req, result._id);
+                res.status(201).location(resource_url).json(result);
+            })
+        }
+    } else {
+        res.status(415).json({code: 415, message: "Invalid Content-type", error: req.get('Content-Type')});
+    }
+});
+
+
 
 module.exports = function (pm) {
     platforms_manager = pm;
