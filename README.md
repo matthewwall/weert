@@ -205,6 +205,21 @@ So, we regard a packet with timestamp `XXXXX` as representing the world leading 
 
 and the same packet is not included twice.
 
+## General patterns
+
+*Return status*
+
+The following table gives the return code pattern used by WeeRT
+
+| *Status* | *Meaning*                                                                                 |
+|----------|-------------------------------------------------------------------------------------------|
+| 200      | Successfully completed the request.                                                       |
+| 201      | Success creation of a new resource, such as a stream, platform, packet, or location       |
+| 400      | Bad request. This may be because the `streamID` or `platformID` doesn't exist.            |
+| 404      | Non existent resource. You requested, or tried to delete, a resource that does not exist. |
+| 415      | Invalid content type (perhaps you forgot to set `Content-type` to `application-json`?)    |
+
+
 ## API summary
 Unless otherwise noted, data is returned in the response body, formatted as JSON.
 
@@ -401,9 +416,10 @@ GET /api/v1/streams/:streamID/packets/:timestamp
 |----------|-----------------------|
 | 200      | Success               |
 | 400      | Stream does not exist |
+| 404      | Packet does not exist |
 
 If successful, the server will return a response code of `200`, with the packet encoded as JSON in the response
-body. If the timestamp does not exist in the database, then a null value is returned.
+body.
 
 *Example*
 ```Shell
@@ -425,13 +441,15 @@ Connection: keep-alive
 *Example of requesting a non-existent packet*
 ```Shell
 $ curl -i http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400001
-HTTP/1.1 200 OK
+HTTP/1.1 404 Not Found
 X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 4
-ETag: W/"4-N6YlnMDB2uKZp4Zkid/wvQ"
-Date: Wed, 11 Nov 2015 23:13:46 GMT
+Content-Type: text/plain; charset=utf-8
+Content-Length: 9
+ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"
+Date: Thu, 12 Nov 2015 00:10:38 GMT
 Connection: keep-alive
+
+Not Found
 ```
 
 

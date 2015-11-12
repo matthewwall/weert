@@ -170,7 +170,8 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
             console.log("Unable to satisfy request. Reason", err);
             res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
         } else {
-            res.json(packet);
+            if (packet === null) res.sendStatus(404);
+            else res.json(packet);
         }
     });
 });

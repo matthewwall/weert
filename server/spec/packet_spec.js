@@ -61,8 +61,7 @@ frisby.create('Create a WeeRT stream to hold packets')
                                 // Now make sure it is really deleted.
                                 frisby.create("Get a non-existent packet")
                                     .get(packet_link)
-                                    .expectStatus(200)
-                                    .expectJSON('', null)
+                                    .expectStatus(404)
                                     .toss();
                                 // Try deleting a non-existing packet
                                 frisby.create("DELETE a non-existing packet")
