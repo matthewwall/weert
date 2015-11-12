@@ -1,8 +1,6 @@
 var debug        = require('debug')('weert:server');
-var url          = require('url');
 var express      = require('express');
 var router       = express.Router();
-var normalizeUrl = require('normalize-url');
 
 var pubsub = require('../pubsub');
 var auxtools = require('../auxtools');
@@ -63,7 +61,7 @@ router.get('/streams/:streamID', function (req, res) {
 
     streams_manager.findStream(streamID, function (err, stream_metadata) {
         if (err) {
-            console.log("Unable to satisfy request. Reason", err);
+            debug("Unable to satisfy request. Reason", err);
             res.status(400).json({
                 code   : 400,
                 message: "Unable to satisfy request for stream with _id " + streamID,
@@ -156,7 +154,7 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
 
     streams_manager.findOne(streamID, {timestamp: timestamp}, function (err, packet) {
         if (err) {
-            console.log("Unable to satisfy request. Reason", err);
+            debug("Unable to satisfy request. Reason", err);
             res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
         } else {
             if (packet === null) res.sendStatus(404);
@@ -167,15 +165,14 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
 
 // Delete a specific packet
 router.delete('/streams/:streamID/packets/:timestamp', function (req, res) {
-    console.log("Request to delete");
     // Get the streamID and timestamp out of the route path
     var streamID  = req.params.streamID;
     var timestamp = req.params.timestamp;
-    console.log("Request to delete timestamp", timestamp);
+    debug("Request to delete timestamp", timestamp);
 
     streams_manager.deleteOne(streamID, {timestamp: timestamp}, function (err, result) {
         if (err) {
-            console.log("Unable to satisfy request. Reason", err);
+            debug("Unable to satisfy request. Reason", err);
             res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
         } else {
             var status = result.result.n ? 204 : 404;

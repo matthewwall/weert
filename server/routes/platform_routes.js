@@ -1,8 +1,6 @@
 var debug        = require('debug')('weert:server');
-var url          = require('url');
 var express      = require('express');
 var router       = express.Router();
-var normalizeUrl = require('normalize-url');
 
 var auxtools     = require('../auxtools');
 
@@ -61,7 +59,7 @@ router.get('/platforms/:platformID', function (req, res) {
 
     platforms_manager.findPlatform(platformID, function (err, platform_metadata) {
         if (err) {
-            console.log("Unable to satisfy request. Reason", err);
+            debug("Unable to satisfy request. Reason", err);
             res.status(400).json({
                 code   : 400,
                 message: "Unable to satisfy request for platform with _id " + platformID,

@@ -49,13 +49,27 @@ frisby.create('Create a WeeRT platform #1')
             .after(function (error, res, body) {
                 var platform_link2 = res.headers.location;
                 // We have now created two platforms. Fetch them.
-                frisby.create('GET and validate all created platforms')
-                    .get('http://localhost:3000/api/v1/platforms')
+                frisby.create('GET and validate all created platforms in default sort order')
+                    .get('http://localhost:3000/api/v1/platforms?sort=name')
                     .expectStatus(200)
                     .expectHeaderContains('content-type', 'application/json')
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
                     .expectJSON([platform_link1, platform_link2])
+                    .toss();
+
+                frisby.create('GET and validate all created platforms in reverse sort order')
+                    .get('http://localhost:3000/api/v1/platforms?sort=name&direction=desc')
+                    .expectStatus(200)
+                    .expectHeaderContains('content-type', 'application/json')
+                    .expectJSONTypes('', Array)
+                    .expectJSONTypes('*', String)
+                    .expectJSON([platform_link2, platform_link1])
+                    .toss();
+
+                frisby.create('GET with an invalid sort order')
+                    .get('http://localhost:3000/api/v1/platforms?sort=name&direction=foo')
+                    .expectStatus(400)
                     .toss();
             })
             .toss();
