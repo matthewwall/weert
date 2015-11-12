@@ -1,6 +1,6 @@
 "use strict";
 
-var platforms_metadata_name    = 'platforms_metadata';
+var platforms_metadata_name = 'platforms_metadata';
 
 var mongodb = require('mongodb');
 var debug   = require('debug')('weert:server');
@@ -19,7 +19,7 @@ var PlatformsManager = function (db, options) {
 PlatformsManager.prototype.createPlatform = function (platform_metadata, callback) {
     "use strict";
     var self = this;
-    if (platform_metadata.streams === undefined){
+    if (platform_metadata.streams === undefined) {
         platform_metadata.streams = [];
     }
     // TODO: Check to see if the metadata has an _id field
@@ -35,9 +35,16 @@ PlatformsManager.prototype.createPlatform = function (platform_metadata, callbac
 
 PlatformsManager.prototype.findPlatforms = function (options, callback) {
     "use strict";
-    var self         = this;
-    var options_copy = dbtools.getOptions(options);
-    var limit        = options_copy.limit === undefined ? 0 : +options_copy.limit;
+    var self = this;
+    // A bad sort direction can cause an exception to be raised:
+    try {
+        options = dbtools.getOptions(options);
+    }
+    catch (err) {
+        var err_obj = {message: err};
+        return callback(err_obj)
+    }
+    var limit = options.limit === undefined ? 0 : +options.limit;
     // Test to make sure 'limit' is a number
     if (typeof limit !== 'number' || (limit % 1) !== 0) {
         return callback({message: "Invalid value for 'limit': " + limit})
@@ -47,7 +54,7 @@ PlatformsManager.prototype.findPlatforms = function (options, callback) {
         if (err) return callback(err);
         collection.find()
             .limit(limit)
-            .sort(options_copy.sort)
+            .sort(options.sort)
             .toArray(callback);
     });
 };

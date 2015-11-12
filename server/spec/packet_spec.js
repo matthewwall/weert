@@ -6,8 +6,8 @@ var async        = require('async');
 var normalizeUrl = require('normalize-url');
 // var Client       = require('node-rest-client').Client;
 
-// This is 1-Jan-2015 0000 UTC:
 var timestamp = function (i) {
+    // Base time is 1-Jan-2015 0000 UTC:
     return 1420070400000 + i * 300000;
 };
 
@@ -153,6 +153,11 @@ var testMultiplePackets = function () {
                                         .expectJSONTypes('', Array)
                                         .expectJSON('', packets)
                                         .toss();
+
+                                    frisby.create("Test for bad sort direction")
+                                        .get(stream_packet_link + '?direction=foo')
+                                        .expectStatus(400)
+                                        .toss();
                                 })
                                 .toss();
                         })
@@ -162,6 +167,10 @@ var testMultiplePackets = function () {
         })
         .toss();
 };
+
+testSinglePacket();
+testMultiplePackets();
+
 /*
  * The following was an attempt to launch 10 POSTs, then check them all. Unfortunately, I could not
  * get Frisby to work inside a "describe" block. So, then I tried the NPM library node-rest-client,
@@ -225,7 +234,3 @@ var testMultiplePackets = function () {
 //
 //    });
 //})
-
-
-testSinglePacket();
-testMultiplePackets();

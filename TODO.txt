@@ -2,24 +2,6 @@ SERVER
 
 Test using query parameters for getting platforms (GET /api/v1/platforms)
 
-Test for a bad sort 'direction'. Right now, it raises an exception. Need to catch it.
-
-A missing "sort" query doesn't seem to sort properly:
-http://localhost:3000/api/v1/streams/s1/packets?start=1000&stop=1549260201000&limit=10&direction=desc
-returns
-[
-    {
-        "outside_temperature": 19.9,
-        "barometer_pressure": 1002.5,
-        "timestamp": 1446239529522
-    },
-    {
-        "outside_temperature": 19.9,
-        "barometer_pressure": 1002.5,
-        "timestamp": 1446239529523
-    }
-]
-
 Check for missing timestamps when submitting a packet.
 
 Look at using EventEmitters instead of PubSub.
