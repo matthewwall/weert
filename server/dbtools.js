@@ -6,7 +6,7 @@ var find = function (collection, find_criteria, options, callback) {
 
     // Test to make sure 'limit' is a number
     if (typeof limit !== 'number' || (limit % 1) !== 0) {
-        return callback({message: "Invalid value for 'limit': " + limit})
+        return callback(new Error("Invalid value for 'limit': " + limit))
     }
 
     self.db.collection(collection, {strict: true}, function (err, collection) {
@@ -33,15 +33,15 @@ var findByTimestamp = function (collection, options, callback) {
 
     // Test to make sure 'start' is a number
     if (typeof start !== 'number' || (start % 1) !== 0) {
-        return callback({message: "Invalid value for 'start': " + start})
+        return callback(new Error("Invalid value for 'start': " + start))
     }
     // Test to make sure 'stop' is a number
     if (typeof stop !== 'number' || (stop % 1) !== 0) {
-        return callback({message: "Invalid value for 'stop': " + stop})
+        return callback(new Error("Invalid value for 'stop': " + stop))
     }
     // Test to make sure 'limit' is a number
     if (typeof limit !== 'number' || (limit % 1) !== 0) {
-        return callback({message: "Invalid value for 'limit': " + limit})
+        return callback(new Error("Invalid value for 'limit': " + limit))
     }
     collection.find(
         {
@@ -72,7 +72,7 @@ var findOneByTimestamp = function (collection, options, callback) {
     var timestamp = +options.timestamp;
     // Test to make sure 'timestamp' is a number
     if (typeof timestamp !== 'number' || (timestamp % 1) !== 0) {
-        return callback({message: "Invalid value for 'timestamp': " + timestamp})
+        return callback(new Error("Invalid value for 'timestamp': " + timestamp))
     }
     collection.find(
         {
@@ -108,11 +108,11 @@ var calcAggregate = function (collection, obs_type, options, callback) {
 
     // Test to make sure 'start' is a number
     if (typeof start !== 'number' || (start % 1) !== 0) {
-        return callback({message: "Invalid value for 'start': " + start})
+        return callback(new Error("Invalid value for 'start': " + start))
     }
     // Test to make sure 'stop' is a number
     if (typeof stop !== 'number' || (stop % 1) !== 0) {
-        return callback({message: "Invalid value for 'stop': " + stop})
+        return callback(new Error("Invalid value for 'stop': " + stop))
     }
 
     var agg_operator               = "$" + aggregate_type;

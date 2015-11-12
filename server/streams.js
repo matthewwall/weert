@@ -11,12 +11,6 @@ var _getPacketCollectionName = function (streamID) {
     return "streams_" + streamID + "_packets"
 };
 
-/*
- * In case of an error, returns an 'error' object with fields
- *      message: A general description
- *      description: A more detailed description (not always available)
- */
-
 var StreamsManager = function (db, options) {
     this.db      = db;
     this.options = options || {packets_collection: {capped: true, size: 1000000, max: 3600}};
@@ -28,20 +22,13 @@ StreamsManager.prototype.createStream = function (stream_metadata, callback) {
 
     // Make sure the _id field has not been already defined. This is MongoDB's job
     if (stream_metadata._id !== undefined) {
-        return callback(
-            {
-                message    : "Field _id is already defined",
-                description: {
-                    field    : "_id",
-                    "message": "Cannot be included"
-                }
-            });
+        return callback(new Error("Field _id is already defined"));
     }
     self.db.collection(streams_metadata_name, {strict: false}, function (err, collection) {
         if (err) return callback(err);
         collection.insertOne(stream_metadata, {}, function (err, result) {
             if (result.ops === undefined) {
-                return callback({message: "Internal error creating stream"})
+                return callback(new Error("Internal error creating stream"))
             }
             var stream_final_metadata = result.ops[0];
             return callback(err, stream_final_metadata);
@@ -63,9 +50,7 @@ StreamsManager.prototype.findStreams = function (options, callback) {
     var limit = options.limit === undefined ? 0 : +options.limit;
     // Test to make sure 'limit' is a number
     if (typeof limit !== 'number' || (limit % 1) !== 0) {
-        return callback({
-            message: "Invalid value for limit: " + limit
-        })
+        return callback(new Error("Invalid value for limit: " + limit))
     }
 
     self.db.collection(streams_metadata_name, {strict: true}, function (err, collection) {
@@ -87,11 +72,8 @@ StreamsManager.prototype.findStream = function (streamID, callback) {
         try {
             var id_obj = new mongodb.ObjectID(streamID);
         } catch (err) {
-            var error = {
-                message: "Unable to form ObjectID for streamID of " + streamID,
-                description: err.message
-            };
-            return callback(error)
+            err.description = "Unable to form ObjectID for streamID of " + streamID;
+            return callback(err)
         }
         collection.find(
             {
@@ -107,22 +89,12 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     var self = this;
     // Make sure the incoming packet contains a timestamp
     if (in_packet.timestamp === undefined) {
-        return callback(
-            {
-                message    : "No timestamp in packet",
-                description: {field: "timestamp", "message": "Must be included"}
-            });
+        return callback(new Error("No timestamp in packet"));
     }
     // Make sure it does not include an _id field:
     if (in_packet._id !== undefined) {
-        return callback(
-            {
-                message    : "Field _id is already defined",
-                description: {
-                    field    : "_id",
-                    "message": "Cannot be included"
-                }
-            });
+        return callback(new Error("Field _id is already defined"));
+        return callback(err);
     }
     // Clone the packet, changing timestamp to _id
     var packet = {};
@@ -189,7 +161,7 @@ StreamsManager.prototype.deleteOne = function (streamID, options, callback) {
     var timestamp = +options.timestamp;
     // Test to make sure 'timestamp' is a number
     if (typeof timestamp !== 'number' || (timestamp % 1) !== 0) {
-        return callback({message: "Invalid value for 'timestamp': " + timestamp})
+        return callback(new Error("Invalid value for 'timestamp': " + timestamp));
     }
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection

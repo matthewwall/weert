@@ -15,8 +15,7 @@ router.post('/streams', function (req, res) {
         var metadata = req.body;
         streams_manager.createStream(metadata, function (err, result) {
             if (err) {
-                err.code = 400;
-                res.status(400).json(err);
+                res.status(400).json(auxtools.fromError(400, err));
             } else {
                 var resource_url = auxtools.resourcePath(req, result._id);
                 res.status(201).location(resource_url).json(result);
@@ -34,7 +33,7 @@ router.get('/streams', function (req, res) {
     streams_manager.findStreams(req.query, function (err, streams_array) {
         if (err) {
             debug("Unable to find streams. Reason", err);
-            res.status(400).json({code:400, message: err.message});
+            res.status(400).json(auxtools.fromError(400, err));
         } else {
             debug("# of streams=", streams_array.length);
             var stream_uris = [];
@@ -57,8 +56,7 @@ router.get('/streams/:streamID', function (req, res) {
     streams_manager.findStream(streamID, function (err, stream_metadata) {
         if (err) {
             debug("Unable to satisfy request. Reason", err);
-            err.code = 400;
-            res.status(400).json(err);
+            res.status(400).json(auxtools.fromError(400, err));
             console.log("Bad stream ID", err);
         } else {
             if (stream_metadata.length) {
@@ -85,8 +83,7 @@ router.get('/streams/:streamID/packets', function (req, res) {
         streams_manager.aggregate(streamID, obs_type, req.query, function (err, result) {
             if (err) {
                 debug("Unable to satisfy aggregation request. Reason", err);
-                err.code = 400;
-                res.status(400).json(err);
+                res.status(400).json(auxtools.fromError(400, err));
             } else {
                 res.json(result);
             }
@@ -96,7 +93,7 @@ router.get('/streams/:streamID/packets', function (req, res) {
         streams_manager.find(streamID, req.query, function (err, packet_array) {
             if (err) {
                 debug("Unable to satisfy request for packets. Reason", err);
-                res.status(400).json({code: 400, message: err.message});
+                res.status(400).json(auxtools.fromError(400, err));
             } else {
                 debug("# of packets=", packet_array.length);
                 res.json(packet_array);
@@ -117,17 +114,19 @@ router.post('/streams/:streamID/packets', function (req, res) {
         // Insert the packet into the database
         streams_manager.insertOne(streamID, packet, function (err, result) {
             if (err) {
-                if (err.code === undefined){
+                if (err.code === undefined) {
                     // Not a MongoDB error.
-                    res.status(400).json({code: 400, message: err.message});
+                    res.status(400).json(auxtools.fromError(400, err));
                 } else if (err.code === 11000) {
                     // MongoDB duplicate key error
                     debug("Attempt to insert packet with duplicate time stamp");
-                    res.status(409).json({code: 409, message: "Duplicate time stamp", description: err.message});
+                    err.description = "Duplicate time stamp";
+                    res.status(409).json(auxtools.fromError(409, err));
                 } else {
                     // Other database error
                     debug("Error code:", err.code, "error message:", err.message);
-                    res.status(400).json({code: 400, message: "Unable to insert packet", description: err.message});
+                    err.description = "Unable to insert packet";
+                    res.status(400).json(auxtools.fromError(400, err));
                 }
             } else {
                 var resource_url = auxtools.resourcePath(req, packet.timestamp);
@@ -151,7 +150,7 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
     streams_manager.findOne(streamID, {timestamp: timestamp}, function (err, packet) {
         if (err) {
             debug("Unable to satisfy request. Reason", err);
-            res.status(400).json({code: 400, message: "Unable to satisfy request", description: err.message});
+            res.status(400).json(auxtools.fromError(400, err));
         } else {
             if (packet === null) res.sendStatus(404);
             else res.json(packet);
@@ -169,7 +168,7 @@ router.delete('/streams/:streamID/packets/:timestamp', function (req, res) {
     streams_manager.deleteOne(streamID, {timestamp: timestamp}, function (err, result) {
         if (err) {
             debug("Unable to satisfy request. Reason", err);
-            res.status(400).json({code: 400, message: "Unable to satisfy request", description: err.message});
+            res.status(400).json(auxtools.fromError(400, err));
         } else {
             var status = result.result.n ? 204 : 404;
             res.sendStatus(status);

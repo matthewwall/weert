@@ -84,7 +84,7 @@ frisby.create('GET a stream with a malformed streamID')
     .get("http://localhost:3000/api/v1/streams/foo")
     .expectStatus(400)
     .expectHeaderContains('content-type', 'application/json')
-    .expectJSON('', {code: 400, message: "Unable to form ObjectID for streamID of foo"})
+    .expectJSON('', {code: 400, description: "Unable to form ObjectID for streamID of foo"})
     .toss();
 
 frisby.create('Try to create a stream that has an _id field already defined')

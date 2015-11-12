@@ -21,14 +21,7 @@ PlatformsManager.prototype.createPlatform = function (platform_metadata, callbac
     var self = this;
     // Make sure the _id field has not been already defined. This is MongoDB's job
     if (platform_metadata._id !== undefined) {
-        return callback(
-            {
-                message    : "Field _id is already defined",
-                description: {
-                    field    : "_id",
-                    "message": "Cannot be included"
-                }
-            });
+        return callback(new Error("Field _id is already defined"));
     }
     // If the metadata doesn't already have one, include an array to hold the streams associated
     // with this platform.
@@ -41,12 +34,12 @@ PlatformsManager.prototype.createPlatform = function (platform_metadata, callbac
         collection.insertOne(platform_metadata, {}, function (err, result) {
             if (err) return callback(err);
             if (result.ops === undefined)
-                return callback({message:"internal error. ops undefined"});
+                return callback({message: "internal error. ops undefined"});
             var platform_final_metadata = result.ops[0];
 
             // Now create the "locations" collection for this platform
             var locations_name = _getLocationsCollectionName(platform_final_metadata._id);
-            self.db.createCollection(locations_name, {strict: true}, function (err, location_collection){
+            self.db.createCollection(locations_name, {strict: true}, function (err, location_collection) {
                 return callback(err, platform_final_metadata);
             })
         });
@@ -85,9 +78,15 @@ PlatformsManager.prototype.findPlatform = function (platformID, callback) {
     self.db.collection(platforms_metadata_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
         try {
+            var id_obj = new mongodb.ObjectID(platformID);
+        } catch (err) {
+            err.description = "Unable to form ObjectID for streamID of " + platformID;
+            return callback(err)
+        }
+        try {
             collection.find(
                 {
-                    _id: {$eq: new mongodb.ObjectID(platformID)}
+                    _id: {$eq: id_obj}
                 }
                 )
                 .toArray(callback);

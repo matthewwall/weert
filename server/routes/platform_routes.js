@@ -14,8 +14,7 @@ router.post('/platforms', function (req, res) {
         var metadata = req.body;
         platforms_manager.createPlatform(metadata, function (err, result) {
             if (err) {
-                err.code = 400;
-                res.status(400).json(err);
+                res.status(400).json(auxtools.fromError(400, err));
             }
             var resource_url = auxtools.resourcePath(req, result._id);
             res.status(201).location(resource_url).json(result);
@@ -31,7 +30,7 @@ router.get('/platforms', function (req, res) {
     platforms_manager.findPlatforms(req.query, function (err, platforms_array) {
         if (err) {
             debug("Unable to find platforms. Reason", err);
-            res.status(400).send({code: 400, message: "Unable to satisfy request for platforms", description: err.message});
+            res.status(400).json(auxtools.fromError(400, err));
         } else {
             debug("# of platforms=", platforms_array.length);
             var platform_uris = [];
@@ -54,11 +53,7 @@ router.get('/platforms/:platformID', function (req, res) {
     platforms_manager.findPlatform(platformID, function (err, platform_metadata) {
         if (err) {
             debug("Unable to satisfy request. Reason", err);
-            res.status(400).json({
-                code   : 400,
-                message: "Unable to satisfy request for platform with _id " + platformID,
-                error  : err.message
-            });
+            res.status(400).json(auxtools.fromError(400, err));
         } else {
             if (platform_metadata.length) {
                 res.json(platform_metadata[0]);
@@ -77,22 +72,14 @@ router.post('platforms/:platformID/locations', function (req, res) {
         // Get the location record out of the request body:
         var location_record = req.body;
         if (location_record.timestamp === undefined) {
-            res.status(400).json({
-                code   : 400,
-                message: "Request to create a location record does not include a timestamp",
-                error  : {field: "timestamp", message: "missing"}
-            });
+            res.status(400).json(auxtools.fromError(400, err));
             return;
         }
         var ts = new Date(location_record.timestamp);
         // Make sure location record does not contain an _id field:
         if (location_record._id !== undefined) {
             debug("Request to create location record has _id field:", location_record._id);
-            res.status(400).json({
-                code   : 400,
-                message: "Request to create a location record must not include an _id field",
-                error  : {field: "_id", message: "Cannot be included"}
-            });
+            res.status(400).json(auxtools.fromError(400, err));
         } else {
             platforms_manager.createLocationRecord(location_record, function (err, result) {
                 var resource_url = auxtools.resourcePath(req, result._id);

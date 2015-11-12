@@ -1,9 +1,10 @@
-var url=require('url');
+var url          = require('url');
 var normalizeUrl = require('normalize-url');
 
-var resourcePath = function (req, name){
+var resourcePath = function (req, name) {
+    "use strict";
     var base_pathname = url.parse(req.originalUrl).pathname;
-    var fullpath = url.format({
+    var fullpath      = url.format({
         protocol: req.protocol,
         host    : req.get('host'),
         pathname: base_pathname + '/' + name
@@ -11,6 +12,18 @@ var resourcePath = function (req, name){
     return normalizeUrl(fullpath);
 };
 
+var fromError = function (code, err) {
+    "use strict";
+    var e     = {};
+    e.message = err.message;
+    e.code    = code;
+    if (err.description) {
+        e.description = err.description;
+    }
+    return e;
+};
+
 module.exports = {
-    resourcePath : resourcePath
+    resourcePath: resourcePath,
+    fromError   : fromError
 };
