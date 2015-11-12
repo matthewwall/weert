@@ -82,5 +82,5 @@ frisby.create("Try to create a platform with an _id field")
         {json: true}
     )
     .expectStatus(400)
-    .toss()
+    .toss();
 

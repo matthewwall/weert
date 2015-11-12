@@ -1,8 +1,8 @@
-var debug        = require('debug')('weert:server');
-var express      = require('express');
-var router       = express.Router();
+var debug   = require('debug')('weert:server');
+var express = require('express');
+var router  = express.Router();
 
-var auxtools     = require('../auxtools');
+var auxtools = require('../auxtools');
 
 var platforms_manager = undefined;
 
@@ -12,22 +12,16 @@ router.post('/platforms', function (req, res) {
     if (req.is('json')) {
         // Get the metadata
         var metadata = req.body;
-        // Make sure it does not contain an _id field:
-        if (metadata._id !== undefined) {
-            debug("Request to create platform has _id field:", metadata._id);
-            res.status(400).json({
-                code   : 400,
-                message: "Request to create a platform must not include an _id field",
-                error  : {field: "_id", "message": "Cannot be included"}
-            });
-        } else {
-            platforms_manager.createPlatform(metadata, function (err, result) {
-                var resource_url = auxtools.resourcePath(req, result._id);
-                res.status(201).location(resource_url).json(result);
-            })
-        }
+        platforms_manager.createPlatform(metadata, function (err, result) {
+            if (err) {
+                err.code = 400;
+                res.status(400).json(err);
+            }
+            var resource_url = auxtools.resourcePath(req, result._id);
+            res.status(201).location(resource_url).json(result);
+        })
     } else {
-        res.status(415).json({code: 415, message: "Invalid Content-type", error: req.get('Content-Type')});
+        res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
     }
 });
 
@@ -37,7 +31,7 @@ router.get('/platforms', function (req, res) {
     platforms_manager.findPlatforms(req.query, function (err, platforms_array) {
         if (err) {
             debug("Unable to find platforms. Reason", err);
-            res.status(400).send({code: 400, message: "Unable to satisfy request for platforms", error: err.message});
+            res.status(400).send({code: 400, message: "Unable to satisfy request for platforms", description: err.message});
         } else {
             debug("# of platforms=", platforms_array.length);
             var platform_uris = [];
@@ -82,11 +76,11 @@ router.post('platforms/:platformID/locations', function (req, res) {
         var platformID = req.params.platformID;
         // Get the location record out of the request body:
         var location_record = req.body;
-        if (location_record.timestamp === undefined){
+        if (location_record.timestamp === undefined) {
             res.status(400).json({
-                code : 400,
-                message : "Request to create a location record does not include a timestamp",
-                error : {field: "timestamp", message : "missing"}
+                code   : 400,
+                message: "Request to create a location record does not include a timestamp",
+                error  : {field: "timestamp", message: "missing"}
             });
             return;
         }
@@ -109,7 +103,6 @@ router.post('platforms/:platformID/locations', function (req, res) {
         res.status(415).json({code: 415, message: "Invalid Content-type", error: req.get('Content-Type')});
     }
 });
-
 
 
 module.exports = function (pm) {

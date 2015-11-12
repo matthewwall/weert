@@ -34,10 +34,7 @@ router.get('/streams', function (req, res) {
     streams_manager.findStreams(req.query, function (err, streams_array) {
         if (err) {
             debug("Unable to find streams. Reason", err);
-            err.code = 400;
-            if (!err.message)
-                err.message = "Unable to find streams";
-            res.status(400).json(err);
+            res.status(400).json({code:400, message: err.message});
         } else {
             debug("# of streams=", streams_array.length);
             var stream_uris = [];
@@ -99,8 +96,7 @@ router.get('/streams/:streamID/packets', function (req, res) {
         streams_manager.find(streamID, req.query, function (err, packet_array) {
             if (err) {
                 debug("Unable to satisfy request for packets. Reason", err);
-                err.code = 400;
-                res.status(400).json(err);
+                res.status(400).json({code: 400, message: err.message});
             } else {
                 debug("# of packets=", packet_array.length);
                 res.json(packet_array);
@@ -123,8 +119,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
             if (err) {
                 if (err.code === undefined){
                     // Not a MongoDB error.
-                    err.code = 400;
-                    res.status(400).json(err);
+                    res.status(400).json({code: 400, message: err.message});
                 } else if (err.code === 11000) {
                     // MongoDB duplicate key error
                     debug("Attempt to insert packet with duplicate time stamp");

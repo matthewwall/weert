@@ -164,7 +164,7 @@ var getSortSpec = function (sort_option, direction_option) {
             direction = -1;
             break;
         default:
-            throw {message: "Unknown sort order + direction_option"}
+            throw new Error("Unknown sort order: " + direction_option);
     }
     var sort_spec = {};
     sort_spec[sort_field] = direction;

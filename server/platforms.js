@@ -19,6 +19,19 @@ var PlatformsManager = function (db, options) {
 PlatformsManager.prototype.createPlatform = function (platform_metadata, callback) {
     "use strict";
     var self = this;
+    // Make sure the _id field has not been already defined. This is MongoDB's job
+    if (platform_metadata._id !== undefined) {
+        return callback(
+            {
+                message    : "Field _id is already defined",
+                description: {
+                    field    : "_id",
+                    "message": "Cannot be included"
+                }
+            });
+    }
+    // If the metadata doesn't already have one, include an array to hold the streams associated
+    // with this platform.
     if (platform_metadata.streams === undefined) {
         platform_metadata.streams = [];
     }
@@ -48,8 +61,7 @@ PlatformsManager.prototype.findPlatforms = function (options, callback) {
         options = dbtools.getOptions(options);
     }
     catch (err) {
-        var err_obj = {message: err};
-        return callback(err_obj)
+        return callback(err)
     }
     var limit = options.limit === undefined ? 0 : +options.limit;
     // Test to make sure 'limit' is a number

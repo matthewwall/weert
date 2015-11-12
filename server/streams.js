@@ -156,7 +156,6 @@ StreamsManager.prototype.find = function (streamID, options, callback) {
         options = dbtools.getOptions(options);
     }
     catch (err) {
-        err.description = options;
         return callback(err)
     }
     var collection_name = _getPacketCollectionName(streamID);
