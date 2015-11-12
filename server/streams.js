@@ -1,6 +1,6 @@
 "use strict";
 
-var streams_metadata_name    = 'streams_metadata';
+var streams_metadata_name = 'streams_metadata';
 
 var mongodb = require('mongodb');
 var debug   = require('debug')('weert:server');
@@ -11,6 +11,12 @@ var _getPacketCollectionName = function (streamID) {
     return "streams_" + streamID + "_packets"
 };
 
+/*
+ * In case of an error, returns an 'error' object with fields
+ *      message: A general description
+ *      description: A more detailed description (not always available)
+ */
+
 var StreamsManager = function (db, options) {
     this.db      = db;
     this.options = options || {packets_collection: {capped: true, size: 1000000, max: 3600}};
@@ -20,10 +26,23 @@ StreamsManager.prototype.createStream = function (stream_metadata, callback) {
     "use strict";
     var self = this;
 
+    // Make sure the _id field has not been already defined. This is MongoDB's job
+    if (stream_metadata._id !== undefined) {
+        return callback(
+            {
+                message    : "Field _id is already defined",
+                description: {
+                    field    : "_id",
+                    "message": "Cannot be included"
+                }
+            });
+    }
     self.db.collection(streams_metadata_name, {strict: false}, function (err, collection) {
         if (err) return callback(err);
         collection.insertOne(stream_metadata, {}, function (err, result) {
-            // TODO: Check to see if ops is defined
+            if (result.ops === undefined) {
+                return callback({message: "Internal error creating stream"})
+            }
             var stream_final_metadata = result.ops[0];
             return callback(err, stream_final_metadata);
         });
@@ -32,19 +51,21 @@ StreamsManager.prototype.createStream = function (stream_metadata, callback) {
 
 StreamsManager.prototype.findStreams = function (options, callback) {
     "use strict";
-    var self         = this;
+    var self = this;
     // A bad sort direction can cause an exception to be raised:
     try {
         options = dbtools.getOptions(options);
     }
-    catch (err){
-        var err_obj = {message: err};
-        return callback(err_obj)
+    catch (err) {
+        err.description = options;
+        return callback(err)
     }
     var limit = options.limit === undefined ? 0 : +options.limit;
     // Test to make sure 'limit' is a number
     if (typeof limit !== 'number' || (limit % 1) !== 0) {
-        return callback({message: "Invalid value for 'limit': " + limit})
+        return callback({
+            message: "Invalid value for limit: " + limit
+        })
     }
 
     self.db.collection(streams_metadata_name, {strict: true}, function (err, collection) {
@@ -62,25 +83,47 @@ StreamsManager.prototype.findStream = function (streamID, callback) {
 
     self.db.collection(streams_metadata_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
+        // A bad _id will cause an exception. Be prepared to catch it
         try {
-            collection.find(
-                {
-                    _id: {$eq: new mongodb.ObjectID(streamID)}
-                }
-                )
-                .toArray(callback);
+            var id_obj = new mongodb.ObjectID(streamID);
         } catch (err) {
-            // Error, perhaps because of an invalid streamID
-            return callback(err);
+            var error = {
+                message: "Unable to form ObjectID for streamID of " + streamID,
+                description: err.message
+            };
+            return callback(error)
         }
+        collection.find(
+            {
+                _id: {$eq: id_obj}
+            }
+            )
+            .toArray(callback);
     });
 };
 
 StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     "use strict";
     var self = this;
-    if (streamID === undefined)
-        return callback("Missing stream ID");
+    // Make sure the incoming packet contains a timestamp
+    if (in_packet.timestamp === undefined) {
+        return callback(
+            {
+                message    : "No timestamp in packet",
+                description: {field: "timestamp", "message": "Must be included"}
+            });
+    }
+    // Make sure it does not include an _id field:
+    if (in_packet._id !== undefined) {
+        return callback(
+            {
+                message    : "Field _id is already defined",
+                description: {
+                    field    : "_id",
+                    "message": "Cannot be included"
+                }
+            });
+    }
     // Clone the packet, changing timestamp to _id
     var packet = {};
     for (var k in in_packet) {
@@ -112,9 +155,9 @@ StreamsManager.prototype.find = function (streamID, options, callback) {
     try {
         options = dbtools.getOptions(options);
     }
-    catch (err){
-        var err_obj = {message: err};
-        return callback(err_obj)
+    catch (err) {
+        err.description = options;
+        return callback(err)
     }
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection

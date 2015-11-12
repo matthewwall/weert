@@ -1,8 +1,8 @@
-var debug        = require('debug')('weert:server');
-var express      = require('express');
-var router       = express.Router();
+var debug   = require('debug')('weert:server');
+var express = require('express');
+var router  = express.Router();
 
-var pubsub = require('../pubsub');
+var pubsub   = require('../pubsub');
 var auxtools = require('../auxtools');
 
 var streams_manager = undefined;
@@ -13,22 +13,17 @@ router.post('/streams', function (req, res) {
     if (req.is('json')) {
         // Get the metadata
         var metadata = req.body;
-        // Make sure it does not contain an _id field:
-        if (metadata._id !== undefined) {
-            debug("Request to create stream has _id field:", metadata._id);
-            res.status(400).json({
-                code   : 400,
-                message: "Request to create a stream must not include an _id field",
-                error  : {field: "_id", "message": "Cannot be included"}
-            });
-        } else {
-            streams_manager.createStream(metadata, function (err, result) {
+        streams_manager.createStream(metadata, function (err, result) {
+            if (err) {
+                err.code = 400;
+                res.status(400).json(err);
+            } else {
                 var resource_url = auxtools.resourcePath(req, result._id);
                 res.status(201).location(resource_url).json(result);
-            })
-        }
+            }
+        })
     } else {
-        res.status(415).json({code: 415, message: "Invalid Content-type", error: req.get('Content-Type')});
+        res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
     }
 
 });
@@ -39,7 +34,10 @@ router.get('/streams', function (req, res) {
     streams_manager.findStreams(req.query, function (err, streams_array) {
         if (err) {
             debug("Unable to find streams. Reason", err);
-            res.status(400).send({code: 400, message: "Unable to satisfy request for streams", error: err.message});
+            err.code = 400;
+            if (!err.message)
+                err.message = "Unable to find streams";
+            res.status(400).json(err);
         } else {
             debug("# of streams=", streams_array.length);
             var stream_uris = [];
@@ -62,11 +60,9 @@ router.get('/streams/:streamID', function (req, res) {
     streams_manager.findStream(streamID, function (err, stream_metadata) {
         if (err) {
             debug("Unable to satisfy request. Reason", err);
-            res.status(400).json({
-                code   : 400,
-                message: "Unable to satisfy request for stream with _id " + streamID,
-                error  : err.message
-            });
+            err.code = 400;
+            res.status(400).json(err);
+            console.log("Bad stream ID", err);
         } else {
             if (stream_metadata.length) {
                 res.json(stream_metadata[0]);
@@ -91,8 +87,9 @@ router.get('/streams/:streamID/packets', function (req, res) {
         var obs_type = req.query.obs_type;
         streams_manager.aggregate(streamID, obs_type, req.query, function (err, result) {
             if (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
+                debug("Unable to satisfy aggregation request. Reason", err);
+                err.code = 400;
+                res.status(400).json(err);
             } else {
                 res.json(result);
             }
@@ -102,7 +99,8 @@ router.get('/streams/:streamID/packets', function (req, res) {
         streams_manager.find(streamID, req.query, function (err, packet_array) {
             if (err) {
                 debug("Unable to satisfy request for packets. Reason", err);
-                res.status(400).json({code: 400, message: "Unable to satisfy request for packets", error: err.message});
+                err.code = 400;
+                res.status(400).json(err);
             } else {
                 debug("# of packets=", packet_array.length);
                 res.json(packet_array);
@@ -120,35 +118,21 @@ router.post('/streams/:streamID/packets', function (req, res) {
         var streamID = req.params.streamID;
         // Get the packet out of the request body:
         var packet = req.body;
-        if (packet.timestamp === undefined){
-            res.status(400).json({
-                code : 400,
-                message : "Request to create a packet does not include a timestamp",
-                error : {field: "timestamp", message : "missing"}
-            });
-            return;
-        }
-        var ts = new Date(packet.timestamp);
-        if (packet._id !== undefined) {
-            debug("Request to create a packet has _id field:", packet._id);
-            res.status(400).json({
-                code   : 400,
-                message: "Request to create a packet must not include an _id field",
-                error  : {field: "_id", message: "Cannot be included"}
-            });
-            return;
-        }
         // Insert the packet into the database
         streams_manager.insertOne(streamID, packet, function (err, result) {
-            // Send back an appropriate acknowledgement:
             if (err) {
-                debug("Unable to insert packet with timestamp", ts);
-                if (err.code === 11000) {
-                    debug("Reason: duplicate time stamp");
-                    res.status(409).json({code: 409, message: "Duplicate time stamp", error: err.message});
+                if (err.code === undefined){
+                    // Not a MongoDB error.
+                    err.code = 400;
+                    res.status(400).json(err);
+                } else if (err.code === 11000) {
+                    // MongoDB duplicate key error
+                    debug("Attempt to insert packet with duplicate time stamp");
+                    res.status(409).json({code: 409, message: "Duplicate time stamp", description: err.message});
                 } else {
+                    // Other database error
                     debug("Error code:", err.code, "error message:", err.message);
-                    res.status(400).json({code: 400, message: "Unable to insert packet", error: err.message});
+                    res.status(400).json({code: 400, message: "Unable to insert packet", description: err.message});
                 }
             } else {
                 var resource_url = auxtools.resourcePath(req, packet.timestamp);
@@ -158,7 +142,7 @@ router.post('/streams/:streamID/packets', function (req, res) {
             }
         });
     } else {
-        res.status(415).json({code: 415, message: "Invalid Content-type", error: req.get('Content-Type')});
+        res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
     }
 });
 
@@ -172,7 +156,7 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
     streams_manager.findOne(streamID, {timestamp: timestamp}, function (err, packet) {
         if (err) {
             debug("Unable to satisfy request. Reason", err);
-            res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
+            res.status(400).json({code: 400, message: "Unable to satisfy request", description: err.message});
         } else {
             if (packet === null) res.sendStatus(404);
             else res.json(packet);
@@ -190,7 +174,7 @@ router.delete('/streams/:streamID/packets/:timestamp', function (req, res) {
     streams_manager.deleteOne(streamID, {timestamp: timestamp}, function (err, result) {
         if (err) {
             debug("Unable to satisfy request. Reason", err);
-            res.status(400).json({code: 400, message: "Unable to satisfy request", error: err.message});
+            res.status(400).json({code: 400, message: "Unable to satisfy request", description: err.message});
         } else {
             var status = result.result.n ? 204 : 404;
             res.sendStatus(status);
