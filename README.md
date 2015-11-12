@@ -225,21 +225,110 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 
 | *HTTP verb* | *Endpoint*                                     | *Description*                                                                                          | *STATUS* |
 |-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
-| `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | Done.    |
-| `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | Done.    |
-| `GET`       | `/api/v1/streams/:streamID/metadata`           | Return the metadata for stream with id *streamID*.                                                     | Done.    |
-| `PUT`       | `/api/v1/streams/:streamID/metadata`           | Set or update the metadata for the stream with id *streamID*                                           |          |
-| `POST`      | `/api/v1/streams/:streamID/packets`            | Post a new packet to the stream with id *streamID*, returning its URI in Locations field.              | Done.    |
-| `GET`       | `/api/v1/streams/:streamID/packets`            | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria. | Done.    |
-| `GET`       | `/api/v1/streams/:streamID/packets/:timestamp` | Return a packet from *streamID* with the given timestamp.                                              | Done.    |
-| `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp` | Delete a packet from *streamID* with the given timestamp.                                              | Done.    |
+| `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              | I, D, T  |
 | `GET`       | `/api/v1/platforms`                            | Get an array of URIs to all platforms.                                                                 |          |
-| `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              |          |
 | `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                |          |
 | `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |          |
 | `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           |          |
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*, returning its URI.                          |          |
+| `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
+| `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
+| `GET`       | `/api/v1/streams/:streamID/`                   | Get the metadata for the stream with id *streamID*.                                                    | I     T  |
+| `PUT`       | `/api/v1/streams/:streamID/metadata`           | Set or update the metadata for the stream with id *streamID*                                           |          |
+| `POST`      | `/api/v1/streams/:streamID/packets`            | Post a new packet to the stream with id *streamID*, returning its URI in Locations field.              | I, D, T  |
+| `GET`       | `/api/v1/streams/:streamID/packets`            | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria. | I, D, T  |
+| `GET`       | `/api/v1/streams/:streamID/packets/:timestamp` | Return a packet from *streamID* with the given timestamp.                                              | I, D, T  |
+| `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp` | Delete a packet from *streamID* with the given timestamp.                                              | I, D, T  |
+
+Status codes:
+I = Implemented
+D = Documented
+T = Tested
+
+## Create a new platform
+
+Create a new platform and return its metadata
+
+```
+POST /api/v1/platforms
+```
+
+*Return status*
+
+| *Status* | *Meaning*             |
+|----------|-----------------------|
+| 201      | Success               |
+| 415      | Invalid content type  |
+
+If successful, the server will return the metadata of the new platform encoded as JSON in the response body.
+The URI of the new platform will be returned in the `Location` field.
+
+*Example*
+
+```Shell
+$ curl -i -H "Content-type: application/json" -X POST \
+> -d '{"name":"Bennys Ute", "description" : "Yellow, with black cap"}' \
+> http://localhost:3000/api/v1/platforms
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/platforms/5643e79193e06e8a3eeb7510
+Content-Type: application/json; charset=utf-8
+Content-Length: 106
+ETag: W/"6a-f4cVJmUPcWC5wohP/IEzBg"
+Date: Thu, 12 Nov 2015 01:12:49 GMT
+Connection: keep-alive
+
+{
+  "name":"Bennys Ute",
+  "description":"Yellow, with black cap",
+  "streams":[],
+  "_id":"5643e79193e06e8a3eeb7510"
+}
+```
+
+## Post a new packet
+
+Post a new packet to a specific stream.
+
+```
+POST /api/v1/streams/:streamID/packets
+```
+
+*Return status*
+
+| *Status* | *Meaning* |
+|----------|-----------|
+| 201      | Success   |
+| 415      | Invalid content type |
+
+Post a LOOP packet for the stream with ID *streamID*.
+The packet should be contained as a JSON payload in the body of the POST. The packet
+must contain keyword `timestamp`, holding the unix epoch time in *milliseconds* (JavaScript style).
+
+If successful, the server will return a response code of `201`, with the response `location` field set to the URL
+of the newly created resource (packet), the body holding a JSON representation of the posted packet.
+
+There is no enforcement of the unit system used in the packet,
+but best practices is to use the weewx `METRICWX` system.
+
+*Example*
+```Shell
+$ curl -i -H "Content-Type: application/json" -X POST -d '{"timestamp": 1420070400000,"outside_temperature":"18"}' http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
+Content-Type: application/json; charset=utf-8
+Content-Length: 54
+ETag: W/"36-AZNzWP7/+d3y44m6WZH2SA"
+Date: Wed, 11 Nov 2015 23:08:41 GMT
+Connection: keep-alive
+
+{
+  "timestamp":1420070400000,
+  "outside_temperature":"18"
+}
+```
 
 ## List packets
 
@@ -359,50 +448,7 @@ Connection: keep-alive
 ```
 
 
-## Post a new packet
-
-Post a new packet to a specific stream.
-
-```
-POST /api/v1/streams/:streamID/packets
-```
-
-*Return status*
-
-| *Status* | *Meaning* |
-|----------|-----------|
-| 201      | Success   |
-| 415      | Invalid content type |
-
-Post a LOOP packet for the stream with ID *streamID*.
-The packet should be contained as a JSON payload in the body of the POST. The packet
-must contain keyword `timestamp`, holding the unix epoch time in *milliseconds* (JavaScript style).
-
-If successful, the server will return a response code of `201`, with the response `location` field set to the URL
-of the newly created resource (packet), the body holding a JSON representation of the posted packet.
-
-There is no enforcement of the unit system used in the packet,
-but best practices is to use the weewx `METRICWX` system.
-
-*Example*
-```Shell
-$ curl -H "Content-Type: application/json" -X POST -d '{"timestamp": 1420070400000,"outside_temperature":"18"}' http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
-Content-Type: application/json; charset=utf-8
-Content-Length: 54
-ETag: W/"36-AZNzWP7/+d3y44m6WZH2SA"
-Date: Wed, 11 Nov 2015 23:08:41 GMT
-Connection: keep-alive
-
-{
-  "timestamp":1420070400000,
-  "outside_temperature":"18"
-}
-```
-
-## Get a packet
+## Get a specific packet
 
 Get a packet from a specific stream with a specific timestamp
 
@@ -454,7 +500,7 @@ Not Found
 
 
 
-## Delete a packet
+## Delete a specific packet
 
 Delete a packet from a specific stream with a specific timestamp
 

@@ -1,6 +1,5 @@
 "use strict";
 
-var streams_metadata_options = {};
 var streams_metadata_name    = 'streams_metadata';
 
 var mongodb = require('mongodb');
@@ -14,7 +13,21 @@ var _getPacketCollectionName = function (streamID) {
 
 var StreamsManager = function (db, options) {
     this.db      = db;
-    this.options = options || {collection: {capped: true, size: 1000000, max: 3600}};
+    this.options = options || {packets_collection: {capped: true, size: 1000000, max: 3600}};
+};
+
+StreamsManager.prototype.createStream = function (stream_metadata, callback) {
+    "use strict";
+    var self = this;
+    // TODO: Check to see if the metadata has an _id field
+    self.db.collection(streams_metadata_name, {strict: false}, function (err, collection) {
+        if (err) return callback(err);
+        collection.insertOne(stream_metadata, {}, function (err, result) {
+            // TODO: Check to see if ops is defined
+            var stream_final_metadata = result.ops[0];
+            return callback(err, stream_final_metadata);
+        });
+    });
 };
 
 StreamsManager.prototype.findStreams = function (options, callback) {
@@ -56,19 +69,6 @@ StreamsManager.prototype.findStream = function (streamID, callback) {
     });
 };
 
-StreamsManager.prototype.createStream = function (stream_metadata, callback) {
-    "use strict";
-    var self = this;
-    // TODO: Check to see if the metadata has an _id field
-    self.db.collection(streams_metadata_name, {strict: false}, function (err, collection) {
-        if (err) return callback(err);
-        collection.insertOne(stream_metadata, {}, function (err, result) {
-            var stream_final_metadata = result.ops[0];
-            return callback(err, stream_final_metadata);
-        });
-    });
-};
-
 StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     "use strict";
     var self = this;
@@ -87,7 +87,8 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
     }
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection. It will be created if it doesn't exist already
-    self.db.collection(collection_name, self.options.collection, function (err, coln) {
+    // TODO: Optionally require that the collection exist before allowing insertions
+    self.db.collection(collection_name, self.options.packets_collection, function (err, coln) {
         if (err) return callback(err);
         coln.insertOne(packet, null, function (err, result) {
             if (err) return callback(err);

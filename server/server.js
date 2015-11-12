@@ -5,7 +5,8 @@
  */
 var mongo_url               = "mongodb://localhost:27017/weert";
 var default_port            = '3000';
-var streams_manager_options = {collection: {capped: true, size: 1000000, max: 3600}};
+var platforms_manager_options = {};
+var streams_manager_options = {packets_collection: {capped: true, size: 1000000, max: 3600}};
 
 /*
  * Requires
@@ -21,8 +22,10 @@ var mongodb      = require('mongodb');
 var path         = require('path');
 var socket_io    = require('socket.io');
 
+var platforms     = require('./platforms');
 var streams       = require('./streams');
 var pubsub        = require('./pubsub');
+var platform_routes = require('./routes/platform_routes');
 var stream_routes = require('./routes/stream_routes');
 
 var app = express();
@@ -39,7 +42,7 @@ app.use(cookieParser());
 /*
  * Set up server
  */
-var port = normalizePort(process.env.PORT || default_port);
+var port = normalizePort(default_port);
 app.set('port', port);
 var server = http.createServer(app);
 
@@ -75,12 +78,14 @@ io.on('connection', function (socket) {
  */
 var MongoClient     = mongodb.MongoClient;
 var mongo_db        = undefined;
+var platforms_manager = undefined;
 var streams_manager = undefined;
 var setup_databases = function (callback) {
     "use strict";
     MongoClient.connect(mongo_url, function (err, database) {
         if (err) throw err;
         mongo_db        = database;
+        platforms_manager = new platforms.PlatformsManager(mongo_db, platforms_manager_options);
         streams_manager = new streams.StreamsManager(mongo_db, streams_manager_options);
         return callback(null);
     });
@@ -91,6 +96,7 @@ var setup_routes = function (callback) {
     // Serve all static files from the "public" subdirectory:
     app.use(express.static(path.join(__dirname, '../public')));
 
+    app.use('/api/v1', platform_routes(platforms_manager));
     app.use('/api/v1', stream_routes(streams_manager));
 
     // catch 404 and forward to error handler

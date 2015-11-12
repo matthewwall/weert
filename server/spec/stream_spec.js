@@ -6,7 +6,7 @@ var frisby = require('frisby');
 // First try to create a stream, but with a missing Content-Type
 frisby.create('Create a WeeRT stream with a missing Content-Type')
     .post('http://localhost:3000/api/v1/streams',
-        {"name": "Test stream", "description": "Created to test streams API", "join": "join_keyword"}
+        {"name": "Test stream", "description": "Created to test streams API", "join": "join_keyword1"}
     )
     .expectStatus(415)
     .expectHeaderContains('content-type', 'application/json')
@@ -22,7 +22,7 @@ frisby.create('Create a WeeRT stream #1')
     )
     .expectStatus(201)
     .expectHeaderContains('content-type', 'application/json')
-    .expectJSONTypes('', {_id: String, description: String, join: String})
+    .expectJSONTypes('', {_id: String, name: String, description: String, join: String})
     .expectJSON('', {name: "Test stream #1", description: "Created to test streams API", join: "join_keyword1"})
     .after(function (error, res, body) {
         // Having created a stream, retrieve it and validate it
