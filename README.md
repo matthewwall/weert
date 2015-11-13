@@ -230,7 +230,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
 | `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |          |
 | `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
-| `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*, returning its URI.                          | I,    T  |
+| `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I,    T  |
 | `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
 | `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
@@ -355,6 +355,50 @@ Connection: keep-alive
 }
 ```
 
+## Post a new location record
+
+Post a new location for a specific platform
+
+```
+POST /api/v1/platforms/:platformID/locations
+```
+
+*Return status*
+
+| *Status* | *Meaning* |
+|----------|-----------|
+| 201      | Success   |
+| 415      | Invalid content type |
+
+Post a new location record for the platform with ID *platformID*.
+The record should be contained as a JSON payload in the body of the POST. The packet
+must contain keyword `timestamp`, holding the unix epoch time in *milliseconds* (JavaScript style).
+
+If successful, the server will return a response code of `201`, with the response `location` field set to the URL
+of the newly created resource (the new location record). The response body will contain a copy of the newly
+created location record.
+
+*Example*
+```Shell
+$ curl -i -H "Content-Type: application/json" -X POST \
+> -d '{"timestamp" : 1420070450000, "latitude":45.5, "longitude":-121.8, "altitude": 417.1}' \
+> http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations/1420070450000
+Content-Type: application/json; charset=utf-8
+Content-Length: 79
+ETag: W/"4f-FaShclzXS+U2s/g4Ns+bzw"
+Date: Fri, 13 Nov 2015 02:08:24 GMT
+Connection: keep-alive
+
+{
+  "timestamp":1420070450000,
+  "latitude":45.5,
+  "longitude":-121.8,
+  "altitude":417.1
+}
+```
 
 ## Post a new packet
 
@@ -401,7 +445,7 @@ Connection: keep-alive
 }
 ```
 
-## List packets
+## Get packets
 
 Return all packets from the stream with ID `:streamID` that satisfy a search query.
 
