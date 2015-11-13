@@ -1,11 +1,13 @@
 /*
  * Test spec for testing the creation and fetching of streams
  */
+
+var test_url = 'http://localhost:3000/test/v1/streams';
 var frisby = require('frisby');
 
 // First try to create a stream, but with a missing Content-Type
 frisby.create('Create a WeeRT stream with a missing Content-Type')
-    .post('http://localhost:3000/api/v1/streams',
+    .post(test_url,
         {"name": "Test stream", "description": "Created to test streams API", "join": "join_keyword1"}
     )
     .expectStatus(415)
@@ -16,7 +18,7 @@ frisby.create('Create a WeeRT stream with a missing Content-Type')
 
 // Now try again, but with a Content-Type
 frisby.create('Create a WeeRT stream #1')
-    .post('http://localhost:3000/api/v1/streams',
+    .post(test_url,
         {"name": "Test stream #1", "description": "Created to test streams API", "join": "join_keyword1"},
         {json: true}
     )
@@ -35,7 +37,7 @@ frisby.create('Create a WeeRT stream #1')
             .expectJSON('', {name: "Test stream #1", description: "Created to test streams API", join: "join_keyword1"})
             .toss();
         frisby.create('Create a WeeRT stream #2')
-            .post('http://localhost:3000/api/v1/streams',
+            .post(test_url,
                 {"name": "Test stream #2", "description": "Created to test streams API", "join": "join_keyword2"},
                 {json: true}
             )
@@ -47,7 +49,7 @@ frisby.create('Create a WeeRT stream #1')
                 var stream_link2 = res.headers.location;
                 // We have now created two streams. Fetch them.
                 frisby.create('GET and validate all created streams')
-                    .get('http://localhost:3000/api/v1/streams')
+                    .get(test_url)
                     .expectStatus(200)
                     .expectHeaderContains('content-type', 'application/json')
                     .expectJSONTypes('', Array)
@@ -76,19 +78,19 @@ frisby.create('Create a WeeRT stream #1')
 
 // Get a non-existent stream:
 frisby.create('GET a non-existent stream')
-    .get("http://localhost:3000/api/v1/streams/563e70fb5ebf66aa2e0ea7ee")
+    .get(test_url + "/563e70fb5ebf66aa2e0ea7ee")
     .expectStatus(404)
     .toss();
 
 frisby.create('GET a stream with a malformed streamID')
-    .get("http://localhost:3000/api/v1/streams/foo")
+    .get(test_url + "/foo")
     .expectStatus(400)
     .expectHeaderContains('content-type', 'application/json')
     .expectJSON('', {code: 400, description: "Unable to form ObjectID for streamID of foo"})
     .toss();
 
 frisby.create('Try to create a stream that has an _id field already defined')
-    .post('http://localhost:3000/api/v1/streams',
+    .post(test_url,
         {"name": "Test stream #1", "description": "Created to test streams API", "join": "join_keyword1", _id: "foo"},
         {json: true}
     )

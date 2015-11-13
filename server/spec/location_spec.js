@@ -3,6 +3,8 @@
  */
 "use strict";
 
+var test_url = "http://localhost:3000/test/v1/platforms";
+
 var async        = require('async');
 var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
@@ -40,7 +42,7 @@ for (var i = 0; i < N; i++) {
 var testMultipleLocrecs = function () {
 
     frisby.create('Create a WeeRT platform to hold several location records')
-        .post('http://localhost:3000/api/v1/platforms',
+        .post(test_url,
             {
                 "name": "Test multiple location record platform",
                 "description": "Created to test the insertion of multiple location records into a platform"

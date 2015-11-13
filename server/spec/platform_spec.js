@@ -3,11 +3,12 @@
  */
 "use strict";
 
+var test_url = 'http://localhost:3000/test/v1/platforms';
 var frisby = require('frisby');
 
 // First try to create a platform, but with a missing Content-Type
 frisby.create('Create a WeeRT platform with a missing Content-Type')
-    .post('http://localhost:3000/api/v1/platforms',
+    .post(test_url,
         {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1"}
     )
     .expectStatus(415)
@@ -18,7 +19,7 @@ frisby.create('Create a WeeRT platform with a missing Content-Type')
 
 // Now try again, but with a Content-Type
 frisby.create('Create a WeeRT platform #1')
-    .post('http://localhost:3000/api/v1/platforms',
+    .post(test_url,
         {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1"},
         {json: true}
     )
@@ -40,7 +41,7 @@ frisby.create('Create a WeeRT platform #1')
             .expectJSON('streams', [])
             .toss();
         frisby.create('Create a WeeRT platform #2')
-            .post('http://localhost:3000/api/v1/platforms',
+            .post(test_url,
                 {"name": "Willie's Ute", "description": "Green, with no cap", "join": "join_keyword2"},
                 {json: true}
             )
@@ -52,25 +53,33 @@ frisby.create('Create a WeeRT platform #1')
                 var platform_link2 = res.headers.location;
                 // We have now created two platforms. Fetch them.
                 frisby.create('GET and validate all created platforms in default sort order')
-                    .get('http://localhost:3000/api/v1/platforms?sort=name')
+                    .get(test_url + '?sort=name')
                     .expectStatus(200)
                     .expectHeaderContains('content-type', 'application/json')
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
-                    .expectJSON([platform_link1, platform_link2])
+                    .afterJSON(function(json){
+                        expect(json.indexOf(platform_link1)).not.toBe(-1);
+                        expect(json.indexOf(platform_link2)).not.toBe(-1);
+                        expect(json.indexOf(platform_link1)).toBeLessThan(json.indexOf(platform_link2))
+                    })
                     .toss();
 
                 frisby.create('GET and validate all created platforms in reverse sort order')
-                    .get('http://localhost:3000/api/v1/platforms?sort=name&direction=desc')
+                    .get(test_url + '?sort=name&direction=desc')
                     .expectStatus(200)
                     .expectHeaderContains('content-type', 'application/json')
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
-                    .expectJSON([platform_link2, platform_link1])
+                    .afterJSON(function(json){
+                        expect(json.indexOf(platform_link1)).not.toBe(-1);
+                        expect(json.indexOf(platform_link2)).not.toBe(-1);
+                        expect(json.indexOf(platform_link1)).toBeGreaterThan(json.indexOf(platform_link2))
+                    })
                     .toss();
 
                 frisby.create('GET all platforms using an invalid sort order')
-                    .get('http://localhost:3000/api/v1/platforms?sort=name&direction=foo')
+                    .get(test_url + '?sort=name&direction=foo')
                     .expectStatus(400)
                     .toss();
             })
@@ -79,7 +88,7 @@ frisby.create('Create a WeeRT platform #1')
     .toss();
 
 frisby.create("Try to create a platform with an _id field")
-    .post('http://localhost:3000/api/v1/platforms',
+    .post(test_url,
         {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", _id: "foo"},
         {json: true}
     )

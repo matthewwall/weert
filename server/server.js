@@ -5,10 +5,11 @@
 /*
  *  Default values
  */
-var mongo_url               = "mongodb://localhost:27017/weert";
-var default_port            = '3000';
+var mongo_url                 = "mongodb://localhost:27017/weert";
+var mongo_test_url            = "mongodb://localhost:27017/weert_test";
+var default_port              = '3000';
 var platforms_manager_options = {locations_collection: {}};
-var streams_manager_options = {packets_collection: {capped: true, size: 1000000, max: 3600}};
+var streams_manager_options   = {packets_collection: {capped: true, size: 1000000, max: 3600}};
 
 /*
  * Requires
@@ -24,11 +25,11 @@ var mongodb      = require('mongodb');
 var path         = require('path');
 var socket_io    = require('socket.io');
 
-var platforms     = require('./platforms');
-var streams       = require('./streams');
-var pubsub        = require('./pubsub');
+var platforms       = require('./platforms');
+var streams         = require('./streams');
+var pubsub          = require('./pubsub');
 var platform_routes = require('./routes/platform_routes');
-var stream_routes = require('./routes/stream_routes');
+var stream_routes   = require('./routes/stream_routes');
 
 var app = express();
 
@@ -54,8 +55,6 @@ var server = http.createServer(app);
  */
 var io = socket_io(server);
 io.on('connection', function (socket) {
-    "use strict";
-
     debug(new Date(), "A new client has connected");
 
     socket.emit('news', {hello: 'You are connected to the WeeRT server'});
@@ -78,28 +77,49 @@ io.on('connection', function (socket) {
 /*
  * Set up the databases
  */
-var MongoClient     = mongodb.MongoClient;
-var mongo_db        = undefined;
+var MongoClient       = mongodb.MongoClient;
 var platforms_manager = undefined;
-var streams_manager = undefined;
-var setup_databases = function (callback) {
-    "use strict";
+var streams_manager   = undefined;
+var setup_database    = function (callback) {
     MongoClient.connect(mongo_url, function (err, database) {
         if (err) throw err;
-        mongo_db        = database;
-        platforms_manager = new platforms.PlatformsManager(mongo_db, platforms_manager_options);
-        streams_manager = new streams.StreamsManager(mongo_db, streams_manager_options);
+        platforms_manager = new platforms.PlatformsManager(database, platforms_manager_options);
+        streams_manager   = new streams.StreamsManager(database, streams_manager_options);
         return callback(null);
     });
 };
 
+var platforms_test_manager = undefined;
+var streams_test_manager   = undefined;
+var setup_test_database    = undefined;
+// If this is a 'development' environment, set up the test database as well
+if (app.get('env') === 'development') {
+    setup_test_database = function (callback) {
+        MongoClient.connect(mongo_test_url, function (err, database) {
+            if (err) throw err;
+            platforms_test_manager = new platforms.PlatformsManager(database, platforms_manager_options);
+            streams_test_manager   = new streams.StreamsManager(database, streams_manager_options);
+            return callback(null);
+        });
+    }
+} else {
+    setup_test_database = function (callback) {
+        return callback(null);
+    }
+}
+;
+
 var setup_routes = function (callback) {
-    "use strict";
     // Serve all static files from the "public" subdirectory:
     app.use(express.static(path.join(__dirname, '../public')));
 
     app.use('/api/v1', platform_routes(platforms_manager));
     app.use('/api/v1', stream_routes(streams_manager));
+    // If this is a 'development' environment, set up the test routing as well
+    if (app.get('env') === 'development') {
+        app.use('/test/v1', platform_routes(platforms_test_manager));
+        app.use('/test/v1', stream_routes(streams_test_manager));
+    }
 
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {
@@ -138,9 +158,9 @@ var setup_routes = function (callback) {
 async.series(
     [
         function (callback) {
-            "use strict";
             async.parallel([
-                    setup_databases
+                    setup_database,
+                    setup_test_database
                 ],
                 function (err, results) {
                     if (err) return callback(err);
@@ -177,7 +197,6 @@ async.series(
  */
 
 function normalizePort(val) {
-    "use strict";
     var port = parseInt(val, 10);
 
     if (isNaN(port)) {
@@ -198,7 +217,6 @@ function normalizePort(val) {
  */
 
 function onError(error) {
-    "use strict";
     if (error.syscall !== 'listen') {
         throw error;
     }

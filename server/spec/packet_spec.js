@@ -2,6 +2,9 @@
  * Test spec for testing the POSTing of packets to a stream.
  */
 "use strict";
+
+var test_url = 'http://localhost:3000/test/v1/streams';
+
 var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
 // var async        = require('async');
@@ -18,7 +21,7 @@ var temperature = function (i) {
 
 var testSinglePacket = function () {
     frisby.create('Create a WeeRT stream to hold a single packet')
-        .post('http://localhost:3000/api/v1/streams',
+        .post(test_url,
             {
                 "name": "Test packet stream",
                 "description": "Created to test the insertion of a single packet into a stream"
@@ -119,7 +122,7 @@ var testMultiplePackets = function () {
         }
     }
     frisby.create('Create a WeeRT stream to hold several packets')
-        .post('http://localhost:3000/api/v1/streams',
+        .post(test_url,
             {
                 "name": "Test multiple packet stream",
                 "description": "Created to test the insertion of multiple packets into a stream"

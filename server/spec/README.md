@@ -1,13 +1,12 @@
 # Test of WeeRT RESTful services
 
-*THIS TEST SUITE WILL DESTROY DATA IN THE MONGODB DATABASE!*
-
 This test suite uses the utility [Frisby](http://frisbyjs.com), which, in turn, requires the
-[Jasmine](https://www.npmjs.com/package/jasmine-node) V1.x test framework. Jasmine has since moved
-on to a Version 2.x, which I don't think will work with Frisby. Fortunately, as of this writing
-(November, 2015), the NPM version of Frisby is still at V1.14, so if you install Jasmine using NPM, it will work.
+[Jasmine](https://www.npmjs.com/package/jasmine-node) V1.x test framework. Jasmine has since
+moved on to V2.x, but, fortunately, if you use NPM to install Jasmine on node, it is still on V1.3.
 
-Start by downloading and installing Jasmine.
+The following assumes that you've already installed WeeRT.
+
+Then download and install the Node version of Jasmine:
 
 ```Shell
 npm install jasmine-node -g
