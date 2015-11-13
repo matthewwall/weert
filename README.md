@@ -231,7 +231,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |          |
 | `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
-| `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I,    T  |
+| `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
 | `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
 | `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
 | `GET`       | `/api/v1/streams/:streamID/`                   | Get the metadata for the stream with id *streamID*.                                                    | I     T  |
@@ -398,6 +398,60 @@ Connection: keep-alive
   "longitude":-121.8,
   "altitude":417.1
 }
+```
+
+## Get locations
+
+Return all location records from the platform with ID `:platformID` that satisfy a search query.
+
+```
+GET /api/v1/platforms/:platformID/locations
+```
+
+*Parameters*
+
+| *Name*      | *Type*  | *Description*                                                                                                                      |
+|-------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+| `start`     | integer | All timestamps greater than this value will be included in the results. Default: first available record.                           |
+| `stop`      | integer | All timestamps less than or equal to this value will be included in the results. Default: last available record.                   |
+| `limit`     | integer | Limit the number of returned records to this value. Default: 0 (no limit).                                                         |
+| `sort`      | string  | What to sort results by. Default: `timestamp`.                                                                                     |
+| `direction` | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
+
+
+Returns a status of `400` if the *platformID* does not exist. Additional details are in the response body.
+
+*Example*
+
+```Shell
+$ curl -i 'http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations?start=1236239520000&stop=1447381877217&limit=3'
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 220
+ETag: W/"dc-MRvLguQdBc0+3vVriiscvA"
+Date: Fri, 13 Nov 2015 02:32:23 GMT
+Connection: keep-alive
+
+[
+  {
+    "latitude":45,
+    "longitude":-122,
+    "timestamp":1420070400000
+  },
+  {
+    "latitude":45.5,
+    "longitude":-121.8,
+    "altitude":417.1,
+    "timestamp":1420070420000
+  },
+  {
+    "latitude":45.5,
+    "longitude":-121.9,
+    "altitude":41.3,
+    "timestamp":1420070450000
+  }
+]
 ```
 
 ## Post a new packet
