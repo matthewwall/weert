@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
+"use strict";
+
 /*
  *  Default values
  */
 var mongo_url               = "mongodb://localhost:27017/weert";
 var default_port            = '3000';
-var platforms_manager_options = {};
+var platforms_manager_options = {locations_collection: {}};
 var streams_manager_options = {packets_collection: {capped: true, size: 1000000, max: 3600}};
 
 /*

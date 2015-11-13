@@ -1,6 +1,8 @@
 /*
  * Test spec for testing the creation and fetching of platforms
  */
+"use strict";
+
 var frisby = require('frisby');
 
 // First try to create a platform, but with a missing Content-Type
@@ -67,7 +69,7 @@ frisby.create('Create a WeeRT platform #1')
                     .expectJSON([platform_link2, platform_link1])
                     .toss();
 
-                frisby.create('GET with an invalid sort order')
+                frisby.create('GET all platforms using an invalid sort order')
                     .get('http://localhost:3000/api/v1/platforms?sort=name&direction=foo')
                     .expectStatus(400)
                     .toss();

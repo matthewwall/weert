@@ -230,8 +230,8 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
 | `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |          |
 | `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
-| `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           |          |
-| `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*, returning its URI.                          |          |
+| `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*, returning its URI.                          | I,    T  |
+| `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I,    T  |
 | `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
 | `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
 | `GET`       | `/api/v1/streams/:streamID/`                   | Get the metadata for the stream with id *streamID*.                                                    | I     T  |

@@ -17,7 +17,6 @@ var StreamsManager = function (db, options) {
 };
 
 StreamsManager.prototype.createStream = function (stream_metadata, callback) {
-    "use strict";
     var self = this;
 
     // Make sure the _id field has not been already defined. This is MongoDB's job
@@ -37,7 +36,6 @@ StreamsManager.prototype.createStream = function (stream_metadata, callback) {
 };
 
 StreamsManager.prototype.findStreams = function (options, callback) {
-    "use strict";
     var self = this;
     // A bad sort direction can cause an exception to be raised:
     try {
@@ -63,7 +61,6 @@ StreamsManager.prototype.findStreams = function (options, callback) {
 };
 
 StreamsManager.prototype.findStream = function (streamID, callback) {
-    "use strict";
     var self = this;
 
     self.db.collection(streams_metadata_name, {strict: true}, function (err, collection) {
@@ -85,7 +82,6 @@ StreamsManager.prototype.findStream = function (streamID, callback) {
 };
 
 StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
-    "use strict";
     var self = this;
     // Make sure the incoming packet contains a timestamp
     if (in_packet.timestamp === undefined) {
@@ -121,7 +117,6 @@ StreamsManager.prototype.insertOne = function (streamID, in_packet, callback) {
 };
 
 StreamsManager.prototype.find = function (streamID, options, callback) {
-    "use strict";
     var self = this;
     // A bad sort direction can cause an exception to be raised:
     try {
@@ -142,7 +137,6 @@ StreamsManager.prototype.find = function (streamID, options, callback) {
 };
 
 StreamsManager.prototype.findOne = function (streamID, options, callback) {
-    "use strict";
     var self            = this;
     var collection_name = _getPacketCollectionName(streamID);
     // Open up the collection
@@ -156,7 +150,6 @@ StreamsManager.prototype.findOne = function (streamID, options, callback) {
 };
 
 StreamsManager.prototype.deleteOne = function (streamID, options, callback) {
-    "use strict";
     var self      = this;
     var timestamp = +options.timestamp;
     // Test to make sure 'timestamp' is a number
@@ -181,7 +174,6 @@ StreamsManager.prototype.deleteOne = function (streamID, options, callback) {
 
 
 StreamsManager.prototype.aggregate = function (streamID, obs_type, options, callback) {
-    "use strict";
     var self = this;
 
     var collection_name = _getPacketCollectionName(streamID);

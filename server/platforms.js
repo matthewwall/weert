@@ -97,6 +97,61 @@ PlatformsManager.prototype.findPlatform = function (platformID, callback) {
     });
 };
 
+PlatformsManager.prototype.createLocationRecord = function (platformID, locrec, callback) {
+    var self = this;
+    // Make sure the incoming locrec contains a timestamp
+    if (locrec.timestamp === undefined) {
+        return callback(new Error("No timestamp in location record"));
+    }
+    // Make sure it does not include an _id field:
+    if (locrec._id !== undefined) {
+        return callback(new Error("Field _id is already defined"));
+        return callback(err);
+    }
+    // Clone the record, changing timestamp to _id
+    var record = {};
+    for (var k in locrec) {
+        if (locrec.hasOwnProperty(k)) {
+            if (k === 'timestamp') {
+                record["_id"] = new Date(locrec[k]);
+            } else {
+                record[k] = locrec[k];
+            }
+        }
+    }
+    var collection_name = _getLocationsCollectionName(platformID);
+    // Open up the collection. It will be created if it doesn't exist already
+    // TODO: Optionally require that the collection exist before allowing insertions
+    self.db.collection(collection_name, self.options.locations_collection, function (err, coln) {
+        if (err) return callback(err);
+        coln.insertOne(record, null, function (err, result) {
+            if (err) return callback(err);
+            debug("inserted location record with timestamp", record._id);
+            return callback(null, result);
+        })
+    });
+};
+
+
+PlatformsManager.prototype.findLocationRecords = function (platformID, options, callback) {
+    var self = this;
+    // A bad sort direction can cause an exception to be raised:
+    try {
+        options = dbtools.getOptions(options);
+    }
+    catch (err) {
+        return callback(err)
+    }
+    var collection_name = _getLocationsCollectionName(platformID);
+    // Open up the collection
+    self.db.collection(collection_name, {strict: true}, function (err, collection) {
+        if (err) return callback(err);
+        dbtools.findByTimestamp(collection, options, function (err, result) {
+            if (err) return callback(err);
+            return callback(null, result);
+        });
+    });
+};
 
 module.exports = {
     PlatformsManager: PlatformsManager

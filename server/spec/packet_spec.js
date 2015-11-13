@@ -1,9 +1,10 @@
 /*
  * Test spec for testing the POSTing of packets to a stream.
  */
+"use strict";
 var frisby       = require('frisby');
-var async        = require('async');
 var normalizeUrl = require('normalize-url');
+// var async        = require('async');
 // var Client       = require('node-rest-client').Client;
 
 var timestamp = function (i) {
@@ -110,7 +111,6 @@ var testSinglePacket = function () {
 };
 
 var testMultiplePackets = function () {
-    "use strict";
     var packets = [];
     for (var i = 0; i < 3; i++) {
         packets[i] = {
