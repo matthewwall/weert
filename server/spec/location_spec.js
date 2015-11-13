@@ -54,6 +54,9 @@ var testMultipleLocrecs = function () {
             // Get the URI for the just created platform resource
             var platform_link        = res.headers.location;
             var platform_locrec_link = normalizeUrl(platform_link + '/locations');
+            var time_link = function(timestamp){
+                return normalizeUrl(platform_locrec_link + '/' + timestamp);
+            };
 
             // Now launch the POSTs for all the location records.
             // Use raw Jasmine for this.
@@ -119,6 +122,46 @@ var testMultipleLocrecs = function () {
                             .get(platform_locrec_link + '?direction=foo')
                             .expectStatus(400)
                             .toss();
+
+                        frisby.create("Search for default match of a timestamp, which is lastBefore")
+                            .get(time_link(locrecs[2].timestamp - 1))
+                            .expectStatus(200)
+                            .expectJSON('', locrecs[1])
+                            .toss();
+
+                        frisby.create("Search for an exact matching timestamp")
+                            .get(time_link(locrecs[2].timestamp) + '?match=exact')
+                            .expectStatus(200)
+                            .expectJSON('', locrecs[2])
+                            .toss();
+
+                        frisby.create("Search for an exact match of a non-existing timestamp")
+                            .get(time_link(locrecs[2].timestamp - 1) + '?match=exact')
+                            .expectStatus(404)
+                            .toss();
+
+                        frisby.create("Search for lastBefore a timestamp")
+                            .get(time_link(locrecs[2].timestamp - 1) + '?match=lastBefore')
+                            .expectStatus(200)
+                            .expectJSON('', locrecs[1])
+                            .toss();
+
+                        frisby.create("Search for firstAfter a timestamp")
+                            .get(time_link(locrecs[2].timestamp + 1) + '?match=firstAfter')
+                            .expectStatus(200)
+                            .expectJSON('', locrecs[3])
+                            .toss();
+
+                        frisby.create("Search for last timestamp in database")
+                            .get(time_link(locrecs[2].timestamp) + '?match=latest')
+                            .expectStatus(200)
+                            .expectJSON('', locrecs[N-1])
+                            .toss();
+
+                        frisby.create("Search for a location using a bad match")
+                            .get(time_link(locrecs[2].timestamp) + '?match=foo')
+                            .expectStatus(400)
+                            .toss()
                     });
                 });
             });

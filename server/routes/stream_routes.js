@@ -147,7 +147,7 @@ router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
     // Get the streamID and timestamp out of the route path
     var streamID  = req.params.streamID;
     var timestamp = req.params.timestamp;
-    debug("Request for timestamp", timestamp);
+    debug("Request for packet with timestamp", timestamp);
 
     streams_manager.findOne(streamID, {timestamp: timestamp}, function (err, packet) {
         if (err) {

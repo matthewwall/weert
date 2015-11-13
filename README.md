@@ -232,6 +232,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
+| `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Get the location for the platform with id *platformID*, at a specific time.                      | I, D, T  |
 | `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
 | `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
 | `GET`       | `/api/v1/streams/:streamID/`                   | Get the metadata for the stream with id *streamID*.                                                    | I     T  |
@@ -452,6 +453,75 @@ Connection: keep-alive
     "timestamp":1420070450000
   }
 ]
+```
+
+## Get location at a specific time
+
+Get the location of a platform at a specific time
+
+```
+GET /api/v1/platforms/:platformID/locations/:timestamp
+```
+
+*Parameters*
+
+| *Name*   | *Type* | *Value*      | *Description*                                          |
+|----------|--------|--------------|--------------------------------------------------------|
+| `match`  | string | `exact`      | Require exact match of timestamp.                      |
+| `match`  | string | `lastBefore` | Use timestamp or closest previous timestamp (default). |
+| `match`  | string | `firstAfter` | Use timestamp or closest later timestamp.              |
+| `match`  | string | `latest`     | Use latest value in database.                          |
+
+If the query `match` is `lastBefore` or `firstAfter`, then an exact match is not necessary.
+Instead, the last location before, or after, (respectively) the given `timestamp` is returned.
+If the query `match` is `latest`, then *:timestamp* is ignored.
+
+*Return status*
+
+| *Status* | *Meaning*               |
+|----------|-------------------------|
+| 200      | Success                 |
+| 400      | Platform does not exist |
+| 404      | Packet does not exist   |
+
+If successful, the server will return a response code of `200`, with the location encoded as JSON in the response
+body.
+
+*Example of exact match*
+```Shell
+curl -i http://localhost:3000/api/v1/platforms/56464ff14c472fde02c088ec/locations/1420071000000?match=exact
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 58
+ETag: W/"3a-zKvMB2BYuPgx7nYSa1Zk1w"
+Date: Fri, 13 Nov 2015 21:09:17 GMT
+Connection: keep-alive
+
+{
+  "latitude":47,
+  "longitude":-120,
+  "timestamp":1420071000000
+}
+```
+
+*Example of last before match*
+
+```Shell
+curl -i http://localhost:3000/api/v1/platforms/56464ff14c472fde02c088ec/locations/1420070999999?match=lastBefore
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 58
+ETag: W/"3a-qKhW0sQQlJjXAowIQJf3hQ"
+Date: Fri, 13 Nov 2015 21:10:52 GMT
+Connection: keep-alive
+
+{
+  "latitude":46,
+  "longitude":-121,
+  "timestamp":1420070700000
+}
 ```
 
 ## Post a new packet

@@ -153,6 +153,64 @@ PlatformsManager.prototype.findLocationRecords = function (platformID, options, 
     });
 };
 
+
+PlatformsManager.prototype.location = function (platformID, timestamp, options, callback) {
+
+    var self = this;
+    // Make sure timestamp is a number
+    var timestamp = timestamp === undefined ? Date.now() : +timestamp;
+    var match     = options.match === undefined ? "lastbefore" : options.match;
+    var query, sort;
+
+    switch (match.toLowerCase()) {
+        case 'exact':
+            query = {_id: {$eq: new Date(timestamp)}};
+            sort  = {};
+            break;
+        case 'firstafter':
+            query = {_id: {$gte: new Date(timestamp)}};
+            sort  = {_id: 1};
+            break;
+        case 'lastbefore':
+            query = {_id: {$lte: new Date(timestamp)}};
+            sort  = {_id: -1};
+            break;
+        case 'latest':
+            query = { };
+            sort  = {_id: -1};
+            break;
+        default:
+            return callback(new Error("Unknown match value: " + match));
+    }
+
+    console.log("Search for the location at a given time", timestamp);
+    var collection_name = _getLocationsCollectionName(platformID);
+    // Open up the collection
+    self.db.collection(collection_name, {strict: true}, function (err, collection) {
+        if (err) return callback(err);
+        collection.find(query)
+            .limit(1)
+            .sort(sort)
+            .toArray(function (err, results) {
+                if (err) return callback(err);
+
+                // We are only interested in the single returned record
+                if (results.length < 1) {
+                    // No matching timestamp. Return null.
+                    return callback(null, null);
+                } else {
+                    var record = results[0];
+                    // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+                    // instead of a Date() object:
+                    record.timestamp = record._id.getTime();
+                    delete record._id;
+                    return callback(null, record);
+                }
+            })
+    });
+};
+
+
 module.exports = {
     PlatformsManager: PlatformsManager
 };

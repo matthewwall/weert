@@ -100,6 +100,7 @@ router.post('/platforms/:platformID/locations', function (req, res) {
     }
 });
 
+// Get an array of locations for a given platform
 router.get('/platforms/:platformID/locations', function (req, res) {
     // Get the platformID out of the route path
     var platformID = req.params.platformID;
@@ -111,6 +112,24 @@ router.get('/platforms/:platformID/locations', function (req, res) {
         } else {
             debug("# of locrecs=", locrec_array.length);
             res.json(locrec_array);
+        }
+    });
+});
+
+// Get the location at a specific time
+router.get('/platforms/:platformID/locations/:timestamp', function (req, res){
+    // Get the platformID and timestamp out of the route path
+    var platformID  = req.params.platformID;
+    var timestamp = req.params.timestamp;
+    debug("Request for location at timestamp", timestamp);
+
+    platforms_manager.location(platformID, timestamp, req.query, function (err, record) {
+        if (err) {
+            debug("Unable to satisfy request. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+        } else {
+            if (record === null) res.sendStatus(404);
+            else res.json(record);
         }
     });
 });
