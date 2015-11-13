@@ -17,9 +17,10 @@ router.post('/platforms', function (req, res) {
         platforms_manager.createPlatform(metadata, function (err, result) {
             if (err) {
                 res.status(400).json(auxtools.fromError(400, err));
+            } else {
+                var resource_url = auxtools.resourcePath(req, result._id);
+                res.status(201).location(resource_url).json(result);
             }
-            var resource_url = auxtools.resourcePath(req, result._id);
-            res.status(201).location(resource_url).json(result);
         })
     } else {
         res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});

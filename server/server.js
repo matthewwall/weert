@@ -107,7 +107,6 @@ if (app.get('env') === 'development') {
         return callback(null);
     }
 }
-;
 
 var setup_routes = function (callback) {
     // Serve all static files from the "public" subdirectory:

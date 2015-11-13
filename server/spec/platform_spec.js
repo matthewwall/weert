@@ -30,7 +30,6 @@ frisby.create('Create a WeeRT platform #1')
     .expectJSON('streams', [])
     .after(function (error, res, body) {
         // Having created a platform, retrieve it and validate it
-        "use strict";
         var platform_link1 = res.headers.location;
         frisby.create('GET and validate platform #1')
             .get(platform_link1)
