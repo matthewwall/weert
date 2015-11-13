@@ -3,8 +3,13 @@
  */
 "use strict";
 
-var frisby = require('frisby');
+var async        = require('async');
+var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
+var request      = require('request');
+
+// How many records to test
+var N = 5;
 
 var timestamp = function (i) {
     // Base time is 1-Jan-2015 0000 UTC:
@@ -15,19 +20,25 @@ var latitude = function (i) {
     return 45.0 + i;
 };
 
-var longitude = function(i){
+var longitude = function (i) {
     return -122.0 + i;
 };
 
+var indices = [];
+var locrecs = [];
+var reverse_locrecs = [];
+for (var i = 0; i < N; i++) {
+    indices[i] = i;
+    locrecs[i] = {
+        timestamp: timestamp(i),
+        latitude : latitude(i),
+        longitude: longitude(i)
+    };
+    reverse_locrecs[N-i-1] = locrecs[i];
+}
+
 var testMultipleLocrecs = function () {
-    var locrecs = [];
-    for (var i = 0; i < 3; i++) {
-        locrecs[i] = {
-            timestamp  : timestamp(i),
-            latitude : latitude(i),
-            longitude : longitude(i)
-        }
-    }
+
     frisby.create('Create a WeeRT platform to hold several location records')
         .post('http://localhost:3000/api/v1/platforms',
             {
@@ -39,62 +50,78 @@ var testMultipleLocrecs = function () {
         .expectStatus(201)
         .expectHeaderContains('content-type', 'application/json')
         .after(function (error, res, body) {
+
             // Get the URI for the just created platform resource
             var platform_link        = res.headers.location;
             var platform_locrec_link = normalizeUrl(platform_link + '/locations');
-            // POST three location records into it
-            frisby.create("POST location record #0")
-                .post(platform_locrec_link,
-                    locrecs[0],
-                    {json: true}
-                )
-                .after(function (error, res, body) {
-                    frisby.create("POST location record #1")
-                        .post(platform_locrec_link,
-                            locrecs[1],
-                            {json: true}
-                        )
-                        .after(function (error, res, body) {
-                            frisby.create("POST location record #2")
-                                .post(platform_locrec_link,
-                                    locrecs[2],
-                                    {json: true}
-                                )
-                                .after(function (error, res, body) {
-                                    frisby.create("Retrieve all location records in default order")
-                                        .get(platform_locrec_link)
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', locrecs)
-                                        .toss();
 
-                                    frisby.create("Retrieve all location records in reverse order")
-                                        .get(platform_locrec_link + '?direction=desc')
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', [locrecs[2], locrecs[1], locrecs[0]])
-                                        .toss();
+            // Now launch the POSTs for all the location records.
+            // Use raw Jasmine for this.
+            describe("Launch and test " + N + " POSTs of location records", function () {
+                var results_finished   = false;
+                var results_successful = false;
 
-                                    frisby.create("Retrieve location records sorted by longitude")
-                                        .get(platform_locrec_link + '?sort=longitude&direction=asc')
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', locrecs)
-                                        .toss();
+                it("should launch all POSTS", function () {
 
-                                    frisby.create("Retrieve location records reverse sorted by longitude")
-                                        .get(platform_locrec_link + '?sort=longitude&direction=desc')
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', [locrecs[2], locrecs[1], locrecs[0]])
-                                        .toss();
+                    runs(function () {
 
-                                    frisby.create("Test location records using bad sort direction")
-                                        .get(platform_locrec_link + '?direction=foo')
-                                        .expectStatus(400)
-                                        .toss();
-                                })
-                                .toss();
-                        })
-                        .toss();
-                })
-                .toss();
+                        // Use the async library to asynchronously launch the N posts
+                        async.each(indices, function (i, callback) {
+                            request({
+                                url   : platform_locrec_link,
+                                method: 'POST',
+                                json  : locrecs[i]
+                            }, function (error, response, body) {
+                                return callback(error);
+                            });
+                        }, function (err) {
+                            results_finished   = true;
+                            results_successful = !err;
+                        });
+
+                    });
+
+                    // This function will spin until its callback return true. Then the thread of control
+                    // proceeds to the next run statement
+                    waitsFor(function () {
+                        return results_finished;
+                    }, "results to be finished", 2000);
+
+                    // All the async POSTs are done. We can test the results.
+                    runs(function () {
+                        expect(results_successful).toBeTruthy();
+
+                        frisby.create("Retrieve all location records in default order")
+                            .get(platform_locrec_link)
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', locrecs)
+                            .toss();
+
+                        frisby.create("Retrieve all location records in reverse order")
+                            .get(platform_locrec_link + '?direction=desc')
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', reverse_locrecs)
+                            .toss();
+
+                        frisby.create("Retrieve location records sorted by longitude")
+                            .get(platform_locrec_link + '?sort=longitude&direction=asc')
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', locrecs)
+                            .toss();
+
+                        frisby.create("Retrieve location records reverse sorted by longitude")
+                            .get(platform_locrec_link + '?sort=longitude&direction=desc')
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', reverse_locrecs)
+                            .toss();
+
+                        frisby.create("Test location records using bad sort direction")
+                            .get(platform_locrec_link + '?direction=foo')
+                            .expectStatus(400)
+                            .toss();
+                    });
+                });
+            });
         })
         .toss();
 };
