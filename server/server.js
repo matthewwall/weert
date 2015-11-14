@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ */
+
 
 "use strict";
 

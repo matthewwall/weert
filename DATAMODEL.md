@@ -198,4 +198,12 @@ Description of fields:
   </tr>
 </table>
 
-There can be any number of different observation types in a packet, but only one entry per type. 
+There can be any number of different observation types in a packet, but only one entry per type.
+
+# License & Copyright
+
+Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+
+  See the file LICENSE for your full rights.
+
+

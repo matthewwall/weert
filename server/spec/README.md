@@ -22,3 +22,12 @@ make test
 
 The documentation for Frisby is pretty poor.
 [Better documentation](https://ptmccarthy.github.io/2014/06/28/rest-testing-with-frisby/).
+
+
+# License & Copyright
+
+Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+
+  See the file LICENSE for your full rights.
+
+

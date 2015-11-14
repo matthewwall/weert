@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ */
+
+/*
  * Test spec for testing the POSTing of packets to a stream.
  */
 "use strict";

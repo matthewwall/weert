@@ -1,10 +1,8 @@
 SERVER
 
-Test using query parameters for getting platforms (GET /api/v1/platforms)
-
-Check for missing timestamps when submitting a packet.
-
 Look at using EventEmitters instead of PubSub.
+
+Allow searches for platforms and streams satisfying a query.
 
 CLIENT
 If windDir is null, WindCompass should not show anything (rather than the last value or zero).

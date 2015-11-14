@@ -1,3 +1,9 @@
+#
+#  Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+#
+#     See the file LICENSE for your full rights.
+#
+
 import json
 import os.path
 import sys

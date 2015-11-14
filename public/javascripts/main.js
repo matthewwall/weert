@@ -1,7 +1,10 @@
 /*
- *               CLIENT CODE
+ * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
  */
 
+//              CLIENT CODE
 "use strict";
 var platform = "p1";
 var streamID = "s1";

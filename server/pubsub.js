@@ -1,4 +1,10 @@
 /*
+ * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ */
+
+/*
  * Uber-simple pub-sub for sending messages between Node modules.
  */
 var pubsub = (function () {

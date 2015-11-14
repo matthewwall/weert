@@ -767,3 +767,10 @@ ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
 Date: Wed, 11 Nov 2015 23:19:38 GMT
 Connection: keep-alive
 ```
+# License & Copyright
+
+Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+
+  See the file LICENSE for your full rights.
+
+

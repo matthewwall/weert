@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ */
+
 var bisectDate = d3.bisector(function(d) { return d.timestamp; }).left;
 
 var Timeplot = (function () {
