@@ -4,6 +4,8 @@ Look at using EventEmitters instead of PubSub.
 
 Allow searches for platforms and streams satisfying a query.
 
+Aggregate results into hourly and daily summaries.
+
 CLIENT
 If windDir is null, WindCompass should not show anything (rather than the last value or zero).
 
