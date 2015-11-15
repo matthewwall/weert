@@ -18,9 +18,11 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 
 1. Install Node.
 
-2. Download WeeRT into a convenient directory, then cd into it.
+2. Install MongoDB and get it running.
 
-3. Install all the required packages using npm:
+3. Download WeeRT into a convenient directory, then cd into it.
+
+4. Install all the required packages using npm:
 
     ```shell
     npm install   
@@ -30,13 +32,18 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
     Instead, it downloads all of the packages used by WeeRT and installs them into a subdirectory `node_modules`,
     where WeeRT can use them.
 
-4. Add the following to `weewx.conf`:
+5. Add the following to `weewx.conf`:
 
     ```
     [StdRestful]
         ...
         [[WeeRT]]
             enable = true
+            # Set to the URL of your instance of Node.
+            node_url = http://localhost:3000
+            # Set to the platform and stream IDs
+	        platform_uuid = p1
+	        stream_uuid = s1
 
     ...
         
@@ -44,22 +51,23 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
         [[Services]]
             ...
             restful_services = ..., weert.WeeRT
+
     ```
 
-5. Make sure the `weert.py` module is in your `PYTHONPATH`.
+6. Make sure the `weert.py` module is in your `PYTHONPATH`.
 
-6. Make sure you are running weewx version 3.3 or later (WeeRT makes use of POST requests, which are
+7. Make sure you are running weewx version 3.3 or later (WeeRT makes use of POST requests, which are
 only supported by v3.3+
 
-7. Run `weewxd`
+8. Run `weewxd`
 
-8. Start WeeRT:
+9. Start WeeRT:
 
     ```shell
     npm start
     ```
 
-9. Open up a client at [http://localhost:3000](http://localhost:3000).
+10. Open up a client at [http://localhost:3000](http://localhost:3000).
 
 # RESTful API Version 1
 
