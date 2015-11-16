@@ -14,7 +14,7 @@ an hour's worth of loop data.
 
 For experimental purposes. Tested on Node V4.2.2, although other versions should work fine.
 
-## To install:
+## To install
 
 1. Install Node.
 
@@ -25,7 +25,7 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 4. Install all the required packages using npm:
 
     ```shell
-    npm install   
+    npm install
     ```
 
     Contrary to the implications of the word `install`, this does not actually install WeeRT itself.
@@ -46,7 +46,7 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 	        stream_uuid = s1
 
     ...
-        
+
     [Engine]
         [[Services]]
             ...
@@ -68,6 +68,28 @@ only supported by v3.3+
     ```
 
 10. Open up a client at [http://localhost:3000](http://localhost:3000).
+
+## To run the test suites
+
+1. Install `jasmine-node`
+
+```shell
+sudo npm install -g jasmine-node
+```
+
+2 Change directory (`cd`) into the WeeRT directory.
+
+3. Start the WeeRT server
+
+```shell
+npm start
+```
+
+4. Open up another terminal and run the suites
+
+```shell
+jasmine-node server
+```
 
 # RESTful API Version 1
 
