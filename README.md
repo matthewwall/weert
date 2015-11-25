@@ -34,7 +34,7 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 
 5. Add the following to `weewx.conf`:
 
-    ```
+    ```ini
     [StdRestful]
         ...
         [[WeeRT]]
@@ -57,15 +57,15 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 6. Make sure the `weert.py` module is in your `PYTHONPATH`.
 
 7. Make sure you are running weewx version 3.3 or later (WeeRT makes use of POST requests, which are
-only supported by v3.3+
+only supported by v3.3 or later.)
 
-8. Run `weewxd`
-
-9. Start WeeRT:
+8. Start WeeRT:
 
     ```shell
     npm start
     ```
+
+9. Run `weewxd`
 
 10. Open up a client at [http://localhost:3000](http://localhost:3000).
 
