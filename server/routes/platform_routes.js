@@ -18,33 +18,40 @@ var platforms_manager = undefined;
 // Create a new platform
 router.post('/platforms', function (req, res) {
     if (req.is('json')) {
-        // Get the metadata
+        // Get the platform metadata
         var metadata = req.body;
+        // Ask the PlatformManager to create the new platform.
         platforms_manager.createPlatform(metadata, function (err, result) {
             if (err) {
+                // Unable to create the platform. Send status 400 and a JSON message.
                 res.status(400).json(auxtools.fromError(400, err));
             } else {
+                // All went well. Get the new platform's URI and return it in the location header
                 var resource_url = auxtools.resourcePath(req, result._id);
                 res.status(201).location(resource_url).json(result);
             }
         })
     } else {
+        // POST was not in JSON format. Send an error msg.
         res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
     }
 });
 
-// Return the URIs of all platforms
+// Return an array of URIs to platforms that satisfy a query.
 router.get('/platforms', function (req, res) {
+    // Ask the PlatformManager to find the platforms that satisfy the query
     platforms_manager.findPlatforms(req.query, function (err, platforms_array) {
         if (err) {
             debug("Unable to find platforms. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
         } else {
             debug("# of platforms=", platforms_array.length);
+            // For each new platform, get its new URI.
             var platform_uris = [];
             for (var i = 0; i < platforms_array.length; i++) {
                 platform_uris[i] = auxtools.resourcePath(req, platforms_array[i]._id);
             }
+            // Return the array of new URIs
             res.json(platform_uris);
         }
 
@@ -62,15 +69,18 @@ router.get('/platforms/:platformID', function (req, res) {
             debug("Unable to satisfy request. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
         } else {
+            // The variable platform_metadata is an array. If it's zero length,
+            // that means the platform could not be found.
             if (platform_metadata.length) {
                 res.json(platform_metadata[0]);
             } else {
-                res.sendStatus(404);
+                res.sendStatus(404);    // Status 404 Resource Not Found
             }
         }
     });
 });
 
+// POST a new location for a specific platform
 router.post('/platforms/:platformID/locations', function (req, res) {
     // Make sure the incoming packet is encoded in JSON.
     if (req.is('json')) {
@@ -81,6 +91,7 @@ router.post('/platforms/:platformID/locations', function (req, res) {
         // Insert the location record into the database
         platforms_manager.createLocationRecord(platformID, locrec, function (err, result) {
             if (err) {
+                // See if this is a MongoDB error.
                 if (err.code === undefined) {
                     // Not a MongoDB error.
                     res.status(400).json(auxtools.fromError(400, err));
@@ -96,7 +107,9 @@ router.post('/platforms/:platformID/locations', function (req, res) {
                     res.status(400).json(auxtools.fromError(400, err));
                 }
             } else {
+                // All went well. Get the URI of the new location record
                 var resource_url = auxtools.resourcePath(req, locrec.timestamp);
+                // Send it back in the location header
                 res.status(201).location(resource_url).json(locrec);
                 // Let any interested subscribers know there is a new location record:
                 pubsub.publish('new_location_record', {"location_record": locrec, "platformID": platformID}, this);
@@ -123,7 +136,7 @@ router.get('/platforms/:platformID/locations', function (req, res) {
     });
 });
 
-// Get the location at a specific time
+// Get the location satisfying a time query
 router.get('/platforms/:platformID/locations/:timestamp', function (req, res){
     // Get the platformID and timestamp out of the route path
     var platformID  = req.params.platformID;
@@ -141,6 +154,7 @@ router.get('/platforms/:platformID/locations/:timestamp', function (req, res){
     });
 });
 
+// Require an instance of a PlatformsManager to get a router
 module.exports = function (pm) {
     platforms_manager = pm;
     return router;

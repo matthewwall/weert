@@ -64,6 +64,8 @@ frisby.create('Create a WeeRT platform #1')
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
                     .afterJSON(function(json){
+                        // Make sure the two platforms are in the returned result. Make sure
+                        // they are in the right order, that is sorted by "name"
                         expect(json.indexOf(platform_link1)).not.toBe(-1);
                         expect(json.indexOf(platform_link2)).not.toBe(-1);
                         expect(json.indexOf(platform_link1)).toBeLessThan(json.indexOf(platform_link2))
@@ -77,6 +79,8 @@ frisby.create('Create a WeeRT platform #1')
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
                     .afterJSON(function(json){
+                        // Make sure the two platforms are in the returned result. Make sure
+                        // they are in the right order, that is reverse sorted by "name"
                         expect(json.indexOf(platform_link1)).not.toBe(-1);
                         expect(json.indexOf(platform_link2)).not.toBe(-1);
                         expect(json.indexOf(platform_link1)).toBeGreaterThan(json.indexOf(platform_link2))

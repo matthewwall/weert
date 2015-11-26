@@ -4,6 +4,8 @@
  *  See the file LICENSE for your full rights.
  */
 
+// Stream-related routes
+
 "use strict";
 
 var debug   = require('debug')('weert:server');
@@ -15,9 +17,8 @@ var auxtools = require('../auxtools');
 
 var streams_manager = undefined;
 
-// RESTful interface that creates a new stream
+// Create a new stream
 router.post('/streams', function (req, res) {
-    "use strict";
     if (req.is('json')) {
         // Get the metadata
         var metadata = req.body;
@@ -35,28 +36,28 @@ router.post('/streams', function (req, res) {
 
 });
 
-// RESTful interface that returns references to all streams
+// Return an array of URIs to streams that satisfy a query.
 router.get('/streams', function (req, res) {
-    "use strict";
     streams_manager.findStreams(req.query, function (err, streams_array) {
         if (err) {
             debug("Unable to find streams. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
         } else {
             debug("# of streams=", streams_array.length);
+            // Form URIs for all the streams that were found which satisfied the query
             var stream_uris = [];
             for (var i = 0; i < streams_array.length; i++) {
                 stream_uris[i] = auxtools.resourcePath(req, streams_array[i]._id);
             }
+            // Return the array
             res.json(stream_uris);
         }
 
     });
 });
 
-// RESTful interface that returns the metadata for a single stream
+// Return the metadata of a particular stream
 router.get('/streams/:streamID', function (req, res) {
-    "use strict";
     // Get the streamID out of the route path
     var streamID = req.params.streamID;
     debug("Request for streamID", streamID);
@@ -67,6 +68,7 @@ router.get('/streams/:streamID', function (req, res) {
             res.status(400).json(auxtools.fromError(400, err));
             console.log("Bad stream ID", err);
         } else {
+            // If the array of streams is zero lengthed, that mean the stream was not found. Return a 404 error
             if (stream_metadata.length) {
                 res.json(stream_metadata[0]);
             } else {

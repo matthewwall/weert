@@ -37,7 +37,6 @@ var testSinglePacket = function () {
         .expectStatus(201)
         .expectHeaderContains('content-type', 'application/json')
         .after(function (error, res, body) {
-            "use strict";
             // Successfully created a stream. Now let's try posting into it. First, get the link to the new stream.
             var stream_link = res.headers.location;
             // This is where to POST new packets:

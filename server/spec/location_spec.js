@@ -20,7 +20,7 @@ var request      = require('request');
 var N = 5;
 
 var timestamp = function (i) {
-    // Base time is 1-Jan-2015 0000 UTC:
+    // Base time is 1-Jan-2015 0000 UTC. Five minute increments.
     return 1420070400000 + i * 300000;
 };
 
@@ -61,7 +61,9 @@ var testMultipleLocrecs = function () {
 
             // Get the URI for the just created platform resource
             var platform_link        = res.headers.location;
+            // Use it to form the URI for the locations resource
             var platform_locrec_link = normalizeUrl(platform_link + '/locations');
+            // This function will return the URI for the specific location record at a given timestamp
             var time_link = function(timestamp){
                 return normalizeUrl(platform_locrec_link + '/' + timestamp);
             };
@@ -86,6 +88,8 @@ var testMultipleLocrecs = function () {
                                 return callback(error);
                             });
                         }, function (err) {
+                            // This function is called when finished. Signal that we're finished, and whether
+                            // there were any errors
                             results_finished   = true;
                             results_successful = !err;
                         });

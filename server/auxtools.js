@@ -4,11 +4,13 @@
  *  See the file LICENSE for your full rights.
  */
 
+"use strict";
+
 var url          = require('url');
 var normalizeUrl = require('normalize-url');
 
+// Given a request header and a name, form a new endpoint
 var resourcePath = function (req, name) {
-    "use strict";
     var base_pathname = url.parse(req.originalUrl).pathname;
     var fullpath      = url.format({
         protocol: req.protocol,
@@ -19,7 +21,6 @@ var resourcePath = function (req, name) {
 };
 
 var fromError = function (code, err) {
-    "use strict";
     var e     = {};
     e.message = err.message;
     e.code    = code;

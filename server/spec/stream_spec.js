@@ -34,7 +34,6 @@ frisby.create('Create a WeeRT stream #1')
     .expectJSON('', {name: "Test stream #1", description: "Created to test streams API", join: "join_keyword1"})
     .after(function (error, res, body) {
         // Having created a stream, retrieve it and validate it
-        "use strict";
         var stream_link1 = res.headers.location;
         frisby.create('GET and validate stream #1')
             .get(stream_link1)
@@ -53,7 +52,7 @@ frisby.create('Create a WeeRT stream #1')
             .expectJSON('', {name: "Test stream #2", description: "Created to test streams API", join: "join_keyword2"})
             .after(function (error, res, body) {
                 var stream_link2 = res.headers.location;
-                // We have now created two streams. Fetch them.
+                // We've ßcreated two streams. Fetch them.
                 frisby.create('GET and validate all created streams')
                     .get(test_url)
                     .expectStatus(200)
