@@ -14,7 +14,7 @@ an hour's worth of loop data.
 
 For experimental purposes. Tested on Node V4.2.2, although other versions should work fine.
 
-## To install
+## To install the WeeRT server
 
 1. Install Node.
 
@@ -22,7 +22,7 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 
 3. Download WeeRT into a convenient directory, then cd into it.
 
-4. Install all the required packages using npm:
+4. Install the packages needed by WeeRT, by using npm:
 
     ```shell
     npm install
@@ -32,7 +32,25 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
     Instead, it downloads all of the packages used by WeeRT and installs them into a subdirectory `node_modules`,
     where WeeRT can use them.
 
-5. Add the following to `weewx.conf`:
+5. Start WeeRT:
+
+    ```shell
+    npm start
+    ```
+
+## To install the WeeRT uploader in WeeWX
+
+
+1. Make sure you are running weewx version 3.3 or later (WeeRT makes use of POST requests, which are
+only supported by v3.3 or later.)
+
+2. Install pymongo:
+
+    ```shell
+    sudo pip install pymongo
+    ```
+
+3. Add the following to `weewx.conf`:
 
     ```ini
     [StdRestful]
@@ -54,44 +72,35 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 
     ```
 
-6. Make sure the `weert.py` module is in your `PYTHONPATH`.
+4. Make sure the `weert.py` module is in your `PYTHONPATH`.
 
-7. Make sure you are running weewx version 3.3 or later (WeeRT makes use of POST requests, which are
-only supported by v3.3 or later.)
+5. Run `weewxd`
 
-8. Start WeeRT:
+6. Open up a client at [http://localhost:3000](http://localhost:3000).
+
+## To run the server test suites
+
+1. Change directory (`cd`) into the WeeRT directory.
+
+2. Install `jasmine-node`
+
+    ```shell
+    sudo npm install -g jasmine-node
+    ```
+
+3. Start the WeeRT server
 
     ```shell
     npm start
     ```
 
-9. Run `weewxd`
-
-10. Open up a client at [http://localhost:3000](http://localhost:3000).
-
-## To run the test suites
-
-1. Install `jasmine-node`
-
-```shell
-sudo npm install -g jasmine-node
-```
-
-2 Change directory (`cd`) into the WeeRT directory.
-
-3. Start the WeeRT server
-
-```shell
-npm start
-```
-
 4. Open up another terminal and run the suites
 
-```shell
-jasmine-node server
-```
+    ```shell
+    jasmine-node server
+    ```
 
-# RESTful API Version 1
+# The WeeRT RESTful API, Version 1
 
 ## Objects
 
@@ -188,7 +197,7 @@ In case of an error, an `error` object is returned in the body of the response.
 }
 ```
 
-### The `packets` object
+### The `packet` object
 
 #### Definition
 
