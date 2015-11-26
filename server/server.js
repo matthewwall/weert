@@ -115,8 +115,8 @@ if (app.get('env') === 'development') {
 }
 
 var setup_routes = function (callback) {
-    // Serve all static files from the "public" subdirectory:
-    app.use(express.static(path.join(__dirname, '../public')));
+    // Serve all static files from the "client" subdirectory:
+    app.use(express.static(path.join(__dirname, '../client')));
 
     app.use('/api/v1', platform_routes(platforms_manager));
     app.use('/api/v1', stream_routes(streams_manager));

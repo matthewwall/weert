@@ -11,4 +11,5 @@ build
 dist
 MANIFEST
 node_modules
+bower_components
 test-results
