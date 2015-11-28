@@ -2,11 +2,18 @@
 
 /* Services */
 
-var phonecatServices = angular.module('phonecatServices', ['ngResource']);
+var ProvisionServices = angular.module('provisionServices', ['ngResource']);
 
-phonecatServices.factory('Phone', ['$resource',
-  function($resource){
-    return $resource('phones/:phoneId.json', {}, {
-      query: {method:'GET', params:{phoneId:'phones'}, isArray:true}
-    });
-  }]);
+ProvisionServices.factory('Platforms', ['$resource',
+    function ($resource) {
+        var result = $resource('/api/v1/platforms', {}, {});
+        return result;
+    }]);
+
+//ProvisionServices.factory('Platforms', ['$resource',
+//  function($resource){
+//    return $resource('platforms/:platformId', {}, {
+//      query: {method:'GET', params:{platformId:'phones'}, isArray:true}
+//
+//    });
+//  }]);

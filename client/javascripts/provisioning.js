@@ -2,25 +2,25 @@
 
 /* App Module */
 
-var phonecatApp = angular.module('phonecatApp', [
+var provisionApp = angular.module('provisionApp', [
     'ngRoute',
-    'phonecatControllers',
-    'phonecatFilters',
-    'phonecatServices'
+    'provisionControllers',
+    //'provisionFilters',
+    'provisionServices'
 ]);
 
-phonecatApp.config(['$routeProvider',
-    function($routeProvider) {
+provisionApp.config(['$routeProvider',
+    function ($routeProvider) {
         $routeProvider.
-        when('/phones', {
-            templateUrl: 'partials/phone-list.html',
-            controller: 'PhoneListCtrl'
+        when('/platforms', {
+            templateUrl: 'partials/platform-list.html',
+            controller : 'PlatformListCtrl'
         }).
-        when('/phones/:phoneId', {
-            templateUrl: 'partials/phone-detail.html',
-            controller: 'PhoneDetailCtrl'
+        when('/platforms/:platformId', {
+            templateUrl: 'partials/platform-detail.html',
+            controller : 'PlatformDetailCtrl'
         }).
         otherwise({
-            redirectTo: '/phones'
+            redirectTo: '/platforms'
         });
     }]);

@@ -68,7 +68,7 @@ PlatformsManager.prototype.findPlatforms = function (options, callback) {
         return callback({message: "Invalid value for 'limit': " + limit})
     }
 
-    self.db.collection(platforms_metadata_name, {strict: true}, function (err, collection) {
+    self.db.collection(platforms_metadata_name, function (err, collection) {
         if (err) return callback(err);
         collection.find()
             .limit(limit)

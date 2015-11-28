@@ -1,0 +1,44 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="row">
+                <!--Sidebar content-->
+
+                Search: <input ng-model="query">
+            </div>
+            <div class="row">
+                Sort by:
+                <select ng-model="orderProp">
+                    <option value="name">Alphabetical</option>
+                    <option value="age">Newest</option>
+                </select>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label for="name">Platform name:</label>
+                    <input type="text" class="form-control" id="name">
+                </div>
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea class="form-control" rows="5" id="description"></textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-10">
+            <!--Body content-->
+            <h1>Platforms</h1>
+            <ul class="phones">
+                <li ng-repeat="platform in platforms | filter:query | orderBy:orderProp">
+
+                    <p>Name: {{platform.name}}</p>
+
+                    <p>Description: {{platform.description}}</p>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</div>
+
