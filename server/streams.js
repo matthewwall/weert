@@ -41,11 +41,12 @@ StreamsManager.prototype.createStream = function (stream_metadata, callback) {
     });
 };
 
-StreamsManager.prototype.findStreams = function (options, callback) {
+StreamsManager.prototype.findStreams = function (query, callback) {
     var self = this;
+    var options;
     // A bad sort direction can cause an exception to be raised:
     try {
-        options = dbtools.getOptions(options);
+        options = dbtools.getOptions(query);
     }
     catch (err) {
         err.description = options;
@@ -59,7 +60,8 @@ StreamsManager.prototype.findStreams = function (options, callback) {
 
     self.db.collection(streams_metadata_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
-        collection.find()
+        collection
+            .find()
             .limit(limit)
             .sort(options.sort)
             .toArray(callback);

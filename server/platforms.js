@@ -23,7 +23,7 @@ var PlatformsManager = function (db, options) {
 };
 
 PlatformsManager.prototype.createPlatform = function (platform_metadata, callback) {
-    "use strict";
+
     var self = this;
     // Make sure the _id field has not been already defined. This is MongoDB's job
     if (platform_metadata._id !== undefined) {
@@ -52,12 +52,14 @@ PlatformsManager.prototype.createPlatform = function (platform_metadata, callbac
     });
 };
 
-PlatformsManager.prototype.findPlatforms = function (options, callback) {
-    "use strict";
+PlatformsManager.prototype.findPlatforms = function (query, callback) {
+
     var self = this;
+    var options;
+
     // A bad sort direction can cause an exception to be raised:
     try {
-        options = dbtools.getOptions(options);
+        options = dbtools.getOptions(query);
     }
     catch (err) {
         return callback(err)
@@ -70,7 +72,8 @@ PlatformsManager.prototype.findPlatforms = function (options, callback) {
 
     self.db.collection(platforms_metadata_name, function (err, collection) {
         if (err) return callback(err);
-        collection.find()
+        collection
+            .find()
             .limit(limit)
             .sort(options.sort)
             .toArray(callback);
@@ -78,7 +81,7 @@ PlatformsManager.prototype.findPlatforms = function (options, callback) {
 };
 
 PlatformsManager.prototype.findPlatform = function (platformID, callback) {
-    "use strict";
+
     var self = this;
 
     self.db.collection(platforms_metadata_name, {strict: true}, function (err, collection) {
@@ -90,11 +93,8 @@ PlatformsManager.prototype.findPlatform = function (platformID, callback) {
             return callback(err)
         }
         try {
-            collection.find(
-                {
-                    _id: {$eq: id_obj}
-                }
-                )
+            collection
+                .find({_id: {$eq: id_obj} })
                 .toArray(callback);
         } catch (err) {
             // Error, perhaps because of an invalid platformID
@@ -194,7 +194,8 @@ PlatformsManager.prototype.location = function (platformID, timestamp, options, 
     // Open up the collection
     self.db.collection(collection_name, {strict: true}, function (err, collection) {
         if (err) return callback(err);
-        collection.find(query)
+        collection
+            .find(query)
             .limit(1)
             .sort(sort)
             .toArray(function (err, results) {

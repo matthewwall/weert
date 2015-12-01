@@ -260,13 +260,13 @@ and the same packet is not included twice.
 
 The following table gives the return code pattern used by WeeRT
 
-| *Status* | *Meaning*                                                                                 |
-|----------|-------------------------------------------------------------------------------------------|
-| 200      | Successfully completed the request.                                                       |
-| 201      | Success creation of a new resource, such as a stream, platform, packet, or location       |
-| 400      | Bad request. This may be because the `streamID` or `platformID` doesn't exist.            |
-| 404      | Non existent resource. You requested, or tried to delete, a resource that does not exist. |
-| 415      | Invalid content type (perhaps you forgot to set `Content-type` to `application-json`?)    |
+| *Status* | *Meaning*                                                                                   |
+|----------|---------------------------------------------------------------------------------------------|
+| 200      | Successfully completed the request.                                                         |
+| 201      | Success creation of a new resource, such as a stream, platform, packet, or location         |
+| 400      | Bad or malformed request. This may be because the `streamID` or `platformID` doesn't exist. |
+| 404      | Non existent resource. You requested, or tried to delete, a resource that does not exist.   |
+| 415      | Invalid content type (perhaps you forgot to set `Content-type` to `application-json`?)      |
 
 
 ## API summary
@@ -275,7 +275,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | *HTTP verb* | *Endpoint*                                     | *Description*                                                                                          | *STATUS* |
 |-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
 | `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              | I, D, T  |
-| `GET`       | `/api/v1/platforms`                            | Get an array of URIs to all platforms.                                                                 | I, D, T  |
+| `GET`       | `/api/v1/platforms`                            | Get an array of platforms, or an array of platform URIs.                                               | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
 | `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |          |
 | `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
@@ -337,13 +337,22 @@ Connection: keep-alive
 }
 ```
 
-## Get the URIs of all platforms
+## Get platforms
 
-Query the database for the URIs of all platforms
+Query the database for information about platforms. Return either an array of URIs to the platforms,
+or the platform data itself.
 
 ```
 GET /api/v1/platforms
 ```
+
+*Parameters*
+
+| *Name*   | *Type* | *Value*      | *Description*                                          |
+|----------|--------|--------------|--------------------------------------------------------|
+| `as`     | string | `links`      | Return results as an array of URIs (default).          |
+| `as`     | string | `values`     | Return results as an array of platform values.         |
+
 
 *Return status*
 
@@ -351,7 +360,8 @@ GET /api/v1/platforms
 |----------|-----------------------|
 | 200      | Success               |
 
-If successful, the server will return an array of URIs to all known platforms.
+If successful, the server will return either an array of URIs to all known platforms, or an array of
+platform values, depending on the value of parameter `as`.
 
 *Example*
 
