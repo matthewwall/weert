@@ -14,14 +14,14 @@
                 </select>
             </div>
             <div class="row">
-                <div class="form-group">
-                    <label for="name">Platform name:</label>
-                    <input type="text" class="form-control" id="name">
-                </div>
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <textarea class="form-control" rows="5" id="description"></textarea>
-                </div>
+                <form ng-submit="createPlatform()" ng-controller="PlatformCreateController">
+                    Platform name:
+                    <input type="text" ng-model="text" name="Name"/>
+                    Platform description:
+                    <input type="text" ng-model="text" name="Description"/>
+                    <input type="submit" id="createPlatform" value="Create"/>
+                    <pre>list={{list}}</pre>
+                </form>
             </div>
 
         </div>

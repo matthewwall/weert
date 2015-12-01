@@ -1,0 +1,25 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <!--Sidebar content-->
+
+            Search: <input ng-model="query">
+            Sort by:
+            <select ng-model="orderProp">
+                <option value="name">Name</option>
+                <option value="description">Description</option>
+            </select>
+
+        </div>
+        <div class="col-md-10">
+            <!--Body content-->
+
+            <ul class="phones">
+                <li ng-repeat="platform in platforms | filter:query | orderBy:orderProp">
+                    <p>Name: <a href="{{platform}}">Link</a></p>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</div>

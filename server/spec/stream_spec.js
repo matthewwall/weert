@@ -8,7 +8,7 @@
  * Test spec for testing the creation and fetching of streams
  */
 
-var test_url = 'http://localhost:3000/test/v1/streams';
+var test_url = require('./test_config').test_root_url + '/streams';
 var frisby = require('frisby');
 
 // First try to create a stream, but with a missing Content-Type

@@ -9,7 +9,7 @@
  */
 "use strict";
 
-var test_url = "http://localhost:3000/test/v1/platforms";
+var test_url = require('./test_config').test_root_url + '/platforms';
 
 var async        = require('async');
 var frisby       = require('frisby');
