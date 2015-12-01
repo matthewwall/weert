@@ -15,10 +15,10 @@ angular
                     controller : 'PlatformListCtrl'
                 })
 
-                //.when('/phones/:phoneId', {
-                //    templateUrl: 'partials/phone-detail.html',
-                //    controller : 'PhoneDetailCtrl'
-                //})
+                .when('/platforms/:platformId', {
+                    templateUrl: 'src/platforms/platform-detail.html',
+                    controller : 'PlatformDetailCtrl'
+                })
                 .otherwise({
                     redirectTo: '/platforms'
                 })

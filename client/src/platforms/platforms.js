@@ -1,12 +1,13 @@
 "use strict";
 
 angular
+
     .module('platforms', ['ngResource'])
 
-    .controller('PlatformListCtrl', ['$scope', 'Platform',
-        function ($scope, Platform) {
+    .controller('PlatformListCtrl', ['$scope', 'Platforms',
+        function ($scope, Platforms) {
 
-            Platform.getAllByValue().$promise.then(function (results) {
+            Platforms.getAllByValue().$promise.then(function (results) {
                 $scope.platforms = results;
                 // For each property, add a property 'link' that points to the property detail
                 $scope.platforms.forEach(function (platform) {
@@ -16,11 +17,23 @@ angular
             $scope.orderProp = '_id';
         }])
 
-    .factory('Platform', ['$resource',
+    .controller('PlatformDetailCtrl', ['$scope', '$routeParams', 'Platform',
+        function ($scope, $routeParams, Platform) {
+            $scope.platform = Platform.query({platformId: $routeParams.platformId});
+        }])
+
+    .factory('Platforms', ['$resource',
         function ($resource) {
             var result = $resource('api/v1/platforms', {}, {
-                getAllByValue: {method: 'GET', params: {as: 'values'}, isArray: true},
-                query        : {method: 'GET', params: {phoneId: 'phones', foo: 'bar'}, isArray: true}
+                getAllByValue: {method: 'GET', params: {as: 'values'}, isArray: true}
+            });
+            return result;
+        }])
+
+    .factory('Platform', ['$resource',
+        function ($resource) {
+            var result = $resource('api/v1/platforms/:platformId', {}, {
+                query: {method: 'GET', isArray: false}
             });
             return result;
         }]);
