@@ -5,6 +5,7 @@
 angular
     .module('provisionApp', [
         'ngRoute',
+        'ui.bootstrap',
         'platforms'
     ])
     .config(['$routeProvider',
