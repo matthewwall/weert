@@ -51,7 +51,7 @@
             <!--Body content-->
             <h1>Platforms</h1>
 
-            <ul class="phones">
+            <ul>
                 <li ng-repeat="platform in platforms | filter:query | orderBy:orderProp">
                     <p>ID: <a href="#/platforms/{{platform._id}}">{{platform._id}}</a></p>
 

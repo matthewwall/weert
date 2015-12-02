@@ -1,13 +1,15 @@
 "use strict";
 
+// TODO: The controller PlatformListCtrl should be thinner. Perhaps move things to the PlatformsFactory?
+
 angular
 
     .module('platforms', ['ngResource'])
 
-    .controller('PlatformListCtrl', ['$scope', 'Platforms',
-        function ($scope, Platforms) {
+    .controller('PlatformListCtrl', ['$scope', 'PlatformsFactory',
+        function ($scope, PlatformsFactory) {
 
-            Platforms.getAllByValue().$promise.then(function (results) {
+            PlatformsFactory.getAllByValue().$promise.then(function (results) {
                 $scope.platforms = results;
                 // For each property, add a property 'link' that points to the property detail
                 $scope.platforms.forEach(function (platform) {
@@ -21,25 +23,39 @@ angular
             };
         }])
 
-    .controller('PlatformDetailCtrl', ['$scope', '$routeParams', 'Platform',
-        function ($scope, $routeParams, Platform) {
-            $scope.platform = Platform.query({platformId: $routeParams.platformId});
-        }])
-
-    .factory('Platforms', ['$resource',
+    .factory('PlatformsFactory', ['$resource',
         function ($resource) {
-            var result = $resource('api/v1/platforms', {}, {
+            // Create the factory. It will have a method "getAllByValue" that returns
+            // the contents of all platforms.
+            var factory = $resource('api/v1/platforms', {}, {
                 getAllByValue: {method: 'GET', params: {as: 'values'}, isArray: true}
             });
-            return result;
+            return factory;
         }])
 
-    .factory('Platform', ['$resource',
+    .controller('PlatformDetailCtrl', ['$scope', '$routeParams', 'PlatformFactory', 'LocationsFactory',
+        function ($scope, $routeParams, PlatformFactory, LocationsFactory) {
+            $scope.platform  = PlatformFactory.query({platformId: $routeParams.platformId});
+            $scope.locations = LocationsFactory.query({platformId: $routeParams.platformId})
+        }])
+
+    .factory('PlatformFactory', ['$resource',
         function ($resource) {
-            var result = $resource('api/v1/platforms/:platformId', {}, {
+            // Create the factory. It will have a method "query" that returns
+            // the contents of a specific platform with ID 'platformId'.
+            var factory = $resource('api/v1/platforms/:platformId', {}, {
                 query: {method: 'GET', isArray: false}
             });
-            return result;
+            return factory;
+        }])
+
+    .factory('LocationsFactory', ['$resource',
+        function ($resource) {
+
+            var factory = $resource('api/v1/platforms/:platformId/locations', {}, {
+                query: {method: 'GET', isArray: true}
+            });
+            return factory;
         }])
 
     .controller('ModalDemoCtrl', ['$scope', '$uibModal', '$log', function ($scope, $uibModal, $log) {
