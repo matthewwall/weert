@@ -9,10 +9,11 @@ angular
             $scope.platform = Locations.query({platformId: $routeParams.platformId});
         }])
 
-    .factory('Locations', ['$resource',
+    .factory('LocationsFactory', ['$resource',
         function ($resource) {
-            var result = $resource('api/v1/platforms/:platformId/locations', {}, {
+
+            var factory = $resource('api/v1/platforms/:platformId/locations', {}, {
                 query: {method: 'GET', isArray: true}
             });
-            return result;
+            return factory;
         }]);

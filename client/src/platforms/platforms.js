@@ -4,7 +4,7 @@
 
 angular
 
-    .module('platforms', ['ngResource'])
+    .module('platforms', ['ngResource', 'locations'])
 
     .controller('PlatformListCtrl', ['$scope', 'PlatformsFactory',
         function ($scope, PlatformsFactory) {
@@ -49,60 +49,44 @@ angular
             return factory;
         }])
 
-    .factory('LocationsFactory', ['$resource',
-        function ($resource) {
+    .controller('PlatformCreateCtrl', ['$scope', '$uibModal', '$log', function ($scope, $uibModal, $log) {
 
-            var factory = $resource('api/v1/platforms/:platformId/locations', {}, {
-                query: {method: 'GET', isArray: true}
-            });
-            return factory;
-        }])
-
-    .controller('ModalDemoCtrl', ['$scope', '$uibModal', '$log', function ($scope, $uibModal, $log) {
-
-        $scope.items = ['item1', 'item2', 'item3'];
-
-        $scope.animationsEnabled = true;
+        $scope.name;
+        $scope.description;
 
         $scope.open = function (size) {
 
             var modalInstance = $uibModal.open({
-                animation  : $scope.animationsEnabled,
-                templateUrl: 'myModalContent.html',
+                animation  : true,
+                templateUrl: 'src/platforms/platform-create.html',
                 controller : 'ModalInstanceCtrl',
-                size       : size,
-                resolve    : {
-                    items: function () {
-                        return $scope.items;
-                    }
+                size       : size
+            });
+
+            modalInstance.result.then(
+                function (platform_data) {
+                    $scope.name = platform_data.name;
+                    $scope.description = platform_data.description;
+                },
+                function () {
+                    $log.info('Modal dismissed at: ' + new Date());
                 }
-            });
-
-            modalInstance.result.then(function (selectedItem) {
-                $scope.selected = selectedItem;
-            }, function () {
-                $log.info('Modal dismissed at: ' + new Date());
-            });
+            );
         };
-
-        $scope.toggleAnimation = function () {
-            $scope.animationsEnabled = !$scope.animationsEnabled;
-        };
-
     }])
 
     // Please note that $modalInstance represents a modal window (instance) dependency.
     // It is not the same as the $uibModal service used above.
 
-    .controller('ModalInstanceCtrl', function ($scope, $uibModalInstance, items) {
+    .controller('ModalInstanceCtrl', function ($scope, $uibModalInstance) {
 
-        $scope.items    = items;
-        $scope.selected = {
-            item: $scope.items[0]
-        };
+        $scope.name;
+        $scope.description;
+        $scope.name_placeholder = "Platform name";
+        $scope.description_placeholder = "A description";
 
         $scope.ok = function () {
-            $uibModalInstance.close($scope.selected.item);
+            $uibModalInstance.close({name: $scope.name, description: $scope.description});
         };
 
         $scope.cancel = function () {
