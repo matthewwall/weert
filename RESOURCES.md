@@ -28,3 +28,6 @@ a factory. I finally "got it" after reading this.
 
 WeeRT uses [UI Bootstrap](https://angular-ui.github.io/bootstrap/) for many user interface elements. It's bootstrap
 written using Angular components. Same CSS styling.
+
+Also uses [Angular-xeditable](http://vitalets.github.io/angular-xeditable/) for text that can be edited
+in place.

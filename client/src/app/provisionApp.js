@@ -6,8 +6,14 @@ angular
     .module('provisionApp', [
         'ngRoute',
         'ui.bootstrap',
+        'xeditable',
         'platforms'
     ])
+
+    .run(function (editableOptions) {
+        editableOptions.theme = 'bs3'; // bootstrap3 theme. Can be also 'bs2', 'default'
+    })
+
     .config(['$routeProvider',
         function ($routeProvider) {
             $routeProvider
@@ -16,10 +22,6 @@ angular
                     controller : 'PlatformListCtrl'
                 })
 
-                .when('/platforms/:platformId', {
-                    templateUrl: 'src/platforms/platform-detail.html',
-                    controller : 'PlatformDetailCtrl'
-                })
                 .otherwise({
                     redirectTo: '/platforms'
                 })
