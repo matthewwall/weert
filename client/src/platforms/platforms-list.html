@@ -1,43 +1,81 @@
 <div class="container-fluid">
+    <h1>Platforms</h1>
+
     <div class="row">
         <div class="col-md-2">
             <!--Sidebar content-->
+            <button type="button" class="btn btn-default" aria-label="Create">
+                <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-default" aria-label="Duplicate">
+                <span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-default" aria-label="Delete">
+                <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"></span>
+            </button>
+            <button type="button" class="btn btn-default" aria-label="Edit">
+                <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+            </button>
             <div class="row">
                 <label for="query">Filter</label>
                 <input id="query" ng-model="query"/>
             </div>
             <div class="row">
-                <hr/>
                 <label for="ordering">Order by</label>
                 <select id="ordering" ng-model="orderProp">
                     <option value="name">Name</option>
-                    <option value="description">Description</option>
                     <option value="_id">ID</option>
                 </select>
             </div>
-            <div class="row">
-                <hr/>
-                <div ng-controller="PlatformCreateCtrl">
-
-                    <button type="button" class="btn btn-default" ng-click="open()">Create platform</button>
-                </div>
-            </div>
+            <hr/>
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>
+                        Platform name
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr ng-model="selected_item"
+                        ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
+                        ng-click="setDetail(platform)"
+                        style="cursor:pointer">
+                        <td>{{platform.name}}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
         <div class="col-md-10">
-            <!--Body content-->
-            <h1>Platforms</h1>
 
+            <h1>{{selected_platform.name}}</h1>
+
+            <h2>Description</h2>
+
+            <p>{{selected_platform.description}}</p>
+
+            <h2>ID</h2>
+            <pre>{{selected_platform._id}}</pre>
+
+            <h2>Recent locations</h2>
             <ul>
-                <li ng-repeat="platform in platforms | filter:query | orderBy:orderProp">
-                    <p>ID: <a href="#/platforms/{{platform._id}}">{{platform._id}}</a></p>
-
-                    <p>Name: {{platform.name}}</p>
-
-                    <p>Description: {{platform.description}}</p>
-
-                    <p>Link: <a ng-href="{{platform.link}}">{{platform.link}}</a></p>
-                </li>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>timestamp</th>
+                        <th>latitude</th>
+                        <th>longitude</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="location in locations">
+                        <td>{{location.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                        <td>{{location.latitude}}</td>
+                        <td>{{location.longitude}}</td>
+                    </tr>
+                    </tbody>
+                </table>
             </ul>
 
         </div>

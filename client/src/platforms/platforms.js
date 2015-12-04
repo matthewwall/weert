@@ -15,11 +15,15 @@ angular
                 $scope.platforms.forEach(function (platform) {
                     platform.link = 'api/v1/platforms/' + platform._id;
                 });
+                $scope.selected_platform = $scope.platforms[0]
             });
             $scope.orderProp   = '_id';
             $scope.showModal = false;
             $scope.toggleModal = function () {
                 $scope.showModal = !$scope.showModal;
+            };
+            $scope.setDetail = function(platform){
+                $scope.selected_platform = platform;
             };
         }])
 
