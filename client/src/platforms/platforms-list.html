@@ -37,12 +37,12 @@
                 </tr>
                 </thead>
                 <tbody>
-                    <tr ng-model="selected_item"
-                        ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
-                        ng-click="setDetail(platform)"
-                        style="cursor:pointer">
-                        <td>{{platform.name}}</td>
-                    </tr>
+                <tr ng-model="selected_item"
+                    ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
+                    ng-click="setDetail(platform)"
+                    style="cursor:pointer">
+                    <td>{{platform.name}}</td>
+                </tr>
                 </tbody>
             </table>
         </div>

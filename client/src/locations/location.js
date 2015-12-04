@@ -4,10 +4,10 @@ angular
 
     .module('locations', ['ngResource'])
 
-    .controller('LocationsCtrl', ['$scope', '$routeParams', 'Locations',
-        function ($scope, $routeParams, Locations) {
-            $scope.platform = Locations.query({platformId: $routeParams.platformId});
-        }])
+    //.controller('LocationsCtrl', ['$scope', '$routeParams', 'Locations',
+    //    function ($scope, $routeParams, Locations) {
+    //        $scope.platform = Locations.query({platformId: $routeParams.platformId});
+    //    }])
 
     .factory('LocationsFactory', ['$resource',
         function ($resource) {
