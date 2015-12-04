@@ -2,11 +2,12 @@
     <h1>Platforms</h1>
 
     <div class="row">
-        <div class="col-md-2">
-            <!--Sidebar content-->
-            <button type="button" class="btn btn-default" aria-label="Create">
+        <div class="col-md-2" id="platform-sidebar">
+
+            <button type="button" class="btn btn-default" aria-label="Create" ng-click="createMode(); editPlatformDetail.$show()">
                 <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
             </button>
+
             <button type="button" class="btn btn-default" aria-label="Duplicate">
                 <span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span>
             </button>
@@ -42,11 +43,66 @@
                 </tr>
                 </tbody>
             </table>
-        </div>
+        </div>  <!-- End platform-sidebar -->
 
-        <div class="col-md-10" ng-controller="PlatformDetailCtrl" ng-include="'src/platforms/platform-detail.html'">
+        <div class="col-md-10" id="platform-detail">
 
-        </div>
+            <form editable-form name="editPlatformDetail" onaftersave="saveSelectedPlatform()" class="form-horizontal">
+                <h3>Platform name</h3>
 
+                <p editable-text="selected_platform.name" e-name="name" e-required>{{ selected_platform.name || "empty"
+                    }}</p>
+
+                <h3>Description</h3>
+
+                <p editable-textarea="selected_platform.description" e-name="description" e-rows="7" e-cols="40">
+                    {{selected_platform.description || "empty"}}</p>
+
+                <h3>Platform ID</h3>
+                <pre>{{selected_platform._id}}</pre>
+
+                <!-- button to allow editing of the detail -->
+                <button type="button" class="btn btn-default" ng-click="editPlatformDetail.$show()"
+                        ng-show="!editPlatformDetail.$visible">
+                    <span class="glyphicon glyphicon-pencil"> Edit</span>
+                </button>
+
+                <!-- buttons to submit / cancel the edit -->
+                <span ng-show="editPlatformDetail.$visible">
+                    <button type="submit" class="btn btn-primary" ng-disabled="editPlatformDetail.$waiting">
+                        <span class="glyphicon glyphicon-save"></span>  Save Changes
+                    </button>
+                    <button type="button" class="btn btn-default" ng-disabled="editPlatformDetail.$waiting"
+                            ng-click="editPlatformDetail.$cancel()">
+                        <span class="glyphicon glyphicon-remove"> Cancel</span>
+                    </button>
+                </span>
+
+            </form>
+
+            <hr/>
+
+            <h2>Recent locations</h2>
+            <ul>
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>timestamp</th>
+                        <th>latitude</th>
+                        <th>longitude</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="location in locations">
+                        <td>{{location.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                        <td>{{location.latitude}}</td>
+                        <td>{{location.longitude}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+            </ul>
+
+        </div> <!-- End platform-detail -->
     </div>
 </div>

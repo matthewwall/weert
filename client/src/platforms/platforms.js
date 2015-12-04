@@ -1,5 +1,7 @@
 "use strict";
 
+var emptyPlatform = {name: "", description: "", _id: undefined, streams: []};
+
 angular
 
     .module('platforms', ['ngResource', 'locations'])
@@ -25,12 +27,32 @@ angular
             // Function to set the platform whose details we are looking at
             $scope.setDetail = function (platform) {
                 $scope.selected_platform = platform;
-                if (platform) {
+                if (platform && platform._id) {
                     $scope.locations = LocationsFactory.query({platformId: $scope.selected_platform._id});
                 } else {
                     $scope.locations = [];
                 }
             };
+
+            $scope.createMode = function () {
+                $scope.setDetail(angular.copy(emptyPlatform));
+            };
+
+            $scope.saveSelectedPlatform = function () {
+                var promise;
+                if ($scope.selected_platform._id){
+                    // Do an update
+                } else {
+                    // Do a create
+                    promise = PlatformsFactory.createNew({}, $scope.selected_platform).$promise;
+                }
+                promise.then(function(result){
+                    if (result) {
+                        $scope.platforms.push(result);
+                        $scope.setDetail(result);
+                    }
+                })
+            }
         }])
 
     .factory('PlatformsFactory', ['$resource',
@@ -38,15 +60,10 @@ angular
             // Create the factory. It will have a method "getAllByValue" that returns
             // the contents of all platforms.
             var factory = $resource('api/v1/platforms', {}, {
-                getAllByValue: {method: 'GET', params: {as: 'values'}, isArray: true}
+                getAllByValue: {method: 'GET', params: {as: 'values'}, isArray: true},
+                createNew : {method: 'POST'}
             });
             return factory;
-        }])
-
-    .controller('PlatformDetailCtrl', ['$scope',
-        function ($scope) {
-            $scope.createMode = false;
-            $scope.editInProcess = false;
         }]);
 
 
