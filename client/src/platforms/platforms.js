@@ -6,80 +6,61 @@ angular
 
     .module('platforms', ['ngResource', 'locations'])
 
-    .controller('PlatformListCtrl', ['$scope', 'PlatformsFactory', 'LocationsFactory',
-        function ($scope, PlatformsFactory, LocationsFactory) {
-
-            // Fetch the list of platforms from the server
-            PlatformsFactory.getAllByValue().$promise.then(function (results) {
-                $scope.platforms = results;
-                //// For each property, add a property 'link' that points to the property detail
-                //$scope.platforms.forEach(function (platform) {
-                //    platform.link = 'api/v1/platforms/' + platform._id;
-                //});
-
-                // Set the detail to the first platform, if it exists
-                $scope.setDetail($scope.platforms[0])
-            });
-
-            // Default ordering is by id
-            $scope.orderProp = '_id';
+    .controller('PlatformListCtrl', ['$scope', 'Platform', 'Location',
+        function ($scope, Platform, Location) {
 
             // Function to set the platform whose details we are looking at
             $scope.setDetail = function (platform) {
                 $scope.selected_platform = platform;
+                // If the platform ID is available, go fetch the locations
+                // TODO: Should only get the last 5 locations or so.
                 if (platform && platform._id) {
-                    $scope.locations = LocationsFactory.query({platformId: $scope.selected_platform._id});
+                    $scope.locations = Location.query({platformId: $scope.selected_platform._id});
                 } else {
                     $scope.locations = [];
                 }
             };
 
+            // Get an array holding all the platforms
+            $scope.platforms = Platform.query({as: 'values'}, function () {
+                // Set the detail to the first platform
+                $scope.setDetail($scope.platforms[0]);
+            });
+
+            // Default ordering is by id
+            $scope.orderProp = '_id';
+
             $scope.createMode = function () {
+                // If we are creating a new platform, set the fields to null strings
                 $scope.setDetail(angular.copy(emptyPlatform));
             };
 
+            // Function to call to save the selected platform to the server
             $scope.saveSelectedPlatform = function () {
-                var promise;
-                if ($scope.selected_platform._id){
-                    // Do an update
+                if ($scope.selected_platform._id) {
+                    // Editing existing platform (not implemented yet).
                 } else {
-                    // Do a create
-                    promise = PlatformsFactory.createNew({}, $scope.selected_platform).$promise;
+                    // Creating a new platform.
+
+                    // This call will create a Resource object, which has a '$save()' method.
+                    // See https://docs.angularjs.org/api/ngResource/service/$resource
+                    var newPlatform = new Platform($scope.selected_platform);
+                    // Call the $save() method to save to server
+                    newPlatform.$save(
+                        function (newPlatform) {
+                            // Successful save. Push the new platform on to the list we wave
+                            $scope.platforms.push(newPlatform);
+                            // Set the detail to the new platform
+                            $scope.setDetail(newPlatform);
+                        }, function (err) {
+                            alert("Unable to create platform. Error code: " + err.status);
+                        });
                 }
-                promise.then(function(result){
-                    if (result) {
-                        $scope.platforms.push(result);
-                        $scope.setDetail(result);
-                    }
-                })
-            }
+            };
+
         }])
 
-    .factory('PlatformsFactory', ['$resource',
+    .factory('Platform', ['$resource',
         function ($resource) {
-            // Create the factory. It will have a method "getAllByValue" that returns
-            // the contents of all platforms.
-            var factory = $resource('api/v1/platforms', {}, {
-                getAllByValue: {method: 'GET', params: {as: 'values'}, isArray: true},
-                createNew : {method: 'POST'}
-            });
-            return factory;
+            return $resource('api/v1/platforms/:platformId', {platformId: '@_id'});
         }]);
-
-
-//.controller('PlatformDetailCtrl', ['$scope', '$routeParams', 'PlatformFactory', 'LocationsFactory',
-//    function ($scope, $routeParams, PlatformFactory, LocationsFactory) {
-//        $scope.platform  = PlatformFactory.query({platformId: $routeParams.platformId});
-//        $scope.locations = LocationsFactory.query({platformId: $routeParams.platformId})
-//    }]);
-//
-//.factory('PlatformFactory', ['$resource',
-//    function ($resource) {
-//        // Create the factory. It will have a method "query" that returns
-//        // the contents of a specific platform with ID 'platformId'.
-//        var factory = $resource('api/v1/platforms/:platformId', {}, {
-//            query: {method: 'GET', isArray: false}
-//        });
-//        return factory;
-//    }]);
-//
