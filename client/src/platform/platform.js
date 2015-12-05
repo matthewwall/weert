@@ -4,10 +4,10 @@ var emptyPlatform = {name: "", description: "", _id: undefined, streams: []};
 
 angular
 
-    .module('platforms', ['ngResource', 'locations'])
+    .module('platform', ['ngResource', 'location', 'stream'])
 
-    .controller('PlatformListCtrl', ['$scope', 'Platform', 'Location',
-        function ($scope, Platform, Location) {
+    .controller('PlatformListCtrl', ['$scope', 'Platform', 'Location', 'PlatformStream', 'Stream',
+        function ($scope, Platform, Location, PlatformStream, Stream) {
 
             // Function to set the platform whose details we are looking at
             $scope.setDetail = function (platform) {

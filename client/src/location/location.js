@@ -2,7 +2,7 @@
 
 angular
 
-    .module('locations', ['ngResource'])
+    .module('location', ['ngResource'])
 
 
     .factory('Location', ['$resource',

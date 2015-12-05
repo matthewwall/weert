@@ -4,7 +4,8 @@
     <div class="row">
         <div class="col-md-2" id="platform-sidebar">
 
-            <button type="button" class="btn btn-default" aria-label="Create" ng-click="createMode(); editPlatformDetail.$show()">
+            <button type="button" class="btn btn-default" aria-label="Create"
+                    ng-click="createMode(); editPlatformDetail.$show()">
                 <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
             </button>
 
@@ -35,8 +36,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-model="selected_item"
-                    ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
+                <tr ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
                     ng-click="setDetail(platform)"
                     style="cursor:pointer">
                     <td>{{platform.name}}</td>

@@ -7,7 +7,7 @@ angular
         'ngRoute',
         'ui.bootstrap',
         'xeditable',
-        'platforms'
+        'platform'
     ])
 
     .run(function (editableOptions) {
@@ -18,7 +18,7 @@ angular
         function ($routeProvider) {
             $routeProvider
                 .when('/platforms', {
-                    templateUrl: 'src/platforms/platforms-list.html',
+                    templateUrl: 'src/platform/platforms-list.html',
                     controller : 'PlatformListCtrl'
                 })
 
