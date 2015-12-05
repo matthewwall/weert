@@ -6,19 +6,35 @@ angular
 
     .module('platform', ['ngResource', 'location', 'stream'])
 
-    .controller('PlatformListCtrl', ['$scope', 'Platform', 'Location', 'PlatformStream', 'Stream',
-        function ($scope, Platform, Location, PlatformStream, Stream) {
+    .controller('PlatformListCtrl', ['$scope', 'Platform', 'Location', 'Stream',
+        function ($scope, Platform, Location, Stream) {
+
+            var getLocations = function (platform) {
+                var locations = [];
+                // If the platform ID is available, go fetch the locations
+                // TODO: Should only get the last 5 locations or so.
+                if (platform && platform._id) {
+                    locations = Location.query({platformId: platform._id});
+                }
+                return locations;
+            };
+
+            // Function to get the stream details for a specific platform
+            var getStreamDetails = function (platform) {
+                var streams_details = [];
+                if (platform && platform.streams) {
+                    for (var i = 0; i < platform.streams.length; i++) {
+                        streams_details[i] = Stream.query({streamId: platform.streams[i]});
+                    }
+                }
+                return streams_details;
+            };
 
             // Function to set the platform whose details we are looking at
             $scope.setDetail = function (platform) {
                 $scope.selected_platform = platform;
-                // If the platform ID is available, go fetch the locations
-                // TODO: Should only get the last 5 locations or so.
-                if (platform && platform._id) {
-                    $scope.locations = Location.query({platformId: $scope.selected_platform._id});
-                } else {
-                    $scope.locations = [];
-                }
+                $scope.locations         = getLocations(platform);
+                $scope.streams           = getStreamDetails(platform);
             };
 
             // Get an array holding all the platforms
@@ -64,3 +80,4 @@ angular
         function ($resource) {
             return $resource('api/v1/platforms/:platformId', {platformId: '@_id'});
         }]);
+

@@ -83,26 +83,41 @@
 
             <hr/>
 
-            <h2>Recent locations</h2>
-            <ul>
-                <table class="table">
-                    <thead>
-                    <tr>
-                        <th>timestamp</th>
-                        <th>latitude</th>
-                        <th>longitude</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr ng-repeat="location in locations">
-                        <td>{{location.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
-                        <td>{{location.latitude}}</td>
-                        <td>{{location.longitude}}</td>
-                    </tr>
-                    </tbody>
-                </table>
+            <h2>Member streams</h2>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>StreamId</th>
+                    <th>Name</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="stream in streams">
+                    <td>{{stream._id}}</td>
+                    <td>{{stream.name}}</td>
+                </tr>
+                </tbody>
+            </table>
 
-            </ul>
+            <hr/>
+
+            <h2>Recent locations</h2>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>timestamp</th>
+                    <th>latitude</th>
+                    <th>longitude</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="location in locations">
+                    <td>{{location.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+                    <td>{{location.latitude}}</td>
+                    <td>{{location.longitude}}</td>
+                </tr>
+                </tbody>
+            </table>
 
         </div> <!-- End platform-detail -->
     </div>
