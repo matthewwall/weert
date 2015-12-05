@@ -5,7 +5,6 @@
 angular
     .module('provisionApp', [
         'ngRoute',
-        'ui.bootstrap',
         'xeditable',
         'platform'
     ])
