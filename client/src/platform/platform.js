@@ -74,6 +74,10 @@ angular
                 }
             };
 
+            $scope.notImplemented = function(msg){
+                alert("Not implemented yet: " + msg);
+            }
+
         }])
 
     .factory('Platform', ['$resource',

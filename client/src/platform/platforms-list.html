@@ -4,17 +4,6 @@
     <div class="row">
         <div class="col-md-2" id="platform-sidebar">
 
-            <button type="button" class="btn btn-default" aria-label="Create"
-                    ng-click="createMode(); editPlatformDetail.$show()">
-                <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"></span>
-            </button>
-
-            <button type="button" class="btn btn-default" aria-label="Duplicate">
-                <span class="glyphicon glyphicon-duplicate" aria-hidden="true"></span>
-            </button>
-            <button type="button" class="btn btn-default" aria-label="Delete">
-                <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"></span>
-            </button>
             <div class="row">
                 <label for="query">Filter</label>
                 <input id="query" ng-model="query"/>
@@ -62,16 +51,31 @@
                 <h3>Platform ID</h3>
                 <pre>{{selected_platform._id}}</pre>
 
-                <!-- button to allow editing of the detail -->
-                <button type="button" class="btn btn-default" ng-click="editPlatformDetail.$show()"
-                        ng-show="!editPlatformDetail.$visible">
-                    <span class="glyphicon glyphicon-pencil"> Edit</span>
-                </button>
+                <!-- buttons to edit, create, copy, and delete -->
+                <span ng-show="!editPlatformDetail.$visible">
+                    <button type="button" class="btn btn-default" aria-label="Edit"
+                            ng-click="editPlatformDetail.$show()">
+                        <span class="glyphicon glyphicon-pencil"> Edit</span>
+                    </button>
+                    <button type="button" class="btn btn-default" aria-label="Create"
+                            ng-click="createMode(); editPlatformDetail.$show()">
+                        <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"> Create</span>
+                    </button>
+
+                    <button type="button" class="btn btn-default" aria-label="Copy"
+                            ng-click="notImplemented('Copy')">
+                        <span class="glyphicon glyphicon-duplicate" aria-hidden="true"> Copy</span>
+                    </button>
+                    <button type="button" class="btn btn-default" aria-label="Delete"
+                            ng-click="notImplemented('Delete')">
+                        <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"> Delete</span>
+                    </button>
+                </span>
 
                 <!-- buttons to submit / cancel the edit -->
                 <span ng-show="editPlatformDetail.$visible">
                     <button type="submit" class="btn btn-primary" ng-disabled="editPlatformDetail.$waiting">
-                        <span class="glyphicon glyphicon-save"></span>  Save Changes
+                        <span class="glyphicon glyphicon-save"> Save changes</span> 
                     </button>
                     <button type="button" class="btn btn-default" ng-disabled="editPlatformDetail.$waiting"
                             ng-click="editPlatformDetail.$cancel()">
