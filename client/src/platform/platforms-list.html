@@ -38,6 +38,7 @@
                 <tbody>
                 <tr ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
                     ng-click="setDetail(platform)"
+                    ng-class="{'active': platform._id === selected_platform._id}"
                     style="cursor:pointer">
                     <td>{{platform.name}}</td>
                 </tr>
