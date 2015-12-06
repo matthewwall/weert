@@ -8,7 +8,6 @@
 junk*
 out
 build
-dist
 MANIFEST
 node_modules
 bower_components
