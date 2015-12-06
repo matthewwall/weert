@@ -146,9 +146,9 @@ In case of an error, an `error` object is returned in the body of the response.
 {
   "_id"         : "309ae56b8d",
   "name"        : "Boiler feed",
-  "description" : “Onewire feed from boiler; uses blue wire”,
+  "description" : "Onewire feed from boiler; uses blue wire",
   "join"        : "87340",
-  "model":      : "DS18B20"
+  "model"       : "DS18B20"
 }
 ```
 
@@ -276,16 +276,15 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 |-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
 | `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              | I, D, T  |
 | `GET`       | `/api/v1/platforms`                            | Get an array of platforms, or an array of platform URIs.                                               | I, D, T  |
-| `GET`       | `/api/v1/platforms/:platformID/metadata`       | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
-| `PUT`       | `/api/v1/platforms/:platformID/metadata`       | Set or update the metadata for platform with id *platformID*.                                          |          |
-| `GET`       | `/api/v1/platforms/:platformID/streams`        | Get an array of URIs to all member streams of the platform with id *platformID*.                       |          |
+| `GET`       | `/api/v1/platforms/:platformID`                | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
+| `PUT`       | `/api/v1/platforms/:platformID`                | Set or update the metadata for platform with id *platformID*.                                          |          |
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Get the location for the platform with id *platformID*, at a specific time.                      | I, D, T  |
 | `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
 | `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
-| `GET`       | `/api/v1/streams/:streamID/`                   | Get the metadata for the stream with id *streamID*.                                                    | I     T  |
-| `PUT`       | `/api/v1/streams/:streamID/metadata`           | Set or update the metadata for the stream with id *streamID*                                           |          |
+| `GET`       | `/api/v1/streams/:streamID`                    | Get the metadata for the stream with id *streamID*.                                                    | I     T  |
+| `PUT`       | `/api/v1/streams/:streamID`                    | Set or update the metadata for the stream with id *streamID*                                           |          |
 | `POST`      | `/api/v1/streams/:streamID/packets`            | Post a new packet to the stream with id *streamID*, returning its URI in Locations field.              | I, D, T  |
 | `GET`       | `/api/v1/streams/:streamID/packets`            | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria. | I, D, T  |
 | `GET`       | `/api/v1/streams/:streamID/packets/:timestamp` | Return a packet from *streamID* with the given timestamp.                                              | I, D, T  |
