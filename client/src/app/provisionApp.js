@@ -7,7 +7,6 @@ angular
         [
             'ngRoute',
             'xeditable',
-            'ngAnimate',
             'ui.bootstrap',
             'platform',
             'stream'
