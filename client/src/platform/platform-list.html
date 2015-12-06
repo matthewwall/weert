@@ -1,0 +1,59 @@
+<div class="container-fluid">
+
+    <h1>Platforms</h1>
+
+    <div class="col-md-2" id="platform-sidebar">
+
+        <div class="row">
+            <label for="query">Filter</label>
+            <input id="query" ng-model="query"/>
+        </div>
+
+        <hr/>
+
+        <div class="row">
+            <label for="ordering">Order by</label>
+            <select id="ordering" ng-model="orderProp">
+                <option value="name">Name</option>
+                <option value="_id">ID</option>
+            </select>
+        </div>
+
+        <hr/>
+
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>
+                    Platform name
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
+                ng-click="setDetail(platform)"
+                ng-class="{'active': platform._id === selected_platform._id}"
+                style="cursor:pointer">
+                <td>{{platform.name}}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>  <!-- End platform-sidebar -->
+
+    <div class="col-md-10" id="tabbed-view" ng-controller="TabsCtrl">
+        <!-- Set up the tab controls -->
+        <uib-tabset>
+            <uib-tab ng-repeat="tab in tabs"
+                     heading="{{tab.label}}"
+                     active="tab.active"
+                     disable="tab.disabled"
+                     select="setActiveTab(tab)">
+            </uib-tab>
+        </uib-tabset>
+
+        <div id="detail-view">
+            <div ng-include="activeTab"></div>
+        </div>
+
+    </div> <!-- End tabbed-view -->
+</div>

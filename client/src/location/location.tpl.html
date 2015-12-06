@@ -1,0 +1,17 @@
+<h3>Recent locations</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>timestamp</th>
+        <th>latitude</th>
+        <th>longitude</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="location in locations">
+        <td>{{location.timestamp | date:'yyyy-MM-dd HH:mm:ss Z'}}</td>
+        <td>{{location.latitude}}</td>
+        <td>{{location.longitude}}</td>
+    </tr>
+    </tbody>
+</table>
