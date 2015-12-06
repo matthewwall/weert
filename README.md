@@ -278,6 +278,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/platforms`                            | Get an array of platforms, or an array of platform URIs.                                               | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID`                | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
 | `PUT`       | `/api/v1/platforms/:platformID`                | Set or update the metadata for platform with id *platformID*.                                          |          |
+| `DELETE`    | `/api/v1/platforms/:platformID`                | Delete platform with id *platformID*.                                                                  |          |
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Get the location for the platform with id *platformID*, at a specific time.                      | I, D, T  |
@@ -285,6 +286,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
 | `GET`       | `/api/v1/streams/:streamID`                    | Get the metadata for the stream with id *streamID*.                                                    | I     T  |
 | `PUT`       | `/api/v1/streams/:streamID`                    | Set or update the metadata for the stream with id *streamID*                                           |          |
+| `DELETE`    | `/api/v1/streams/:streamID`                    | Delete stream with id *streamID*                                                                       |          |
 | `POST`      | `/api/v1/streams/:streamID/packets`            | Post a new packet to the stream with id *streamID*, returning its URI in Locations field.              | I, D, T  |
 | `GET`       | `/api/v1/streams/:streamID/packets`            | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria. | I, D, T  |
 | `GET`       | `/api/v1/streams/:streamID/packets/:timestamp` | Return a packet from *streamID* with the given timestamp.                                              | I, D, T  |

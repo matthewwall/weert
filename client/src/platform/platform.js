@@ -80,6 +80,28 @@ angular
 
         }])
 
+    .controller('PlatformTabsCtrl', ['$scope', function ($scope) {
+        $scope.tabs = [
+            {
+                label: 'Details',
+                url  : "src/platform/platform-detail.tpl.html"
+            }, {
+                label: 'Streams',
+                url  : "src/platform/stream.tpl.html"
+            }, {
+                label: 'Location',
+                url  : "src/platform/location.tpl.html"
+            }, {
+                label: 'Map',
+                url  : "src/platform/map.tpl.html"
+            }];
+
+        $scope.setActiveTab = function (tab) {
+            $scope.activeTab = tab.url;
+        };
+        $scope.setActiveTab($scope.tabs[0]);
+    }])
+
     .factory('Platform', ['$resource',
         function ($resource) {
             return $resource('api/v1/platforms/:platformId', {platformId: '@_id'});
