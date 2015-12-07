@@ -1,13 +1,19 @@
-SERVER
+# SERVER
 
-Look at using EventEmitters instead of PubSub.
+Look at using `EventEmitters` instead of PubSub.
 
 Allow searches for platforms and streams satisfying a query.
 
 Aggregate results into hourly and daily summaries.
 
-CLIENT
-If windDir is null, WindCompass should not show anything (rather than the last value or zero).
+# PROVISIONING CLIENT
+
+Should make better use of endpoint URI. For example, navigating to `platforms/:platformId` should take one to a page
+with details on platform `platformId`.
+
+# Real-time CLIENT
+
+If `windDir` is null, WindCompass should not show anything (rather than the last value or zero).
 
 The Websockets need a keep-alive strategy.
 
