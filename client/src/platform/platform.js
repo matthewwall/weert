@@ -14,7 +14,7 @@ angular
                 // If the platform ID is available, go fetch the locations
                 // TODO: Should only get the last 5 locations or so.
                 if (platform && platform._id) {
-                    locations = Location.query({platformId: platform._id});
+                    locations = Location.query({platformID: platform._id});
                 }
                 return locations;
             };
@@ -24,7 +24,7 @@ angular
                 var streams_details = [];
                 if (platform && platform.streams) {
                     for (var i = 0; i < platform.streams.length; i++) {
-                        streams_details[i] = Stream.query({streamId: platform.streams[i]});
+                        streams_details[i] = Stream.query({streamID: platform.streams[i]});
                     }
                 }
                 return streams_details;
@@ -104,6 +104,6 @@ angular
 
     .factory('Platform', ['$resource',
         function ($resource) {
-            return $resource('api/v1/platforms/:platformId', {platformId: '@_id'});
+            return $resource('api/v1/platforms/:platformID', {platformID: '@_id'});
         }]);
 
