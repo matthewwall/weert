@@ -19,7 +19,16 @@
 </head>
 <body>
 
-<div class="view-container">
+<h1 class="text-center">WeeRT provisioning</h1>
+<div class="view-container" ng-controller="MainCtrl">
+    <uib-tabset>
+        <uib-tab heading="Platforms"
+                 ng-click="goTo('/platforms')">
+        </uib-tab>
+        <uib-tab heading="Streams"
+                 ng-click="goTo('/streams')">
+        </uib-tab>
+    </uib-tabset>
     <div ng-view class="view-frame"></div>
 </div>
 

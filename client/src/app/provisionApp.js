@@ -32,4 +32,10 @@ angular
                     redirectTo: '/platforms'
                 })
             ;
-        }]);
+        }])
+
+    .controller('MainCtrl', ['$scope', '$location', function ($scope, $location) {
+        $scope.goTo = function (hash) {
+            $location.path(hash);
+        };
+    }]);
