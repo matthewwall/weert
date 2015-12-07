@@ -97,7 +97,7 @@ angular
             }];
 
         $scope.setActiveTab = function (tab) {
-            $scope.activeTab = tab.url;
+            $scope.activeTab = tab;
         };
         $scope.setActiveTab($scope.tabs[0]);
     }])

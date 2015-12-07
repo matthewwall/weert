@@ -5,9 +5,9 @@
 angular
     .module('provisionApp',
         [
-            'ngRoute',
-            'xeditable',
-            'ui.bootstrap',
+            'ngRoute',          // For angular-route
+            'xeditable',        // For angular-xeditable
+            'ui.bootstrap',     // For angular-ui/bootstrap.
             'platform',
             'stream'
         ])
