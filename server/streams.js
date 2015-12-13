@@ -23,6 +23,7 @@ var StreamsManager = function (db, options) {
 };
 
 StreamsManager.prototype.createStream = function (stream_metadata, callback) {
+    // TODO: For completeness, we should probably create an empty packet collection as well.
     var self = this;
 
     // Make sure the _id field has not been already defined. This is MongoDB's job

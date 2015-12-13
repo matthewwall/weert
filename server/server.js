@@ -40,7 +40,7 @@ var stream_routes   = require('./routes/stream_routes');
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, '../views'));
+app.set('views', path.join(__dirname, './views'));
 app.set('view engine', 'hbs');
 
 app.use(logger('dev')); // Log all requests to the server to the console
@@ -129,7 +129,7 @@ var setup_routes = function (callback) {
     // catch 404 and forward to error handler
     app.use(function (req, res, next) {
         debug("caught 404");
-        var err    = new Error('Not Found');
+        var err    = new Error('Page not found: ' + req.originalUrl);
         err.status = 404;
         next(err);
     });
