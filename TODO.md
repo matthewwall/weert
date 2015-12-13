@@ -8,8 +8,8 @@ Aggregate results into hourly and daily summaries.
 
 # PROVISIONING CLIENT
 
-Should make better use of endpoint URI. For example, navigating to `platforms/:platformId` should take one to a page
-with details on platform `platformId`.
+Should make better use of endpoint URI. For example, navigating to `platforms/:platformID` should take one to a page
+with details on platform `platformID`.
 
 # Real-time CLIENT
 

@@ -27,5 +27,5 @@ angular
 
     .factory('Stream', ['$resource',
         function ($resource) {
-            return $resource('/api/v1/streams/:streamID/', {streamId: '@_id'});
+            return $resource('/api/v1/streams/:streamID/', {streamID: '@_id'});
         }]);

@@ -7,5 +7,5 @@ angular
 
     .factory('Location', ['$resource',
         function ($resource) {
-            return $resource('api/v1/platforms/:platformId/locations', {platformId: '@_id'});
+            return $resource('api/v1/platforms/:platformID/locations', {platformID: '@_id'});
         }]);
