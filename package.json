@@ -9,9 +9,9 @@
     "start": "node ./server/server"
   },
   "author": "Tom Keffer <tkeffer@gmail.com>",
-  "repository" :
-  { "type" : "git"
-  , "url" : "https://github.com/npm/tkeffer/weert"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/npm/tkeffer/weert"
   },
   "dependencies": {
     "async": "^1.4.2",
@@ -19,7 +19,7 @@
     "cookie-parser": "~1.3.5",
     "debug": "~2.2.0",
     "express": "^4.13.3",
-    "hbs": "~3.1.0",
+    "hbs": "^4.0.0",
     "mongodb": "^2.0.40",
     "morgan": "~1.6.1",
     "normalize-url": "^1.3.1",
