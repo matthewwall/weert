@@ -1,15 +1,17 @@
 /**
  * StreamFactory module
  * @module services/stream
- * @type {bluebird|exports|module.exports}
  */
 
-Promise = require('bluebird');
+var mongodb = require('mongodb');
+var Promise = require('bluebird');
 
 var StreamFactory = function (dbConnect, options) {
 
     /**
      * Create a new stream
+     * @function createStream
+     * @memberof StreamFactory
      * @param {object} stream_metadata - The stream's metadata
      * @returns {Promise}
      */
@@ -75,12 +77,36 @@ var StreamFactory = function (dbConnect, options) {
         })
     };
 
+    var findStream = function (streamID) {
+        return new Promise(function (resolve, reject) {
+            dbConnect
+                .then(function (db) {
+                    db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
+                        if (err) return reject(err);
+                        // A bad _id will cause an exception. Be prepared to catch it
+                        try {
+                            var id_obj = new mongodb.ObjectID(streamID);
+                        } catch (err) {
+                            err.description = "Unable to form ObjectID for streamID of " + streamID;
+                            return reject(err)
+                        }
+                        collection
+                            .find({_id: {$eq: id_obj}})
+                            .toArray()
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                })
+        })
+    };
+
+
     /**
      * Insert a new packet into an existing stream
      * @param {number} streamID - The ID of the stream in which to insert the packet
      * @param {object} packet - The packet
      */
-    var insertOne = function (streamID, packet) {
+    var insertOnePacket = function (streamID, packet) {
         return new Promise(function (resolve, reject) {
             // Make sure the incoming packet contains a timestamp
             if (packet.timestamp === undefined) {
@@ -111,12 +137,79 @@ var StreamFactory = function (dbConnect, options) {
     };
 
 
+    /**
+     * Find all packets satifying a query
+     * @param {number} streamID - The ID of the stream with the packets to query
+     * @param {object} query - Hash of query options
+     * @param {number} [query.start] - Timestamps greater than this value
+     * @param {number} [query.stop] - Timestamps less than or equal to this value
+     * @param {object} [query.sort={_id:1} - Mongo sort option.
+     * @param {number} [query.limit] - The number of packets to return. If missing, return them all.
+     * @returns {Promise}
+     */
+    var findPackets = function (streamID, query) {
+        return new Promise(function (resolve, reject) {
+            // Get the name of the Mongo collection from the streamID
+            var collection_name = options.packets.name(streamID);
+            dbConnect
+                .then(function (db) {
+                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                        if (err) return reject(err);
+                        dbtools.findByTimestamp(collection, options)
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                })
+        })
+    };
+
+
+    var findPacket = function (streamID, options) {
+        return new Promise(function (resolve, reject) {
+            var collection_name = options.packets.name(streamID);
+            dbConnect
+                .then(function (db) {
+                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                        if (err) return reject(err);
+                        dbtools.findOneByTimestamp(collection, options)
+                            .then(resolve)
+                            .catch(reject)
+                    });
+                })
+        })
+    };
+
+    var deleteOnePacket = function (streamID, options) {
+        return new Promise(function (resolve, reject) {
+            var timestamp = +options.timestamp;
+            // Test to make sure 'timestamp' is a number
+            if (typeof timestamp !== 'number' || (timestamp % 1) !== 0) {
+                return reject(new Error("Invalid value for 'timestamp': " + timestamp));
+            }
+            var collection_name = options.packet.name(streamID);
+            dbConnect
+                .then(function (db) {
+                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                        if (err) return reject(err);
+                        collection
+                            .deleteOne({_id: {$eq: new Date(timestamp)}}, {})
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                })
+        })
+    };
+
+
     return {
-        createStream: createStream,
-        findStreams : findStreams,
-        insertOne   : insertOne
+        createStream   : createStream,
+        findStreams    : findStreams,
+        findStream     : findStream,
+        insertOnePacket: insertOnePacket,
+        findPackets    : findPackets,
+        findPacket     : findPacket,
+        deleteOnePacket: deleteOnePacket
     }
 };
-
 
 module.exports = StreamFactory;
