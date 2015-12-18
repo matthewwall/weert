@@ -1,8 +1,18 @@
+/**
+ * StreamFactory module
+ * @module services/stream
+ * @type {bluebird|exports|module.exports}
+ */
+
 Promise = require('bluebird');
 
 var StreamFactory = function (dbConnect, options) {
 
-
+    /**
+     * Create a new stream
+     * @param {object} stream_metadata - The stream's metadata
+     * @returns {Promise}
+     */
     var createStream = function (stream_metadata) {
         return new Promise(function (resolve, reject) {
             // Make sure the _id field has not been already defined. MongoDB will do this.
@@ -27,13 +37,49 @@ var StreamFactory = function (dbConnect, options) {
     };
 
 
+    /**
+     * Find all streams
+     * @param {object} query - Hash of query options
+     * @param {object} [query.sort={_id:1} - Mongo sort option.
+     * @param {number} [query.limit] - The number of packets to return. If missing, return them all.
+     * @returns {Promise}
+     */
+    var findStreams = function (query) {
+        return new Promise(function (resolve, reject) {
+            // Supply a default query if necessary:
+            if (query === undefined) {
+                query = {
+                    sort : {_id: 1},
+                    limit: 0
+                }
+            }
+            var limit = query.limit === undefined ? 0 : +query.limit;
+            // Test to make sure 'limit' is a number
+            if (typeof limit !== 'number' || (limit % 1) !== 0) {
+                return reject(new Error("Invalid value for limit: " + limit))
+            }
+            dbConnect
+                .then(function (db) {
+                    db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
+                        if (err) return reject(err);
+                        collection
+                            .find()
+                            .limit(limit)
+                            .sort(query.sort)
+                            .toArray()
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                })
+                .catch(reject);
+        })
+    };
 
-
-
-
-
-
-
+    /**
+     * Insert a new packet into an existing stream
+     * @param {number} streamID - The ID of the stream in which to insert the packet
+     * @param {object} packet - The packet
+     */
     var insertOne = function (streamID, packet) {
         return new Promise(function (resolve, reject) {
             // Make sure the incoming packet contains a timestamp
@@ -67,6 +113,7 @@ var StreamFactory = function (dbConnect, options) {
 
     return {
         createStream: createStream,
+        findStreams : findStreams,
         insertOne   : insertOne
     }
 };
