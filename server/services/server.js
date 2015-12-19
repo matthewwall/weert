@@ -1,12 +1,12 @@
 'use strict';
-var http = require('http');
-var express = require('express');
+var http       = require('http');
+var express    = require('express');
 var bodyParser = require('body-parser');
-var Promise = require('bluebird');
+var Promise    = require('bluebird');
 
 var ServerFactory = function (config) {
 
-    var app = express();
+    var app    = express();
     var server = http.createServer(app);
 
     app.use(bodyParser.json());

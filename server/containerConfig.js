@@ -1,11 +1,12 @@
 // containerConfig.js
 
 var container = require('kontainer-di');
-var dbConfig = require('./config/database');
-var serverConfig = require('./config/server');
+
+var dbConfig        = require('./config/database');
+var serverConfig    = require('./config/server');
 var databaseFactory = require('./services/database');
-var streamFactory = require('./services/stream');
-var serverFactory = require('./services/server');
+var streamFactory   = require('./services/stream');
+var serverFactory   = require('./services/server');
 
 // Configs don't have any dependencies and are just plain JS objects
 container.register('dbConfig', [], dbConfig);
