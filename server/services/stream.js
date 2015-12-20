@@ -6,12 +6,19 @@
 var mongodb = require('mongodb');
 var Promise = require('bluebird');
 
-var StreamFactory = function (dbConnect, options) {
+/**
+ * Factory that manages streams
+ * @param dbPromise - A Promise to a database connection
+ * @param options - A set of options for the database collections
+ * @alias module:services/stream.StreamFactory
+ * @return {StreamManager}
+
+ */
+var StreamFactory = function (dbPromise, options) {
 
     /**
      * Create a new stream
-     * @function createStream
-     * @memberof StreamFactory
+     * @method createStream
      * @param {object} stream_metadata - The stream's metadata
      * @returns {Promise}
      */
@@ -21,7 +28,7 @@ var StreamFactory = function (dbConnect, options) {
             if (stream_metadata._id !== undefined) {
                 return reject(new Error("Field _id is already defined"));
             }
-            dbConnect
+            dbPromise
                 .then(function (db) {
                     // This returns a promise
                     return db
@@ -41,6 +48,7 @@ var StreamFactory = function (dbConnect, options) {
 
     /**
      * Find all streams
+     * @method findStreams
      * @param {object} query - Hash of query options
      * @param {object} [query.sort={_id:1} - Mongo sort option.
      * @param {number} [query.limit] - The number of packets to return. If missing, return them all.
@@ -60,7 +68,7 @@ var StreamFactory = function (dbConnect, options) {
             if (typeof limit !== 'number' || (limit % 1) !== 0) {
                 return reject(new Error("Invalid value for limit: " + limit))
             }
-            dbConnect
+            dbPromise
                 .then(function (db) {
                     db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
@@ -79,7 +87,7 @@ var StreamFactory = function (dbConnect, options) {
 
     var findStream = function (streamID) {
         return new Promise(function (resolve, reject) {
-            dbConnect
+            dbPromise
                 .then(function (db) {
                     db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
@@ -103,6 +111,7 @@ var StreamFactory = function (dbConnect, options) {
 
     /**
      * Insert a new packet into an existing stream
+     * @method insertOnePacket
      * @param {number} streamID - The ID of the stream in which to insert the packet
      * @param {object} packet - The packet
      */
@@ -121,7 +130,7 @@ var StreamFactory = function (dbConnect, options) {
             delete packet.timestamp;
             // Get the name of the Mongo collection the packet should go in
             var collection_name = options.packets.name(streamID);
-            dbConnect
+            dbPromise
                 .then(function (db) {
                     return db
                         .collection(collection_name, options.packets.options)
@@ -139,6 +148,7 @@ var StreamFactory = function (dbConnect, options) {
 
     /**
      * Find all packets satifying a query
+     * @method findPackets
      * @param {number} streamID - The ID of the stream with the packets to query
      * @param {object} query - Hash of query options
      * @param {number} [query.start] - Timestamps greater than this value
@@ -151,7 +161,7 @@ var StreamFactory = function (dbConnect, options) {
         return new Promise(function (resolve, reject) {
             // Get the name of the Mongo collection from the streamID
             var collection_name = options.packets.name(streamID);
-            dbConnect
+            dbPromise
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
@@ -167,7 +177,7 @@ var StreamFactory = function (dbConnect, options) {
     var findPacket = function (streamID, options) {
         return new Promise(function (resolve, reject) {
             var collection_name = options.packets.name(streamID);
-            dbConnect
+            dbPromise
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
@@ -187,7 +197,7 @@ var StreamFactory = function (dbConnect, options) {
                 return reject(new Error("Invalid value for 'timestamp': " + timestamp));
             }
             var collection_name = options.packet.name(streamID);
-            dbConnect
+            dbPromise
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
@@ -201,6 +211,10 @@ var StreamFactory = function (dbConnect, options) {
     };
 
 
+    /**
+     * @typedef StreamManager
+     * @property {function} createStream - Create a new stream
+     */
     return {
         createStream   : createStream,
         findStreams    : findStreams,

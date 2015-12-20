@@ -3,8 +3,12 @@
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 
-var MongoFactory = function (dbConfig) {
-    return MongoClient.connect(dbConfig.url);
+// This is a singleton:
+var mongoPromise = undefined;
+
+module.exports = function (dbConfig){
+    if (!mongoPromise)
+        mongoPromise = MongoClient.connect(dbConfig.url);
+    return mongoPromise;
 };
 
-module.exports = MongoFactory;
