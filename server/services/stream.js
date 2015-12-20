@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ */
+
 /**
  * StreamFactory module
  * @module services/stream
@@ -49,33 +55,21 @@ var StreamFactory = function (dbPromise, options) {
     /**
      * Find all streams
      * @method findStreams
-     * @param {object} query - Hash of query options
-     * @param {object} [query.sort={_id:1} - Mongo sort option.
-     * @param {number} [query.limit] - The number of packets to return. If missing, return them all.
+     * @param {object} dbQuery - Hash of query options
+     * @param {object} [dbQuery.sort={_id:1} - Mongo sort option.
+     * @param {number} [dbQuery.limit] - The number of packets to return. If missing, return them all.
      * @returns {Promise}
      */
-    var findStreams = function (query) {
+    var findStreams = function (dbQuery) {
         return new Promise(function (resolve, reject) {
-            // Supply a default query if necessary:
-            if (query === undefined) {
-                query = {
-                    sort : {_id: 1},
-                    limit: 0
-                }
-            }
-            var limit = query.limit === undefined ? 0 : +query.limit;
-            // Test to make sure 'limit' is a number
-            if (typeof limit !== 'number' || (limit % 1) !== 0) {
-                return reject(new Error("Invalid value for limit: " + limit))
-            }
             dbPromise
                 .then(function (db) {
                     db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
                         collection
                             .find()
-                            .limit(limit)
-                            .sort(query.sort)
+                            .limit(dbQuery.limit)
+                            .sort(dbQuery.sort)
                             .toArray()
                             .then(resolve)
                             .catch(reject);
@@ -150,14 +144,14 @@ var StreamFactory = function (dbPromise, options) {
      * Find all packets satifying a query
      * @method findPackets
      * @param {number} streamID - The ID of the stream with the packets to query
-     * @param {object} query - Hash of query options
-     * @param {number} [query.start] - Timestamps greater than this value
-     * @param {number} [query.stop] - Timestamps less than or equal to this value
-     * @param {object} [query.sort={_id:1} - Mongo sort option.
-     * @param {number} [query.limit] - The number of packets to return. If missing, return them all.
+     * @param {object} dbQuery - Hash of query options
+     * @param {number} [dbQuery.start] - Timestamps greater than this value
+     * @param {number} [dbQuery.stop] - Timestamps less than or equal to this value
+     * @param {object} [dbQuery.sort={_id:1} - Mongo sort option.
+     * @param {number} [dbQuery.limit] - The number of packets to return. If missing, return them all.
      * @returns {Promise}
      */
-    var findPackets = function (streamID, query) {
+    var findPackets = function (streamID, dbQuery) {
         return new Promise(function (resolve, reject) {
             // Get the name of the Mongo collection from the streamID
             var collection_name = options.packets.name(streamID);
@@ -165,7 +159,8 @@ var StreamFactory = function (dbPromise, options) {
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
-                        dbtools.findByTimestamp(collection, options)
+                        dbtools
+                            .findByTimestamp(collection, dbQuery)
                             .then(resolve)
                             .catch(reject);
                     });
@@ -181,7 +176,8 @@ var StreamFactory = function (dbPromise, options) {
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
-                        dbtools.findOneByTimestamp(collection, options)
+                        dbtools
+                            .findOneByTimestamp(collection, dbQuery)
                             .then(resolve)
                             .catch(reject)
                     });

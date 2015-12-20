@@ -50,22 +50,32 @@ var getSortSpec = function (sort_option, direction_option) {
         default:
             throw new Error("Unknown sort order: " + direction_option);
     }
-    var sort_spec = {};
+    var sort_spec         = {};
     sort_spec[sort_field] = direction;
     return sort_spec;
 };
 
-var getOptions = function (options) {
+var formDbQuery = function (query) {
+    if (query === undefined) {
+        return {
+            sort : {_id: 1},
+            limit: 0
+        };
+    }
+    var dbQuery = {};
     // Convert the sort information to a MongoDB style sort hash
-    options.sort = getSortSpec(options.sort, options.direction);
-    // If 'direction' was included, it is no longer needed, as it is included in the new 'sort' attribute
-    delete options.direction;
-    return options;
+    dbQuery.sort  = getSortSpec(query.sort, query.direction);
+    dbQuery.limit = query.limit === undefined ? 0 : +query.limit;
+    // Test to make sure 'limit' is a number
+    if (typeof dbQuery.limit !== 'number' || (dbQuery.limit % 1) !== 0) {
+        throw new Error("Invalid value for limit: " + query.limit);
+    }
+    return dbQuery;
 };
 
 module.exports = {
     resourcePath: resourcePath,
     fromError   : fromError,
     getSortSpec : getSortSpec,
-    getOptions  : getOptions
+    formDbQuery : formDbQuery
 };

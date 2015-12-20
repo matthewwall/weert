@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ */
+
 // Config information for the MongoDB server
 module.exports = {
     // URL to the MongoDB database to be used:
