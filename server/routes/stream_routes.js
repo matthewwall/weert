@@ -69,29 +69,30 @@ var StreamRoutes = function (stream_manager) {
     });
 
 
-//// Return the metadata of a particular stream
-//router.get('/streams/:streamID', function (req, res) {
-//    // Get the streamID out of the route path
-//    var streamID = req.params.streamID;
-//    debug("Request for streamID", streamID);
-//
-//    stream_manager.findStream(streamID, function (err, stream_metadata) {
-//        if (err) {
-//            debug("Unable to satisfy request. Reason", err);
-//            res.status(400).json(auxtools.fromError(400, err));
-//            console.log("Bad stream ID", err);
-//        } else {
-//            // If the array of streams is zero lengthed, that mean the stream was not found. Return a 404 error
-//            if (stream_metadata.length) {
-//                res.json(stream_metadata[0]);
-//            } else {
-//                res.sendStatus(404);
-//            }
-//        }
-//    });
-//
-//});
-//
+    // Return the metadata of a particular stream
+    router.get('/streams/:streamID', function (req, res) {
+        // Get the streamID out of the route path
+        var streamID = req.params.streamID;
+        debug("Request for streamID", streamID);
+
+        stream_manager
+            .findStream(streamID)
+            .then(function (stream_metadata) {
+                // If the array of streams is zero lengthed, that mean the stream was not found. Return a 404 error
+                if (stream_metadata.length) {
+                    res.json(stream_metadata[0]);
+                } else {
+                    res.sendStatus(404);
+                }
+
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request. Reason", err);
+                res.status(400).json(auxtools.fromError(400, err));
+                console.log("Bad stream ID", err);
+            });
+    });
+
 //// RESTful interface for requesting packets or an aggregation from a stream, which
 //// satisfies a search query.
 //router.get('/streams/:streamID/packets', function (req, res) {
