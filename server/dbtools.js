@@ -8,39 +8,18 @@
 
 var Promise = require('bluebird');
 
-var findByTimestamp = function (collection, options) {
+var findByTimestamp = function (collection, dbQuery) {
 
     return new Promise(function (resolve, reject) {
-        // Dig any parameters out of the options hash. Make sure to convert any
-        // strings to numbers.
-        var start = options.start === undefined ? 0 : +options.start;
-        var stop  = options.stop === undefined ? Date.now() : +options.stop;
-        var limit = options.limit === undefined ? 0 : +options.limit;
-        var sort  = options.sort === undefined ? {_id: 1} : options.sort;
-
-        // Test to make sure 'start' is a number
-        if (typeof start !== 'number' || (start % 1) !== 0) {
-            return reject(new Error("Invalid value for 'start': " + start))
-        }
-        // Test to make sure 'stop' is a number
-        if (typeof stop !== 'number' || (stop % 1) !== 0) {
-            return reject(new Error("Invalid value for 'stop': " + stop))
-        }
-        // Test to make sure 'limit' is a number
-        if (typeof limit !== 'number' || (limit % 1) !== 0) {
-            return reject(new Error("Invalid value for 'limit': " + limit))
-        }
         collection
-            .find(
-                {
-                    _id: {
-                        $gt : new Date(start),
-                        $lte: new Date(stop)
-                    }
+            .find({
+                _id: {
+                    $gt : new Date(dbQuery.start),
+                    $lte: new Date(dbQuery.stop)
                 }
-            )
-            .limit(limit)
-            .sort(sort)
+            })
+            .limit(dbQuery.limit)
+            .sort(dbQuery.sort)
             .toArray()
             .then(function (result) {
                 // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
@@ -56,15 +35,14 @@ var findByTimestamp = function (collection, options) {
     });
 };
 
-var findOneByTimestamp = function (collection, options) {
+var findOneByTimestamp = function (collection, dbQuery) {
     return new Promise(function (resolve, reject) {
-        var timestamp = +options.timestamp;
-        // Test to make sure 'timestamp' is a number
-        if (typeof timestamp !== 'number' || (timestamp % 1) !== 0) {
-            return reject(new Error("Invalid value for 'timestamp': " + timestamp))
-        }
         collection
-            .find({_id: {$eq: new Date(timestamp)}})
+            .find({
+                _id: {
+                    $eq: new Date(dbQuery.timestamp)
+                }
+            })
             .limit(1)
             .toArray()
             .then(function (results) {
@@ -85,7 +63,47 @@ var findOneByTimestamp = function (collection, options) {
     })
 };
 
+var calcAggregate = function (collection, obs_type, dbQuery) {
+    return Promise(function (resolve, reject) {
+        if (dbQuery.aggregate_type === undefined)
+            dbQuery.aggregate_type = 'avg';
+        var agg_operator       = "$" + aggregate_type;
+        var agg_expr           = {};
+        agg_expr[agg_operator] = "$" + obs_type;
+        var match_expr         = {
+            $match: {
+                _id: {
+                    $gt : new Date(dbQuery.start),
+                    $lte: new Date(dbQuery.stop)
+                }
+            }
+        };
+
+        match_expr["$match"][obs_type] = {$ne: null};
+
+        collection
+            .aggregate(
+                [
+                    match_expr,
+                    {
+                        $group: {
+                            _id      : null,
+                            agg_value: agg_expr
+                        }
+                    }
+                ],
+                {})
+            .toArray()
+            .then(function(result){
+                var val = result[0] === undefined ? null : result[0].agg_value;
+                resolve(val);
+            })
+            .catch(reject)
+    })
+};
+
 module.exports = {
     findByTimestamp   : findByTimestamp,
-    findOneByTimestamp: findOneByTimestamp
+    findOneByTimestamp: findOneByTimestamp,
+    calcAggregate     : calcAggregate
 };

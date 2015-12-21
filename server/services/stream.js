@@ -18,7 +18,6 @@ var Promise = require('bluebird');
  * @param options - A set of options for the database collections
  * @alias module:services/stream.StreamFactory
  * @return {StreamManager}
-
  */
 var StreamFactory = function (dbPromise, options) {
 
@@ -168,8 +167,25 @@ var StreamFactory = function (dbPromise, options) {
         })
     };
 
+    var aggregatePackets = function (streamID, obs_type, dbQuery) {
+        return new Promise(function (resolve, reject) {
+            var collection_name = options.packets.name(streamID);
+            dbPromise
+                .then(function (db) {
+                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                        if (err) return reject(err);
+                        dbtools
+                            .calcAggregate(collection, obs_type, dbQuery)
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                });
 
-    var findPacket = function (streamID, options) {
+        })
+
+    };
+
+    var findPacket = function (streamID, dbQuery) {
         return new Promise(function (resolve, reject) {
             var collection_name = options.packets.name(streamID);
             dbPromise
@@ -206,20 +222,21 @@ var StreamFactory = function (dbPromise, options) {
         })
     };
 
-
     /**
      * @typedef StreamManager
      * @property {function} createStream - Create a new stream
      */
     return {
-        createStream   : createStream,
-        findStreams    : findStreams,
-        findStream     : findStream,
-        insertOnePacket: insertOnePacket,
-        findPackets    : findPackets,
-        findPacket     : findPacket,
-        deleteOnePacket: deleteOnePacket
+        createStream    : createStream,
+        findStreams     : findStreams,
+        findStream      : findStream,
+        insertOnePacket : insertOnePacket,
+        findPackets     : findPackets,
+        aggregatePackets: aggregatePackets,
+        findPacket      : findPacket,
+        deleteOnePacket : deleteOnePacket
     }
-};
+}
+    ;
 
 module.exports = StreamFactory;

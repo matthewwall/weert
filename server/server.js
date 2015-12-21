@@ -74,3 +74,4 @@ app.use(function (err, req, res, next) {
 
 var serverConfig = require('./config/server');
 http.createServer(app).listen(serverConfig.port);
+console.log("Listening on port", serverConfig.port);

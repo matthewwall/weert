@@ -31,7 +31,7 @@ var fromError = function (code, err) {
 };
 
 var getSortSpec = function (sort_option, direction_option) {
-
+    // Convert the sort information to a MongoDB style sort hash
     var sort_field = sort_option === undefined ? "_id" : sort_option;
     var direction  = direction_option === undefined ? "asc" : direction_option;
 
@@ -55,27 +55,59 @@ var getSortSpec = function (sort_option, direction_option) {
     return sort_spec;
 };
 
-var formDbQuery = function (query) {
+var formListQuery = function (query) {
+
     if (query === undefined) {
         return {
             sort : {_id: 1},
             limit: 0
         };
     }
+
     var dbQuery = {};
-    // Convert the sort information to a MongoDB style sort hash
+
     dbQuery.sort  = getSortSpec(query.sort, query.direction);
+
     dbQuery.limit = query.limit === undefined ? 0 : +query.limit;
     // Test to make sure 'limit' is a number
     if (typeof dbQuery.limit !== 'number' || (dbQuery.limit % 1) !== 0) {
-        throw new Error("Invalid value for limit: " + query.limit);
+        throw new Error("Invalid value for 'limit': " + query.limit);
+    }
+    return dbQuery;
+};
+
+var formSpanQuery = function (query) {
+    var dbQuery   = formListQuery(query);
+    dbQuery.start = query.start === undefined ? 0 : +query.start;
+    dbQuery.stop  = query.stop === undefined ? Date.now() : +query.stop;
+    // Test to make sure 'start' is a number
+    if (typeof dbQuery.start !== 'number' || (dbQuery.start % 1) !== 0) {
+        throw new Error("Invalid value for 'start': " + query.start);
+    }
+    // Test to make sure 'stop' is a number
+    if (typeof dbQuery.stop !== 'number' || (dbQuery.stop % 1) !== 0) {
+        throw new Error("Invalid value for 'stop': " + query.stop);
+    }
+    return dbQuery;
+};
+
+var formTimeQuery = function (query) {
+    var dbQuery = {};
+    if (query.timestamp !== undefined) {
+        dbQuery.timestamp = +query.timestamp;
+        // Test to make sure 'timestamp' is a number
+        if (typeof dbQuery.timestamp !== 'number' || (dbQuery.timestamp % 1) !== 0) {
+            throw new Error("Invalid value for 'timestamp': " + query.timestamp);
+        }
     }
     return dbQuery;
 };
 
 module.exports = {
-    resourcePath: resourcePath,
-    fromError   : fromError,
-    getSortSpec : getSortSpec,
-    formDbQuery : formDbQuery
+    resourcePath : resourcePath,
+    fromError    : fromError,
+    getSortSpec  : getSortSpec,
+    formListQuery: formListQuery,
+    formSpanQuery: formSpanQuery,
+    formTimeQuery: formTimeQuery
 };
