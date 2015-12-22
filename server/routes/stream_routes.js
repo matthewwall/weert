@@ -13,25 +13,28 @@ var express = require('express');
 
 var auxtools = require('../auxtools');
 
-var StreamRoutes = function (stream_manager) {
+var StreamRouterFactory = function (stream_manager) {
 
     var router = express.Router();
 
     // Create a new stream
     router.post('/streams', function (req, res) {
         if (req.is('json')) {
-            // Get the metadata
+            // Get the stream metadata
             var metadata = req.body;
             stream_manager
                 .createStream(metadata)
                 .then(function (result) {
+                    // Get the new stream's URI and return it in the location header
                     var resource_url = auxtools.resourcePath(req, result._id);
                     res.status(201).location(resource_url).json(result);
                 })
                 .catch(function (err) {
+                    // Unable to create the stream. Send status 400 and a JSON message.
                     res.status(400).json(auxtools.fromError(400, err));
                 })
         } else {
+            // POST was not in JSON format. Send an error msg.
             res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
         }
 
@@ -46,7 +49,9 @@ var StreamRoutes = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            throw err;
+            debug("Unable to find streams. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+            return;
         }
 
         stream_manager
@@ -69,7 +74,7 @@ var StreamRoutes = function (stream_manager) {
     });
 
 
-    // Return the metadata of a particular stream
+    // GET the metadata for a single stream
     router.get('/streams/:streamID', function (req, res) {
         // Get the streamID out of the route path
         var streamID = req.params.streamID;
@@ -78,18 +83,17 @@ var StreamRoutes = function (stream_manager) {
         stream_manager
             .findStream(streamID)
             .then(function (stream_metadata) {
-                // If the array of streams is zero lengthed, that mean the stream was not found. Return a 404 error
+                // The variable stream_metadata is an array. If it's zero length,
+                // that means the stream could not be found.
                 if (stream_metadata.length) {
                     res.json(stream_metadata[0]);
                 } else {
-                    res.sendStatus(404);
+                    res.sendStatus(404);    // Status 404 Resource Not Found
                 }
-
             })
             .catch(function (err) {
                 debug("Unable to satisfy request. Reason", err);
                 res.status(400).json(auxtools.fromError(400, err));
-                console.log("Bad stream ID", err);
             });
     });
 
@@ -105,8 +109,8 @@ var StreamRoutes = function (stream_manager) {
             stream_manager
                 .insertOnePacket(streamID, packet)
                 .then(function (result) {
-                    var resource_url = auxtools.resourcePath(req, packet.timestamp);
-                    res.status(201).location(resource_url).json(packet);
+                    var resource_url = auxtools.resourcePath(req, result.timestamp);
+                    res.status(201).location(resource_url).json(result);
                 })
                 .catch(function (err) {
                     if (err.code === undefined) {
@@ -133,9 +137,21 @@ var StreamRoutes = function (stream_manager) {
     // GET all packets or an aggregation from a stream, which
     // satisfies a search query.
     router.get('/streams/:streamID/packets', function (req, res) {
+        if (req.query && req.query.direction==='foo')
+            console.log(req.query);
         // Get the streamID out of the route path
         var streamID = req.params.streamID;
-        var dbQuery  = auxtools.formSpanQuery(req.query);
+        var dbQuery;
+        try {
+            dbQuery = auxtools.formSpanQuery(req.query);
+        }
+        catch (err) {
+            err.description = req.query;
+            debug("Unable to find packets. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+            return;
+        }
+
         // Is an aggregation being requested?
         if (req.query.aggregate_type !== undefined) {
             // Yes, an aggregation is being requested.
@@ -147,7 +163,6 @@ var StreamRoutes = function (stream_manager) {
                 .aggregatePackets(streamID, obs_type, dbQuery)
                 .then(function (result) {
                     res.json(result);
-
                 })
                 .catch(function (err) {
                     debug("Unable to satisfy aggregation request. Reason", err);
@@ -173,11 +188,20 @@ var StreamRoutes = function (stream_manager) {
     router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
         // Get the streamID and timestamp out of the route path
         var streamID  = req.params.streamID;
-        var timestamp = req.params.timestamp;
-        debug("Request for packet with timestamp", timestamp);
+        var dbQuery;
+        try {
+            dbQuery = auxtools.formTimeQuery(req.params);
+        }
+        catch (err) {
+            err.description = req.query;
+            debug("Unable to find packet. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+            return;
+        }
+        debug("Request for packet with timestamp", dbQuery.timestamp);
 
         stream_manager
-            .findPacket(streamID, {timestamp: timestamp})
+            .findOnePacket(streamID, dbQuery)
             .then(function (packet) {
                 if (packet === null) res.sendStatus(404);
                 else res.json(packet);
@@ -192,11 +216,20 @@ var StreamRoutes = function (stream_manager) {
     router.delete('/streams/:streamID/packets/:timestamp', function (req, res) {
         // Get the streamID and timestamp out of the route path
         var streamID  = req.params.streamID;
-        var timestamp = req.params.timestamp;
-        debug("Request to delete timestamp", timestamp);
+        var dbQuery;
+        try {
+            dbQuery = auxtools.formTimeQuery(req.params);
+        }
+        catch (err) {
+            err.description = req.query;
+            debug("Unable to delete packets. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+            return;
+        }
+        debug("Request to delete timestamp", dbQuery.timestamp);
 
         stream_manager
-            .deleteOne(streamID, {timestamp: timestamp})
+            .deleteOnePacket(streamID, dbQuery)
             .then(function (result) {
                 var status = result.result.n ? 204 : 404;
                 res.sendStatus(status);
@@ -212,4 +245,4 @@ var StreamRoutes = function (stream_manager) {
 
 };
 
-module.exports = StreamRoutes;
+module.exports = StreamRouterFactory;

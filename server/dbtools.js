@@ -9,19 +9,27 @@
 var Promise = require('bluebird');
 
 var findByTimestamp = function (collection, dbQuery) {
+    var start = dbQuery.start;
+    var stop  = dbQuery.stop;
+    var limit = dbQuery.limit;
+    var sort  = dbQuery.sort;
+    if (start === undefined) start = 0;
+    if (stop === undefined) stop = new Date();
+    if (limit === undefined) limit = 0;
+    if (sort === undefined) sort = {_id: 1};
 
     return new Promise(function (resolve, reject) {
         collection
             .find({
                 _id: {
-                    $gt : new Date(dbQuery.start),
-                    $lte: new Date(dbQuery.stop)
+                    $gt : new Date(start),
+                    $lte: new Date(stop)
                 }
             })
-            .limit(dbQuery.limit)
-            .sort(dbQuery.sort)
+            .limit(limit)
+            .sort(sort)
             .toArray()
-            .then(function (result) {
+            .then(function (results) {
                 // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
                 // instead of a Date() object:
                 for (var i = 0; i < results.length; i++) {
@@ -36,6 +44,8 @@ var findByTimestamp = function (collection, dbQuery) {
 };
 
 var findOneByTimestamp = function (collection, dbQuery) {
+    if (dbQuery.timestamp === undefined)
+        throw new Error("Timestamp must be defined");
     return new Promise(function (resolve, reject) {
         collection
             .find({
@@ -64,6 +74,11 @@ var findOneByTimestamp = function (collection, dbQuery) {
 };
 
 var calcAggregate = function (collection, obs_type, dbQuery) {
+    var start = dbQuery.start;
+    var stop  = dbQuery.stop;
+    if (start === undefined) start = 0;
+    if (stop === undefined) stop = new Date();
+
     return Promise(function (resolve, reject) {
         if (dbQuery.aggregate_type === undefined)
             dbQuery.aggregate_type = 'avg';
@@ -73,8 +88,8 @@ var calcAggregate = function (collection, obs_type, dbQuery) {
         var match_expr         = {
             $match: {
                 _id: {
-                    $gt : new Date(dbQuery.start),
-                    $lte: new Date(dbQuery.stop)
+                    $gt : new Date(start),
+                    $lte: new Date(stop)
                 }
             }
         };
@@ -94,7 +109,7 @@ var calcAggregate = function (collection, obs_type, dbQuery) {
                 ],
                 {})
             .toArray()
-            .then(function(result){
+            .then(function (result) {
                 var val = result[0] === undefined ? null : result[0].agg_value;
                 resolve(val);
             })

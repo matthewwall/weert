@@ -4,6 +4,8 @@
  *  See the file LICENSE for your full rights.
  */
 
+// Platform-related routes
+
 "use strict";
 
 var debug   = require('debug')('weert:server');
@@ -11,10 +13,9 @@ var express = require('express');
 
 var auxtools = require('../auxtools');
 
-var PlatformRoutes = function (platform_manager) {
+var PlatformRouterFactory = function (platform_manager) {
 
-    var router  = express.Router();
-
+    var router = express.Router();
 
     // Create a new platform
     router.post('/platforms', function (req, res) {
@@ -22,30 +23,38 @@ var PlatformRoutes = function (platform_manager) {
             // Get the platform metadata
             var metadata = req.body;
             // Ask the PlatformManager to create the new platform.
-            platform_manager.createPlatform(metadata, function (err, result) {
-                if (err) {
-                    // Unable to create the platform. Send status 400 and a JSON message.
-                    res.status(400).json(auxtools.fromError(400, err));
-                } else {
-                    // All went well. Get the new platform's URI and return it in the location header
+            platform_manager
+                .createPlatform(metadata)
+                .then(function (result) {
+                    // Get the new platform's URI and return it in the location header
                     var resource_url = auxtools.resourcePath(req, result._id);
                     res.status(201).location(resource_url).json(result);
-                }
-            })
+                })
+                .catch(function (err) {
+                    // Unable to create the platform. Send status 400 and a JSON message.
+                    res.status(400).json(auxtools.fromError(400, err));
+                });
         } else {
             // POST was not in JSON format. Send an error msg.
             res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
         }
     });
 
-    // Return an array of URIs to platforms that satisfy a query.
+    // Return an array of URIs or metadata for platforms that satisfy a query.
     router.get('/platforms', function (req, res) {
+        var dbQuery;
+        try {
+            dbQuery = auxtools.formListQuery(req.query);
+        }
+        catch (err) {
+            err.description = req.query;
+            debug("Unable to find platforms. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+        }
         // Ask the PlatformManager to find the platforms that satisfy the query
-        platform_manager.findPlatforms(req.query, function (err, platforms_array) {
-            if (err) {
-                debug("Unable to find platforms. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
-            } else {
+        platform_manager
+            .findPlatforms(req.query)
+            .then(function (platforms_array) {
                 debug("# of platforms=", platforms_array.length);
                 var as = req.query.as ? req.query.as : 'links';
                 switch (as.toLowerCase()) {
@@ -65,22 +74,22 @@ var PlatformRoutes = function (platform_manager) {
                             description: req.query.as
                         });
                 }
-            }
-
-        });
+            })
+            .catch(function (err) {
+                debug("Unable to find platforms. Reason", err);
+                res.status(400).json(auxtools.fromError(400, err));
+            });
     });
 
-    // Get the metadata for a single platform
+    // GET the metadata for a single platform
     router.get('/platforms/:platformID', function (req, res) {
         // Get the platformID out of the route path
         var platformID = req.params.platformID;
         debug("Request for platformID", platformID);
 
-        platform_manager.findPlatform(platformID, function (err, platform_metadata) {
-            if (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
-            } else {
+        platform_manager
+            .findPlatform(platformID)
+            .then(function (platform_metadata) {
                 // The variable platform_metadata is an array. If it's zero length,
                 // that means the platform could not be found.
                 if (platform_metadata.length) {
@@ -88,10 +97,13 @@ var PlatformRoutes = function (platform_manager) {
                 } else {
                     res.sendStatus(404);    // Status 404 Resource Not Found
                 }
-            }
-        });
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request. Reason", err);
+                res.status(400).json(auxtools.fromError(400, err));
+            });
     });
-
+stopped here
     // POST a new location for a specific platform
     router.post('/platforms/:platformID/locations', function (req, res) {
         // Make sure the incoming packet is encoded in JSON.
@@ -101,8 +113,18 @@ var PlatformRoutes = function (platform_manager) {
             // Get the location record out of the request body:
             var locrec = req.body;
             // Insert the location record into the database
-            platform_manager.createLocationRecord(platformID, locrec, function (err, result) {
-                if (err) {
+            platform_manager
+                .createLocationRecord(platformID, locrec)
+                    .then(function(result){
+                        // All went well. Get the URI of the new location record
+                        var resource_url = auxtools.resourcePath(req, locrec.timestamp);
+                        // Send it back in the location header
+                        res.status(201).location(resource_url).json(locrec);
+                        // Let any interested subscribers know there is a new location record:
+                        pubsub.publish('new_location_record', {"location_record": locrec, "platformID": platformID}, this);
+
+                    })
+                .catch(function(err){
                     // See if this is a MongoDB error.
                     if (err.code === undefined) {
                         // Not a MongoDB error.
@@ -118,15 +140,8 @@ var PlatformRoutes = function (platform_manager) {
                         err.description = "Unable to insert location record";
                         res.status(400).json(auxtools.fromError(400, err));
                     }
-                } else {
-                    // All went well. Get the URI of the new location record
-                    var resource_url = auxtools.resourcePath(req, locrec.timestamp);
-                    // Send it back in the location header
-                    res.status(201).location(resource_url).json(locrec);
-                    // Let any interested subscribers know there is a new location record:
-                    pubsub.publish('new_location_record', {"location_record": locrec, "platformID": platformID}, this);
-                }
-            });
+
+                });
         } else {
             res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
         }
@@ -170,5 +185,5 @@ var PlatformRoutes = function (platform_manager) {
 
 };
 
-module.exports = PlatformRoutes;
+module.exports = PlatformRouterFactory;
 

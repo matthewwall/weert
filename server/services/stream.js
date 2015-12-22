@@ -9,8 +9,11 @@
  * @module services/stream
  */
 
+var debug   = require('debug')('weert:server');
 var mongodb = require('mongodb');
 var Promise = require('bluebird');
+
+var dbtools = require('../dbtools');
 
 /**
  * Factory that manages streams
@@ -130,7 +133,10 @@ var StreamFactory = function (dbPromise, options) {
                         .insertOne(packet);
                 })
                 .then(function (result) {
-                    return resolve(result.ops[0]);
+                    var final_packet       = result.ops[0];
+                    final_packet.timestamp = final_packet._id.getTime();
+                    delete final_packet._id;
+                    return resolve(final_packet);
                 })
                 .catch(function (err) {
                     return reject(err);
@@ -185,7 +191,7 @@ var StreamFactory = function (dbPromise, options) {
 
     };
 
-    var findPacket = function (streamID, dbQuery) {
+    var findOnePacket = function (streamID, dbQuery) {
         return new Promise(function (resolve, reject) {
             var collection_name = options.packets.name(streamID);
             dbPromise
@@ -201,14 +207,10 @@ var StreamFactory = function (dbPromise, options) {
         })
     };
 
-    var deleteOnePacket = function (streamID, options) {
+    var deleteOnePacket = function (streamID, dbQuery) {
         return new Promise(function (resolve, reject) {
-            var timestamp = +options.timestamp;
-            // Test to make sure 'timestamp' is a number
-            if (typeof timestamp !== 'number' || (timestamp % 1) !== 0) {
-                return reject(new Error("Invalid value for 'timestamp': " + timestamp));
-            }
-            var collection_name = options.packet.name(streamID);
+            var timestamp = +dbQuery.timestamp;
+            var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
@@ -233,7 +235,7 @@ var StreamFactory = function (dbPromise, options) {
         insertOnePacket : insertOnePacket,
         findPackets     : findPackets,
         aggregatePackets: aggregatePackets,
-        findPacket      : findPacket,
+        findOnePacket   : findOnePacket,
         deleteOnePacket : deleteOnePacket
     }
 }

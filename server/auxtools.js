@@ -48,7 +48,7 @@ var getSortSpec = function (sort_option, direction_option) {
             direction = -1;
             break;
         default:
-            throw new Error("Unknown sort order: " + direction_option);
+            throw new Error("Unknown sort order: " + direction);
     }
     var sort_spec         = {};
     sort_spec[sort_field] = direction;
@@ -66,7 +66,7 @@ var formListQuery = function (query) {
 
     var dbQuery = {};
 
-    dbQuery.sort  = getSortSpec(query.sort, query.direction);
+    dbQuery.sort = getSortSpec(query.sort, query.direction);
 
     dbQuery.limit = query.limit === undefined ? 0 : +query.limit;
     // Test to make sure 'limit' is a number
@@ -93,12 +93,10 @@ var formSpanQuery = function (query) {
 
 var formTimeQuery = function (query) {
     var dbQuery = {};
-    if (query.timestamp !== undefined) {
-        dbQuery.timestamp = +query.timestamp;
-        // Test to make sure 'timestamp' is a number
-        if (typeof dbQuery.timestamp !== 'number' || (dbQuery.timestamp % 1) !== 0) {
-            throw new Error("Invalid value for 'timestamp': " + query.timestamp);
-        }
+    dbQuery.timestamp = +query.timestamp;
+    // Test to make sure 'timestamp' is a number
+    if (typeof dbQuery.timestamp !== 'number' || (dbQuery.timestamp % 1) !== 0) {
+        throw new Error("Invalid value for 'timestamp': " + query.timestamp);
     }
     return dbQuery;
 };
