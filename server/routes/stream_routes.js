@@ -28,16 +28,16 @@ var StreamRouterFactory = function (stream_manager) {
                     // Get the new stream's URI and return it in the location header
                     var resource_url = auxtools.resourcePath(req, result._id);
                     res.status(201).location(resource_url).json(result);
+                    res.app.emit('streams/POST', result);
                 })
                 .catch(function (err) {
                     // Unable to create the stream. Send status 400 and a JSON message.
                     res.status(400).json(auxtools.fromError(400, err));
-                })
+                });
         } else {
             // POST was not in JSON format. Send an error msg.
             res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
         }
-
     });
 
     // Return an array of URIs to streams that satisfy a query.
@@ -65,7 +65,6 @@ var StreamRouterFactory = function (stream_manager) {
                 }
                 // Return the array
                 res.json(stream_uris);
-
             })
             .catch(function (err) {
                 debug("Unable to find streams. Reason", err);
@@ -111,6 +110,7 @@ var StreamRouterFactory = function (stream_manager) {
                 .then(function (result) {
                     var resource_url = auxtools.resourcePath(req, result.timestamp);
                     res.status(201).location(resource_url).json(result);
+                    res.app.emit('streams/' + streamID + '/packets/POST', result);
                 })
                 .catch(function (err) {
                     if (err.code === undefined) {
@@ -231,8 +231,15 @@ var StreamRouterFactory = function (stream_manager) {
         stream_manager
             .deleteOnePacket(streamID, dbQuery)
             .then(function (result) {
-                var status = result.result.n ? 204 : 404;
-                res.sendStatus(status);
+                // The property 'n' holds the number of documents deleted
+                if (result.result.n){
+                    // Success.
+                    res.sendStatus(204);
+                    res.app.emit('streams/' + streamID + '/packets/DELETE', dbQuery.timestamp);
+                } else {
+                    // Couldn't find the doc
+                    res.sendStatus(404);
+                }
             })
             .catch(function (err) {
                 debug("Unable to satisfy request. Reason", err);

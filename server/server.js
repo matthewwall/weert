@@ -19,17 +19,16 @@ var app        = express();
 app.set('views', path.join(__dirname, './views'));
 app.set('view engine', 'hbs');
 
-app.use(logger('dev')); // Log all requests to the server to the console
+// Log all requests to the server to the console
+app.use(logger('dev'));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
 // Serve all static files from the "client" subdirectory:
 app.use(express.static(path.join(__dirname, '../client')));
 
-// app.use('/api/v1', platform_routes(platforms_manager));
-
-// So far, it's pretty much Express boilerplate.
-// Now set up the WeeRT database and routes
+// Set up the WeeRT database and routes
 var dbconfig        = require('./config/database');
 var dbPromise       = require('./services/database')(dbconfig);
 var streamManager   = require('./services/stream')(dbPromise, dbconfig);

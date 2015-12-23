@@ -29,6 +29,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     // Get the new platform's URI and return it in the location header
                     var resource_url = auxtools.resourcePath(req, result._id);
                     res.status(201).location(resource_url).json(result);
+                    res.app.emit('platforms/POST', result);
                 })
                 .catch(function (err) {
                     // Unable to create the platform. Send status 400 and a JSON message.
@@ -121,6 +122,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     var resource_url = auxtools.resourcePath(req, locrec.timestamp);
                     // Send it back in the location header
                     res.status(201).location(resource_url).json(locrec);
+                    res.app.emit('platforms/' + platformID + '/locations/POST', locrec);
                 })
                 .catch(function (err) {
                     // See if this is a MongoDB error.
@@ -138,7 +140,6 @@ var PlatformRouterFactory = function (platform_manager) {
                         err.description = "Unable to insert location record";
                         res.status(400).json(auxtools.fromError(400, err));
                     }
-
                 });
         } else {
             res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
@@ -204,7 +205,7 @@ var PlatformRouterFactory = function (platform_manager) {
     // DELETE a specific location record
     router.delete('/platforms/:platformID/locations/:timestamp', function (req, res) {
         // Get the platformID and timestamp out of the route path
-        var platformID  = req.params.platformID;
+        var platformID = req.params.platformID;
         var dbQuery;
         try {
             dbQuery = auxtools.formTimeQuery(req.params, {match: 'exact'});
@@ -220,8 +221,14 @@ var PlatformRouterFactory = function (platform_manager) {
         platform_manager
             .deleteOneLocation(platformID, dbQuery)
             .then(function (result) {
-                var status = result.result.n ? 204 : 404;
-                res.sendStatus(status);
+                if (result.result.n) {
+                    // Success
+                    res.sendStatus(204);
+                    res.app.emit('platforms/' + platformID + '/locations/DELETE', dbQuery.timestamp);
+                } else {
+                    // Couldn't find the doc
+                    res.sendStatus(404);
+                }
             })
             .catch(function (err) {
                 debug("Unable to satisfy request. Reason", err);
@@ -230,6 +237,7 @@ var PlatformRouterFactory = function (platform_manager) {
             })
     });
 
+    // Return the built router
     return router;
 
 };

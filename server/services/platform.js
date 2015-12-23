@@ -198,7 +198,6 @@ var PlatformManagerFactory = function (dbPromise, options) {
         });
     };
 
-
     var deleteOneLocation = function (platformID, dbQuery) {
         return new Promise(function (resolve, reject) {
             var timestamp       = +dbQuery.timestamp;
@@ -230,7 +229,6 @@ var PlatformManagerFactory = function (dbPromise, options) {
         findOneLocation  : findOneLocation,
         deleteOneLocation: deleteOneLocation
     }
-}
-    ;
+};
 
 module.exports = PlatformManagerFactory;

@@ -79,7 +79,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                     });
                 })
                 .catch(reject);
-        })
+        });
     };
 
     var findStream = function (streamID) {
@@ -103,7 +103,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                     });
                 })
                 .catch(reject);
-        })
+        });
     };
 
 
@@ -173,7 +173,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                     });
                 })
                 .catch(reject);
-        })
+        });
     };
 
     var aggregatePackets = function (streamID, obs_type, dbQuery) {
@@ -190,7 +190,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                     });
                 })
                 .catch(reject);
-        })
+        });
     };
 
     var findOnePacket = function (streamID, dbQuery) {
@@ -207,12 +207,12 @@ var StreamManagerFactory = function (dbPromise, options) {
                     });
                 })
                 .catch(reject);
-        })
+        });
     };
 
     var deleteOnePacket = function (streamID, dbQuery) {
         return new Promise(function (resolve, reject) {
-            var timestamp = +dbQuery.timestamp;
+            var timestamp       = +dbQuery.timestamp;
             var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
@@ -225,7 +225,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                     });
                 })
                 .catch(reject);
-        })
+        });
     };
 
     /**
@@ -242,7 +242,6 @@ var StreamManagerFactory = function (dbPromise, options) {
         findOnePacket   : findOnePacket,
         deleteOnePacket : deleteOnePacket
     }
-}
-    ;
+};
 
 module.exports = StreamManagerFactory;
