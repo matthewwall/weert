@@ -5,8 +5,8 @@
  */
 
 /**
- * StreamManagerFactory module
- * @module services/stream
+ * PlatformManagerFactory module
+ * @module services/platform
  */
 
 var debug   = require('debug')('weert:server');
@@ -16,37 +16,42 @@ var Promise = require('bluebird');
 var dbtools = require('../dbtools');
 
 /**
- * Factory that produces an interface to manage streams. The interface is dependent
+ * Factory that produces an interface to manage platforms. The interface is dependent
  * on a database Promise, and some options.
  * @param dbPromise - A Promise to a database connection
  * @param options - A set of options for the database collections
- * @alias module:services/stream.StreamManagerFactory
- * @return {StreamManager}
+ * @alias module:services/platform.PlatformManagerFactory
+ * @return {PlatformManager}
  */
-var StreamManagerFactory = function (dbPromise, options) {
+var PlatformManagerFactory = function (dbPromise, options) {
 
     /**
-     * Create a new stream
-     * @method createStream
-     * @param {object} stream_metadata - The stream's metadata
+     * Create a new platform
+     * @method createPlatform
+     * @param {object} platform_metadata - The platform's metadata
      * @returns {Promise}
      */
-    var createStream = function (stream_metadata) {
+    var createPlatform = function (platform_metadata) {
         return new Promise(function (resolve, reject) {
             // Make sure the _id field has not been already defined. MongoDB will do this.
-            if (stream_metadata._id !== undefined) {
+            if (platform_metadata._id !== undefined) {
                 return reject(new Error("Field _id is already defined"));
+            }
+            // If the metadata doesn't already have one, include an array to hold the streams associated
+            // with this platform.
+            if (platform_metadata.streams === undefined) {
+                platform_metadata.streams = [];
             }
             dbPromise
                 .then(function (db) {
                     // This returns a promise
                     return db
-                        .collection(options.streams.metadata_name, options.streams.options)
-                        .insertOne(stream_metadata, {});
+                        .collection(options.platforms.metadata_name, options.platforms.options)
+                        .insertOne(platform_metadata, {});
                 })
                 .then(function (result) {
-                    var stream_final_metadata = result.ops[0];
-                    return resolve(stream_final_metadata);
+                    var platform_final_metadata = result.ops[0];
+                    return resolve(platform_final_metadata);
                 })
                 .catch(function (err) {
                     return reject(err);
@@ -56,18 +61,18 @@ var StreamManagerFactory = function (dbPromise, options) {
 
 
     /**
-     * Find all streams
-     * @method findStreams
+     * Find all platforms
+     * @method findPlatforms
      * @param {object} dbQuery - Hash of query options
      * @param {object} [dbQuery.sort={_id:1} - Mongo sort option.
-     * @param {number} [dbQuery.limit] - The number of packets to return. If missing, return them all.
+     * @param {number} [dbQuery.limit] - The number of locrecs to return. If missing, return them all.
      * @returns {Promise}
      */
-    var findStreams = function (dbQuery) {
+    var findPlatforms = function (dbQuery) {
         return new Promise(function (resolve, reject) {
             dbPromise
                 .then(function (db) {
-                    db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
+                    db.collection(options.platforms.metadata_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
                         collection
                             .find()
@@ -82,17 +87,17 @@ var StreamManagerFactory = function (dbPromise, options) {
         })
     };
 
-    var findStream = function (streamID) {
+    var findPlatform = function (platformID) {
         return new Promise(function (resolve, reject) {
             dbPromise
                 .then(function (db) {
-                    db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
+                    db.collection(options.platforms.metadata_name, {strict: true}, function (err, collection) {
                         if (err) return reject(err);
                         // A bad _id will cause an exception. Be prepared to catch it
                         try {
-                            var id_obj = new mongodb.ObjectID(streamID);
+                            var id_obj = new mongodb.ObjectID(platformID);
                         } catch (err) {
-                            err.description = "Unable to form ObjectID for streamID of " + streamID;
+                            err.description = "Unable to form ObjectID for platformID of " + platformID;
                             return reject(err)
                         }
                         collection
@@ -107,37 +112,37 @@ var StreamManagerFactory = function (dbPromise, options) {
 
 
     /**
-     * Insert a new packet into an existing stream
-     * @method insertOnePacket
-     * @param {number} streamID - The ID of the stream in which to insert the packet
-     * @param {object} packet - The packet
+     * Insert a new location record (locrec) for an existing platform
+     * @method insertOneLocation
+     * @param {number} platformID - The ID of the platform in which to insert the locrec
+     * @param {object} locrec - The locrec
      */
-    var insertOnePacket = function (streamID, packet) {
+    var insertOneLocation = function (platformID, locrec) {
         return new Promise(function (resolve, reject) {
-            // Make sure the incoming packet contains a timestamp
-            if (packet.timestamp === undefined) {
-                return reject(new Error("No timestamp in packet"));
+            // Make sure the incoming locrec contains a timestamp
+            if (locrec.timestamp === undefined) {
+                return reject(new Error("No timestamp in location record"));
             }
             // Make sure it does not include an _id field:
-            if (packet._id !== undefined) {
+            if (locrec._id !== undefined) {
                 return reject(new Error("Field _id is already defined"));
             }
             // Change key timestamp to _id
-            packet._id = new Date(packet.timestamp);
-            delete packet.timestamp;
-            // Get the name of the Mongo collection the packet should go in
-            var collection_name = options.packets.name(streamID);
+            locrec._id = new Date(locrec.timestamp);
+            delete locrec.timestamp;
+            // Get the name of the Mongo collection the locrec should go in
+            var collection_name = options.locrecs.name(platformID);
             dbPromise
                 .then(function (db) {
                     return db
-                        .collection(collection_name, options.packets.options)
-                        .insertOne(packet);
+                        .collection(collection_name, options.locrecs.options)
+                        .insertOne(locrec);
                 })
                 .then(function (result) {
-                    var final_packet       = result.ops[0];
-                    final_packet.timestamp = final_packet._id.getTime();
-                    delete final_packet._id;
-                    return resolve(final_packet);
+                    var final_locrec       = result.ops[0];
+                    final_locrec.timestamp = final_locrec._id.getTime();
+                    delete final_locrec._id;
+                    return resolve(final_locrec);
                 })
                 .catch(function (err) {
                     return reject(err);
@@ -147,20 +152,20 @@ var StreamManagerFactory = function (dbPromise, options) {
 
 
     /**
-     * Find all packets satifying a query
+     * Find all locrecs satifying a query
      * @method findPackets
-     * @param {number} streamID - The ID of the stream with the packets to query
+     * @param {number} platformID - The ID of the platform with the locrecs to query
      * @param {object} dbQuery - Hash of query options
      * @param {number} [dbQuery.start] - Timestamps greater than this value
      * @param {number} [dbQuery.stop] - Timestamps less than or equal to this value
      * @param {object} [dbQuery.sort={_id:1} - Mongo sort option.
-     * @param {number} [dbQuery.limit] - The number of packets to return. If missing, return them all.
+     * @param {number} [dbQuery.limit] - The number of locrecs to return. If missing, return them all.
      * @returns {Promise}
      */
-    var findPackets = function (streamID, dbQuery) {
+    var findLocations = function (platformID, dbQuery) {
         return new Promise(function (resolve, reject) {
-            // Get the name of the Mongo collection from the streamID
-            var collection_name = options.packets.name(streamID);
+            // Get the name of the Mongo collection from the platformID
+            var collection_name = options.locrecs.name(platformID);
             dbPromise
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
@@ -174,27 +179,9 @@ var StreamManagerFactory = function (dbPromise, options) {
         })
     };
 
-    var aggregatePackets = function (streamID, obs_type, dbQuery) {
+    var findOneLocation = function (platformID, dbQuery) {
         return new Promise(function (resolve, reject) {
-            var collection_name = options.packets.name(streamID);
-            dbPromise
-                .then(function (db) {
-                    db.collection(collection_name, {strict: true}, function (err, collection) {
-                        if (err) return reject(err);
-                        dbtools
-                            .calcAggregate(collection, obs_type, dbQuery)
-                            .then(resolve)
-                            .catch(reject);
-                    });
-                });
-
-        })
-
-    };
-
-    var findOnePacket = function (streamID, dbQuery) {
-        return new Promise(function (resolve, reject) {
-            var collection_name = options.packets.name(streamID);
+            var collection_name = options.locrecs.name(platformID);
             dbPromise
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
@@ -208,10 +195,10 @@ var StreamManagerFactory = function (dbPromise, options) {
         })
     };
 
-    var deleteOnePacket = function (streamID, dbQuery) {
+    var deleteOneLocation = function (platformID, dbQuery) {
         return new Promise(function (resolve, reject) {
-            var timestamp = +dbQuery.timestamp;
-            var collection_name = options.packets.name(streamID);
+            var timestamp       = +dbQuery.timestamp;
+            var collection_name = options.locrecs.name(platformID);
             dbPromise
                 .then(function (db) {
                     db.collection(collection_name, {strict: true}, function (err, collection) {
@@ -226,20 +213,19 @@ var StreamManagerFactory = function (dbPromise, options) {
     };
 
     /**
-     * @typedef StreamManager
-     * @property {function} createStream - Create a new stream
+     * @typedef PlatformManager
+     * @property {function} createPlatform - Create a new platform
      */
     return {
-        createStream    : createStream,
-        findStreams     : findStreams,
-        findStream      : findStream,
-        insertOnePacket : insertOnePacket,
-        findPackets     : findPackets,
-        aggregatePackets: aggregatePackets,
-        findOnePacket   : findOnePacket,
-        deleteOnePacket : deleteOnePacket
+        createPlatform    : createPlatform,
+        findPlatforms     : findPlatforms,
+        findPlatform      : findPlatform,
+        insertOneLocation : insertOneLocation,
+        findLocations     : findLocations,
+        findOneLocation   : findOneLocation,
+        deleteOneLocation : deleteOneLocation
     }
 }
     ;
 
-module.exports = StreamManagerFactory;
+module.exports = PlatformManagerFactory;

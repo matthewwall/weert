@@ -50,10 +50,11 @@ var PlatformRouterFactory = function (platform_manager) {
             err.description = req.query;
             debug("Unable to find platforms. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
+            return;
         }
         // Ask the PlatformManager to find the platforms that satisfy the query
         platform_manager
-            .findPlatforms(req.query)
+            .findPlatforms(dbQuery)
             .then(function (platforms_array) {
                 debug("# of platforms=", platforms_array.length);
                 var as = req.query.as ? req.query.as : 'links';
@@ -103,7 +104,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 res.status(400).json(auxtools.fromError(400, err));
             });
     });
-stopped here
+
     // POST a new location for a specific platform
     router.post('/platforms/:platformID/locations', function (req, res) {
         // Make sure the incoming packet is encoded in JSON.
@@ -114,17 +115,14 @@ stopped here
             var locrec = req.body;
             // Insert the location record into the database
             platform_manager
-                .createLocationRecord(platformID, locrec)
-                    .then(function(result){
-                        // All went well. Get the URI of the new location record
-                        var resource_url = auxtools.resourcePath(req, locrec.timestamp);
-                        // Send it back in the location header
-                        res.status(201).location(resource_url).json(locrec);
-                        // Let any interested subscribers know there is a new location record:
-                        pubsub.publish('new_location_record', {"location_record": locrec, "platformID": platformID}, this);
-
-                    })
-                .catch(function(err){
+                .insertOneLocation(platformID, locrec)
+                .then(function (result) {
+                    // All went well. Get the URI of the new location record
+                    var resource_url = auxtools.resourcePath(req, locrec.timestamp);
+                    // Send it back in the location header
+                    res.status(201).location(resource_url).json(locrec);
+                })
+                .catch(function (err) {
                     // See if this is a MongoDB error.
                     if (err.code === undefined) {
                         // Not a MongoDB error.
@@ -151,34 +149,85 @@ stopped here
     router.get('/platforms/:platformID/locations', function (req, res) {
         // Get the platformID out of the route path
         var platformID = req.params.platformID;
+        var dbQuery;
+        try {
+            dbQuery = auxtools.formSpanQuery(req.query);
+        }
+        catch (err) {
+            err.description = req.query;
+            debug("Unable to find packets. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+            return;
+        }
+
         debug("Request for location records with start, stop times of", req.query.start, req.query.stop);
-        platform_manager.findLocationRecords(platformID, req.query, function (err, locrec_array) {
-            if (err) {
-                debug("Unable to satisfy request for location records. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
-            } else {
+        platform_manager
+            .findLocations(platformID, dbQuery)
+            .then(function (locrec_array) {
                 debug("# of locrecs=", locrec_array.length);
                 res.json(locrec_array);
-            }
-        });
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request for location records. Reason", err);
+                res.status(400).json(auxtools.fromError(400, err));
+            });
     });
 
     // Get the location satisfying a time query
     router.get('/platforms/:platformID/locations/:timestamp', function (req, res) {
         // Get the platformID and timestamp out of the route path
         var platformID = req.params.platformID;
-        var timestamp  = req.params.timestamp;
-        debug("Request for location at timestamp", timestamp);
+        var dbQuery;
+        try {
+            dbQuery = auxtools.formTimeQuery(req.params);
+        }
+        catch (err) {
+            err.description = req.query;
+            debug("Unable to find location record. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+            return;
+        }
+        debug("Request for location at timestamp", dbQuery.timestamp);
 
-        platform_manager.location(platformID, timestamp, req.query, function (err, record) {
-            if (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
-            } else {
+        platform_manager
+            .findOneLocation(platformID, dbQuery)
+            .then(function (record) {
                 if (record === null) res.sendStatus(404);
                 else res.json(record);
-            }
-        });
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request. Reason", err);
+                res.status(400).json(auxtools.fromError(400, err));
+            });
+    });
+
+    // DELETE a specific location record
+    router.delete('/platforms/:platformID/locations/:timestamp', function (req, res) {
+        // Get the platformID and timestamp out of the route path
+        var platformID  = req.params.platformID;
+        var dbQuery;
+        try {
+            dbQuery = auxtools.formTimeQuery(req.params);
+        }
+        catch (err) {
+            err.description = req.query;
+            debug("Unable to delete location record. Reason", err);
+            res.status(400).json(auxtools.fromError(400, err));
+            return;
+        }
+        debug("Request to delete location record at timestamp", dbQuery.timestamp);
+
+        platform_manager
+            .deleteOneLocation(platformID, dbQuery)
+            .then(function (result) {
+                var status = result.result.n ? 204 : 404;
+                res.sendStatus(status);
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request. Reason", err);
+                res.status(400).json(auxtools.fromError(400, err));
+
+            })
     });
 
     return router;

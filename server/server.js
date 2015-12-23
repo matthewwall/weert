@@ -30,11 +30,14 @@ app.use(express.static(path.join(__dirname, '../client')));
 
 // So far, it's pretty much Express boilerplate.
 // Now set up the WeeRT database and routes
-var dbconfig      = require('./config/database');
-var dbPromise     = require('./services/database')(dbconfig);
-var streamManager = require('./services/stream')(dbPromise, dbconfig);
-var stream_routes = require('./routes/stream_routes');
+var dbconfig        = require('./config/database');
+var dbPromise       = require('./services/database')(dbconfig);
+var streamManager   = require('./services/stream')(dbPromise, dbconfig);
+var platformManager = require('./services/platform')(dbPromise, dbconfig);
+var stream_routes   = require('./routes/stream_routes');
+var platform_routes = require('./routes/platform_routes');
 app.use('/api/v1', stream_routes(streamManager));
+app.use('/api/v1', platform_routes(platformManager));
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

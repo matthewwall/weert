@@ -17,10 +17,31 @@ module.exports = {
         }
     },
 
+    // Options to be used for the platform metadata collection
+    platforms: {
+        metadata_name: 'platforms_metadata',
+        options      : {
+            strict: false
+        }
+    },
+
     // Options to be used for the collections holding packet data
     packets: {
         name   : function (streamID) {
             return "streams_" + streamID + "_packets"
+        },
+        options: {
+            strict: false,
+            capped: true,
+            size  : 1000000,
+            max   : 3600
+        }
+    },
+
+    // Options to be used for the collections holding location data
+    locrecs: {
+        name   : function (platformID) {
+            return "platforms_" + platformID + "_locations"
         },
         options: {
             strict: false,

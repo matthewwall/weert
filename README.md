@@ -282,6 +282,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Get the location for the platform with id *platformID*, at a specific time.                      | I, D, T  |
+| `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete the location for the platform with id *platformID*, at a specific time.                   | I,       |
 | `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
 | `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
 | `GET`       | `/api/v1/streams/:streamID`                    | Get the metadata for the stream with id *streamID*.                                                    | I     T  |

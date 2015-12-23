@@ -137,8 +137,6 @@ var StreamRouterFactory = function (stream_manager) {
     // GET all packets or an aggregation from a stream, which
     // satisfies a search query.
     router.get('/streams/:streamID/packets', function (req, res) {
-        if (req.query && req.query.direction==='foo')
-            console.log(req.query);
         // Get the streamID out of the route path
         var streamID = req.params.streamID;
         var dbQuery;
@@ -226,7 +224,7 @@ var StreamRouterFactory = function (stream_manager) {
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
-        debug("Request to delete timestamp", dbQuery.timestamp);
+        debug("Request to delete packet at timestamp", dbQuery.timestamp);
 
         stream_manager
             .deleteOnePacket(streamID, dbQuery)
