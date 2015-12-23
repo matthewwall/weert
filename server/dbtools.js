@@ -43,17 +43,42 @@ var findByTimestamp = function (collection, dbQuery) {
     });
 };
 
+//var findOneByTimestamp = function (collection, dbQuery) {
+//    if (dbQuery.timestamp === undefined)
+//        throw new Error("Timestamp must be defined");
+//    return new Promise(function (resolve, reject) {
+//        collection
+//            .find({
+//                _id: {
+//                    $eq: new Date(dbQuery.timestamp)
+//                }
+//            })
+//            .limit(1)
+//            .toArray()
+//            .then(function (results) {
+//                // We are only interested in the single returned record
+//                if (results.length < 1) {
+//                    // No matching timestamp. Return null.
+//                    return resolve(null);
+//                } else {
+//                    var record = results[0];
+//                    // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
+//                    // instead of a Date() object:
+//                    record.timestamp = record._id.getTime();
+//                    delete record._id;
+//                    return resolve(record);
+//                }
+//            })
+//            .catch(reject);
+//    })
+//};
+
 var findOneByTimestamp = function (collection, dbQuery) {
-    if (dbQuery.timestamp === undefined)
-        throw new Error("Timestamp must be defined");
     return new Promise(function (resolve, reject) {
         collection
-            .find({
-                _id: {
-                    $eq: new Date(dbQuery.timestamp)
-                }
-            })
+            .find(dbQuery.query)
             .limit(1)
+            .sort(dbQuery.sort)
             .toArray()
             .then(function (results) {
                 // We are only interested in the single returned record
@@ -70,7 +95,7 @@ var findOneByTimestamp = function (collection, dbQuery) {
                 }
             })
             .catch(reject);
-    })
+    });
 };
 
 var calcAggregate = function (collection, obs_type, dbQuery) {

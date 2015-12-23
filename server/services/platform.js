@@ -107,7 +107,8 @@ var PlatformManagerFactory = function (dbPromise, options) {
                             .catch(reject);
                     });
                 })
-        })
+                .catch(reject);
+        });
     };
 
 
@@ -146,7 +147,7 @@ var PlatformManagerFactory = function (dbPromise, options) {
                 })
                 .catch(function (err) {
                     return reject(err);
-                })
+                });
         });
     };
 
@@ -176,7 +177,8 @@ var PlatformManagerFactory = function (dbPromise, options) {
                             .catch(reject);
                     });
                 })
-        })
+                .catch(reject);
+        });
     };
 
     var findOneLocation = function (platformID, dbQuery) {
@@ -189,11 +191,13 @@ var PlatformManagerFactory = function (dbPromise, options) {
                         dbtools
                             .findOneByTimestamp(collection, dbQuery)
                             .then(resolve)
-                            .catch(reject)
+                            .catch(reject);
                     });
                 })
-        })
+                .catch(reject);
+        });
     };
+
 
     var deleteOneLocation = function (platformID, dbQuery) {
         return new Promise(function (resolve, reject) {
@@ -209,7 +213,8 @@ var PlatformManagerFactory = function (dbPromise, options) {
                             .catch(reject);
                     });
                 })
-        })
+                .catch(reject);
+        });
     };
 
     /**
@@ -217,13 +222,13 @@ var PlatformManagerFactory = function (dbPromise, options) {
      * @property {function} createPlatform - Create a new platform
      */
     return {
-        createPlatform    : createPlatform,
-        findPlatforms     : findPlatforms,
-        findPlatform      : findPlatform,
-        insertOneLocation : insertOneLocation,
-        findLocations     : findLocations,
-        findOneLocation   : findOneLocation,
-        deleteOneLocation : deleteOneLocation
+        createPlatform   : createPlatform,
+        findPlatforms    : findPlatforms,
+        findPlatform     : findPlatform,
+        insertOneLocation: insertOneLocation,
+        findLocations    : findLocations,
+        findOneLocation  : findOneLocation,
+        deleteOneLocation: deleteOneLocation
     }
 }
     ;

@@ -91,13 +91,39 @@ var formSpanQuery = function (query) {
     return dbQuery;
 };
 
-var formTimeQuery = function (query) {
-    var dbQuery = {};
-    dbQuery.timestamp = +query.timestamp;
+var formTimeQuery = function (params, query) {
+    var dbQuery       = {};
+    dbQuery.timestamp = +params.timestamp;
     // Test to make sure 'timestamp' is a number
     if (typeof dbQuery.timestamp !== 'number' || (dbQuery.timestamp % 1) !== 0) {
-        throw new Error("Invalid value for 'timestamp': " + query.timestamp);
+        throw new Error("Invalid value for 'timestamp': " + params.timestamp);
     }
+
+
+    var match = query.match === undefined ? "lastbefore" : query.match;
+
+    switch (match.toLowerCase()) {
+        case 'exact':
+            dbQuery.query = {_id: {$eq: new Date(dbQuery.timestamp)}};
+            dbQuery.sort  = {};
+            break;
+        case 'firstafter':
+            dbQuery.query = {_id: {$gte: new Date(dbQuery.timestamp)}};
+            dbQuery.sort  = {_id: 1};
+            break;
+        case 'lastbefore':
+            dbQuery.query = {_id: {$lte: new Date(dbQuery.timestamp)}};
+            dbQuery.sort  = {_id: -1};
+            break;
+        case 'latest':
+            dbQuery.query = {};
+            dbQuery.sort  = {_id: -1};
+            break;
+        default:
+            return callback(new Error("Unknown match value: " + match));
+    }
+
+
     return dbQuery;
 };
 

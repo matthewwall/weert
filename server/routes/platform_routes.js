@@ -179,7 +179,7 @@ var PlatformRouterFactory = function (platform_manager) {
         var platformID = req.params.platformID;
         var dbQuery;
         try {
-            dbQuery = auxtools.formTimeQuery(req.params);
+            dbQuery = auxtools.formTimeQuery(req.params, req.query);
         }
         catch (err) {
             err.description = req.query;
@@ -207,7 +207,7 @@ var PlatformRouterFactory = function (platform_manager) {
         var platformID  = req.params.platformID;
         var dbQuery;
         try {
-            dbQuery = auxtools.formTimeQuery(req.params);
+            dbQuery = auxtools.formTimeQuery(req.params, {match: 'exact'});
         }
         catch (err) {
             err.description = req.query;

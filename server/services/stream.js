@@ -102,6 +102,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                             .catch(reject);
                     });
                 })
+                .catch(reject);
         })
     };
 
@@ -141,7 +142,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 })
                 .catch(function (err) {
                     return reject(err);
-                })
+                });
         });
     };
 
@@ -171,6 +172,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                             .catch(reject);
                     });
                 })
+                .catch(reject);
         })
     };
 
@@ -186,10 +188,9 @@ var StreamManagerFactory = function (dbPromise, options) {
                             .then(resolve)
                             .catch(reject);
                     });
-                });
-
+                })
+                .catch(reject);
         })
-
     };
 
     var findOnePacket = function (streamID, dbQuery) {
@@ -205,6 +206,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                             .catch(reject)
                     });
                 })
+                .catch(reject);
         })
     };
 
@@ -222,6 +224,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                             .catch(reject);
                     });
                 })
+                .catch(reject);
         })
     };
 

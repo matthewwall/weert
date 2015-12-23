@@ -188,7 +188,9 @@ var StreamRouterFactory = function (stream_manager) {
         var streamID  = req.params.streamID;
         var dbQuery;
         try {
-            dbQuery = auxtools.formTimeQuery(req.params);
+            if (req.query.match === undefined)
+                req.query.match = 'exact';
+            dbQuery = auxtools.formTimeQuery(req.params, req.query);
         }
         catch (err) {
             err.description = req.query;
@@ -216,7 +218,7 @@ var StreamRouterFactory = function (stream_manager) {
         var streamID  = req.params.streamID;
         var dbQuery;
         try {
-            dbQuery = auxtools.formTimeQuery(req.params);
+            dbQuery = auxtools.formTimeQuery(req.params, {match:'exact'});
         }
         catch (err) {
             err.description = req.query;

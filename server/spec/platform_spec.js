@@ -105,7 +105,6 @@ frisby
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', Object)
                     .afterJSON(function (json) {
-                        console.log("\njson=", json);
                         // Define a function that can find a particular 'name' in the array json
                         var idx_name = function (name) {
                             for (var i = 0; i < json.length; i++) {
