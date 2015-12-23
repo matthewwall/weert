@@ -123,8 +123,8 @@ var updatePlot = function (err) {
     charts.data(dataset);
     charts.render();
 
-    // Subscriptions are of the form 'packet-streamID':
-    var subscription_name = "packet-" + streamID;
+    // web socket event channel for new posts for this streamID:
+    var subscription_name = 'streams/' + streamID + '/packets/POST';
 
     socket.on(subscription_name, function (packet) {
         console.log("Client got packet", new Date(packet.timestamp));
