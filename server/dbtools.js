@@ -4,6 +4,9 @@
  *  See the file LICENSE for your full rights.
  */
 
+/*
+ * Various MongoDB utility functions.
+ */
 "use strict";
 
 var Promise = require('bluebird');
@@ -42,36 +45,6 @@ var findByTimestamp = function (collection, dbQuery) {
             .catch(reject);
     });
 };
-
-//var findOneByTimestamp = function (collection, dbQuery) {
-//    if (dbQuery.timestamp === undefined)
-//        throw new Error("Timestamp must be defined");
-//    return new Promise(function (resolve, reject) {
-//        collection
-//            .find({
-//                _id: {
-//                    $eq: new Date(dbQuery.timestamp)
-//                }
-//            })
-//            .limit(1)
-//            .toArray()
-//            .then(function (results) {
-//                // We are only interested in the single returned record
-//                if (results.length < 1) {
-//                    // No matching timestamp. Return null.
-//                    return resolve(null);
-//                } else {
-//                    var record = results[0];
-//                    // Use the key "timestamp" instead of "_id", and send the result back in milliseconds,
-//                    // instead of a Date() object:
-//                    record.timestamp = record._id.getTime();
-//                    delete record._id;
-//                    return resolve(record);
-//                }
-//            })
-//            .catch(reject);
-//    })
-//};
 
 var findOneByTimestamp = function (collection, dbQuery) {
     return new Promise(function (resolve, reject) {

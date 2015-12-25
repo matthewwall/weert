@@ -1,6 +1,7 @@
 # SERVER
 
-Look at using `EventEmitters` instead of PubSub.
+The websocket channels may be too broad. Should probably allow clients to subscribe
+to specific streams.
 
 Allow searches for platforms and streams satisfying a query.
 

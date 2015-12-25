@@ -70,6 +70,7 @@ app.use(function (err, req, res, next) {
     });
 });
 
+
 /*
  * Start the server
  */
@@ -77,3 +78,6 @@ app.use(function (err, req, res, next) {
 var serverConfig = require('./config/server');
 http.createServer(app).listen(serverConfig.port);
 console.log("Listening on port", serverConfig.port);
+
+// Start waiting for websocket clients:
+var io = require('./services/websocket')(http);

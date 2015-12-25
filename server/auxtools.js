@@ -4,6 +4,9 @@
  *  See the file LICENSE for your full rights.
  */
 
+/*
+ * Useful small utilities.
+ */
 "use strict";
 
 var url          = require('url');

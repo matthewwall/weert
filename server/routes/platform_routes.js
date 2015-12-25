@@ -122,7 +122,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     var resource_url = auxtools.resourcePath(req, locrec.timestamp);
                     // Send it back in the location header
                     res.status(201).location(resource_url).json(locrec);
-                    res.app.emit('platforms/' + platformID + '/locations/POST', locrec);
+                    res.app.emit('platforms/locations/POST', {_id: platformID, location: locrec});
                 })
                 .catch(function (err) {
                     // See if this is a MongoDB error.
@@ -224,7 +224,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 if (result.result.n) {
                     // Success
                     res.sendStatus(204);
-                    res.app.emit('platforms/' + platformID + '/locations/DELETE', dbQuery.timestamp);
+                    res.app.emit('platforms/locations/DELETE', {_id: platformID, timestamp: dbQuery.timestamp});
                 } else {
                     // Couldn't find the doc
                     res.sendStatus(404);

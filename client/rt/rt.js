@@ -124,31 +124,35 @@ var updatePlot = function (err) {
     charts.render();
 
     // web socket event channel for new posts for this streamID:
-    var subscription_name = 'streams/' + streamID + '/packets/POST';
+    var subscription_name = 'streams/packets/POST';
 
-    socket.on(subscription_name, function (packet) {
-        console.log("Client got packet", new Date(packet.timestamp));
-        dataset.push(packet);
-        // Trim any too-old packets
-        var now = Date.now();
-        while (dataset[0].timestamp < (now - max_age_secs * 1000)) {
-            dataset.shift();
+    socket.on(subscription_name, function (msg) {
+        // Check to see if it's our stream
+        if (msg._id === 'i1'){
+            var packet = msg.packet;
+            console.log("Client got packet", new Date(packet.timestamp));
+            dataset.push(packet);
+            // Trim any too-old packets
+            var now = Date.now();
+            while (dataset[0].timestamp < (now - max_age_secs * 1000)) {
+                dataset.shift();
+            }
+
+            // Because Handlebars will overwrite the wind compass, we need to
+            // first detach it, save it, then reattach later
+            var hold = $("#windCompass").detach();
+            // Render the Handlebars template showing the current conditions
+            var html = console_template(packet);
+            $("#wx-console-area").html(html);
+            // Now reattach the wind compass
+            $("#windCompass").html(hold);
+
+            // Update the wind compass
+            windcompass.updateWind([packet.timestamp, packet.wind_direction, packet.wind_speed]);
+
+            // Update the line charts
+            charts.render();
         }
-
-        // Because Handlebars will overwrite the wind compass, we need to
-        // first detach it, save it, then reattach later
-        var hold = $("#windCompass").detach();
-        // Render the Handlebars template showing the current conditions
-        var html = console_template(packet);
-        $("#wx-console-area").html(html);
-        // Now reattach the wind compass
-        $("#windCompass").html(hold);
-
-        // Update the wind compass
-        windcompass.updateWind([packet.timestamp, packet.wind_direction, packet.wind_speed]);
-
-        // Update the line charts
-        charts.render();
     });
 };
 

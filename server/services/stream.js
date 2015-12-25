@@ -140,9 +140,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                     delete final_packet._id;
                     return resolve(final_packet);
                 })
-                .catch(function (err) {
-                    return reject(err);
-                });
+                .catch(reject);
         });
     };
 

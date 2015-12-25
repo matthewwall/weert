@@ -110,10 +110,14 @@ var StreamRouterFactory = function (stream_manager) {
                 .then(function (result) {
                     var resource_url = auxtools.resourcePath(req, result.timestamp);
                     res.status(201).location(resource_url).json(result);
-                    res.app.emit('streams/' + streamID + '/packets/POST', result);
+                    res.app.emit('streams/packets/POST', {_id: streamID, packet: result});
                 })
                 .catch(function (err) {
-                    if (err.code === undefined) {
+                    // TODO: This logic should be factored out, so it can be used by other POST routes
+                    if (err.name === "MongoError" && err.message.includes("ECONNREFUSED")){
+                        err.description = "Perhaps MongoDB is not running?";
+                        res.status(500).json(auxtools.fromError(500, err));
+                    } else if (err.code === undefined) {
                         // Not a MongoDB error.
                         res.status(400).json(auxtools.fromError(400, err));
                     } else if (err.code === 11000) {
@@ -185,7 +189,7 @@ var StreamRouterFactory = function (stream_manager) {
     // GET a packet with a specific timestamp
     router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
         // Get the streamID and timestamp out of the route path
-        var streamID  = req.params.streamID;
+        var streamID = req.params.streamID;
         var dbQuery;
         try {
             if (req.query.match === undefined)
@@ -215,10 +219,10 @@ var StreamRouterFactory = function (stream_manager) {
     // DELETE a specific packet
     router.delete('/streams/:streamID/packets/:timestamp', function (req, res) {
         // Get the streamID and timestamp out of the route path
-        var streamID  = req.params.streamID;
+        var streamID = req.params.streamID;
         var dbQuery;
         try {
-            dbQuery = auxtools.formTimeQuery(req.params, {match:'exact'});
+            dbQuery = auxtools.formTimeQuery(req.params, {match: 'exact'});
         }
         catch (err) {
             err.description = req.query;
@@ -232,10 +236,10 @@ var StreamRouterFactory = function (stream_manager) {
             .deleteOnePacket(streamID, dbQuery)
             .then(function (result) {
                 // The property 'n' holds the number of documents deleted
-                if (result.result.n){
+                if (result.result.n) {
                     // Success.
                     res.sendStatus(204);
-                    res.app.emit('streams/' + streamID + '/packets/DELETE', dbQuery.timestamp);
+                    res.app.emit('streams/packets/DELETE', {_id: streamID, timestamp: dbQuery.timestamp});
                 } else {
                     // Couldn't find the doc
                     res.sendStatus(404);
