@@ -4,7 +4,11 @@
  *  See the file LICENSE for your full rights.
  */
 
-// Stream-related routes
+/*
+ * Stream-related routes
+ *
+ * Mutating RESTful verbs (POST, PUT, DELETE) cause an event to be emitted.
+ */
 
 "use strict";
 
@@ -28,6 +32,7 @@ var StreamRouterFactory = function (stream_manager) {
                     // Get the new stream's URI and return it in the location header
                     var resource_url = auxtools.resourcePath(req, result._id);
                     res.status(201).location(resource_url).json(result);
+                    // Emit an event
                     res.app.emit('streams/POST', result);
                 })
                 .catch(function (err) {
@@ -110,6 +115,7 @@ var StreamRouterFactory = function (stream_manager) {
                 .then(function (result) {
                     var resource_url = auxtools.resourcePath(req, result.timestamp);
                     res.status(201).location(resource_url).json(result);
+                    // Emit an event
                     res.app.emit('streams/packets/POST', {_id: streamID, packet: result});
                 })
                 .catch(function (err) {
@@ -239,6 +245,7 @@ var StreamRouterFactory = function (stream_manager) {
                 if (result.result.n) {
                     // Success.
                     res.sendStatus(204);
+                    // Emit an event
                     res.app.emit('streams/packets/DELETE', {_id: streamID, timestamp: dbQuery.timestamp});
                 } else {
                     // Couldn't find the doc

@@ -76,8 +76,9 @@ app.use(function (err, req, res, next) {
  */
 
 var serverConfig = require('./config/server');
-http.createServer(app).listen(serverConfig.port);
+var server       = http.createServer(app);
+server.listen(serverConfig.port);
 console.log("Listening on port", serverConfig.port);
 
 // Start waiting for websocket clients:
-var io = require('./services/websocket')(http);
+var io = require('./services/websocket')(server, app);

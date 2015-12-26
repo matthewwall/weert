@@ -7,7 +7,7 @@
 //              CLIENT CODE
 "use strict";
 var platform = "p1";
-var streamID = "s1";
+var streamID = "i1";
 // Initial request of data from MongoDB in seconds
 var max_initial_age_secs = 1200;
 // Max retained age in seconds:
@@ -61,7 +61,7 @@ var ws_url = "ws://" + window.location.host;
 var socket = io(ws_url);
 
 socket.on('news', function (data) {
-    console.log("News from the server:", data.hello);
+    console.log("News from the server:", data.msg);
 });
 
 var getInitialData = function (callback) {
@@ -128,7 +128,7 @@ var updatePlot = function (err) {
 
     socket.on(subscription_name, function (msg) {
         // Check to see if it's our stream
-        if (msg._id === 'i1'){
+        if (msg._id === streamID){
             var packet = msg.packet;
             console.log("Client got packet", new Date(packet.timestamp));
             dataset.push(packet);

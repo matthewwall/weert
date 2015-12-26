@@ -4,7 +4,12 @@
  *  See the file LICENSE for your full rights.
  */
 
-// Platform-related routes
+/*
+ * Platform-related routes
+ *
+ * Mutating RESTful verbs (POST, PUT, DELETE) cause an event to be emitted.
+ */
+
 
 "use strict";
 
@@ -29,6 +34,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     // Get the new platform's URI and return it in the location header
                     var resource_url = auxtools.resourcePath(req, result._id);
                     res.status(201).location(resource_url).json(result);
+                    // Emit an event
                     res.app.emit('platforms/POST', result);
                 })
                 .catch(function (err) {
@@ -122,6 +128,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     var resource_url = auxtools.resourcePath(req, locrec.timestamp);
                     // Send it back in the location header
                     res.status(201).location(resource_url).json(locrec);
+                    // Emit an event
                     res.app.emit('platforms/locations/POST', {_id: platformID, location: locrec});
                 })
                 .catch(function (err) {
@@ -224,6 +231,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 if (result.result.n) {
                     // Success
                     res.sendStatus(204);
+                    // Emit an event
                     res.app.emit('platforms/locations/DELETE', {_id: platformID, timestamp: dbQuery.timestamp});
                 } else {
                     // Couldn't find the doc
