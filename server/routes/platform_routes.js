@@ -163,7 +163,7 @@ var PlatformRouterFactory = function (platform_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to find packets. Reason", err);
+            debug("Unable to find locations. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -176,6 +176,8 @@ var PlatformRouterFactory = function (platform_manager) {
                 res.json(locrec_array);
             })
             .catch(function (err) {
+                // TODO: Need a more sophisticated error handler.
+                // TODO: Should return 404 if can't be found.
                 debug("Unable to satisfy request for location records. Reason", err);
                 res.status(400).json(auxtools.fromError(400, err));
             });

@@ -12,6 +12,7 @@
 var test_url = require('./test_config').test_root_url + '/platforms';
 
 var frisby = require('frisby');
+var normalizeUrl = require('normalize-url');
 
 // First try to create a platform, but with a missing Content-Type
 frisby
@@ -39,15 +40,23 @@ frisby
     .expectJSON('streams', [])
     .after(function (error, res, body) {
         // Having created a platform, retrieve it and validate it
+        // Form the URL for the platform
         var platform_link1 = res.headers.location;
+        // And the URL for its location records
+        var platform_locrec_link1 = normalizeUrl(platform_link1 + '/locations');
         frisby
-            .create('GET and validate platform #1')
+            .create('GET and validate the metadata for platform #1')
             .get(platform_link1)
             .expectStatus(200)
             .expectHeaderContains('content-type', 'application/json')
             .expectJSONTypes('', {_id: String, name: String, description: String, join: String, streams: Array})
             .expectJSON('', {name: "Benny's Ute", description: "Yellow, with a black cap", join: "join_keyword1"})
             .expectJSON('streams', [])
+            .toss();
+        frisby
+            .create('Validate the locations collection for platform #1')
+            .get(platform_locrec_link1)
+            .expectStatus(200)
             .toss();
         frisby
             .create('Create a WeeRT platform #2')

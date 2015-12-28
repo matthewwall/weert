@@ -42,20 +42,28 @@ var PlatformManagerFactory = function (dbPromise, options) {
             if (platform_metadata.streams === undefined) {
                 platform_metadata.streams = [];
             }
+            var platform_final_metadata = undefined;
             dbPromise
                 .then(function (db) {
-                    // This returns a promise
+
                     return db
                         .collection(options.platforms.metadata_name, options.platforms.options)
-                        .insertOne(platform_metadata, {});
+                        .insertOne(platform_metadata, {})
+                        .then(function (result) {
+                            // This will hold the final metadata, including the _id assigned by MongoDB:
+                            platform_final_metadata = result.ops[0];
+                            // The name for the collection holding locations for this platform:
+                            var collection_name = options.locrecs.name(platform_final_metadata._id);
+                            // Now create the locations collection. It will return a Promise
+                            return db
+                                .createCollection(collection_name);
+                        })
                 })
-                .then(function (result) {
-                    var platform_final_metadata = result.ops[0];
+                .then(function(dummy){
+                    console.log("final metadata=", platform_final_metadata);
                     return resolve(platform_final_metadata);
                 })
-                .catch(function (err) {
-                    return reject(err);
-                });
+                .catch(reject);
         });
     };
 
