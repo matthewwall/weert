@@ -10,13 +10,13 @@
  * Mutating RESTful verbs (POST, PUT, DELETE) cause an event to be emitted.
  */
 
-
 "use strict";
 
 var debug   = require('debug')('weert:server');
 var express = require('express');
 
 var auxtools = require('../auxtools');
+var error    = require('./error');
 
 var PlatformRouterFactory = function (platform_manager) {
 
@@ -38,8 +38,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     res.app.emit('platforms/POST', result);
                 })
                 .catch(function (err) {
-                    // Unable to create the platform. Send status 400 and a JSON message.
-                    res.status(400).json(auxtools.fromError(400, err));
+                    error.sendError(err, res);
                 });
         } else {
             // POST was not in JSON format. Send an error msg.
@@ -85,7 +84,7 @@ var PlatformRouterFactory = function (platform_manager) {
             })
             .catch(function (err) {
                 debug("Unable to find platforms. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
+                error.sendError(err, res);
             });
     });
 
@@ -108,7 +107,7 @@ var PlatformRouterFactory = function (platform_manager) {
             })
             .catch(function (err) {
                 debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
+                error.sendError(err, res);
             });
     });
 
@@ -132,21 +131,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     res.app.emit('platforms/locations/POST', {_id: platformID, location: locrec});
                 })
                 .catch(function (err) {
-                    // See if this is a MongoDB error.
-                    if (err.code === undefined) {
-                        // Not a MongoDB error.
-                        res.status(400).json(auxtools.fromError(400, err));
-                    } else if (err.code === 11000) {
-                        // MongoDB duplicate key error
-                        debug("Attempt to insert location record with duplicate time stamp");
-                        err.description = "Duplicate time stamp";
-                        res.status(409).json(auxtools.fromError(409, err));
-                    } else {
-                        // Other database error
-                        debug("Error code:", err.code, "error message:", err.message);
-                        err.description = "Unable to insert location record";
-                        res.status(400).json(auxtools.fromError(400, err));
-                    }
+                    error.sendError(err, res);
                 });
         } else {
             res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
@@ -176,10 +161,8 @@ var PlatformRouterFactory = function (platform_manager) {
                 res.json(locrec_array);
             })
             .catch(function (err) {
-                // TODO: Need a more sophisticated error handler.
-                // TODO: Should return 404 if can't be found.
                 debug("Unable to satisfy request for location records. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
+                error.sendError(err, res);
             });
     });
 
@@ -193,7 +176,7 @@ var PlatformRouterFactory = function (platform_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to find location record. Reason", err);
+            debug("Bad query when finding location record. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -206,8 +189,8 @@ var PlatformRouterFactory = function (platform_manager) {
                 else res.json(record);
             })
             .catch(function (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
+                debug("Unable to satisfy request for platform time query. Reason", err);
+                error.sendError(err, res);
             });
     });
 
@@ -221,7 +204,7 @@ var PlatformRouterFactory = function (platform_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to delete location record. Reason", err);
+            debug("Bad query when deleting location record. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -241,9 +224,8 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
-
+                debug("Unable to satisfy request to delete location record. Reason", err);
+                error.sendError(err, res);
             })
     });
 

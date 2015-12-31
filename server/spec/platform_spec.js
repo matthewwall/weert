@@ -11,7 +11,7 @@
 
 var test_url = require('./test_config').test_root_url + '/platforms';
 
-var frisby = require('frisby');
+var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
 
 // First try to create a platform, but with a missing Content-Type
@@ -131,7 +131,7 @@ frisby
                     .create('GET all platform data using a nonsense value for "as"')
                     .get(test_url + '?as=foo')
                     .expectStatus(400)
-                    .afterJSON(function (json){
+                    .afterJSON(function (json) {
                         expect(json.code).toBe(400);
                         expect(json.message).toBe("Invalid query value for 'as'");
                         expect(json.description).toBe('foo');
@@ -152,3 +152,8 @@ frisby
     .expectStatus(400)
     .toss();
 
+frisby
+    .create("GET the locations for a non-existent platform")
+    .get(test_url + '/5680aaba377084a10b8d6521/locations')
+    .expectStatus(404)
+    .toss();

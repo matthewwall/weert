@@ -16,6 +16,7 @@ var debug   = require('debug')('weert:server');
 var express = require('express');
 
 var auxtools = require('../auxtools');
+var error    = require('./error');
 
 var StreamRouterFactory = function (stream_manager) {
 
@@ -36,8 +37,7 @@ var StreamRouterFactory = function (stream_manager) {
                     res.app.emit('streams/POST', result);
                 })
                 .catch(function (err) {
-                    // Unable to create the stream. Send status 400 and a JSON message.
-                    res.status(400).json(auxtools.fromError(400, err));
+                    error.sendError(err, res);
                 });
         } else {
             // POST was not in JSON format. Send an error msg.
@@ -54,7 +54,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to find streams. Reason", err);
+            debug("Bad query. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -73,7 +73,7 @@ var StreamRouterFactory = function (stream_manager) {
             })
             .catch(function (err) {
                 debug("Unable to find streams. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
+                error.sendError(err, res);
             });
     });
 
@@ -96,12 +96,12 @@ var StreamRouterFactory = function (stream_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
+                debug("Unable to satisfy GET metadata request. Reason", err);
+                error.sendError(err, res);
             });
     });
 
-    // POST a single packet to the MongoDB database
+    // POST a single packet to a stream
     router.post('/streams/:streamID/packets', function (req, res) {
         // Make sure the incoming packet is encoded in JSON.
         if (req.is('json')) {
@@ -119,24 +119,7 @@ var StreamRouterFactory = function (stream_manager) {
                     res.app.emit('streams/packets/POST', {_id: streamID, packet: result});
                 })
                 .catch(function (err) {
-                    // TODO: This logic should be factored out, so it can be used by other POST routes
-                    if (err.name === "MongoError" && err.message.includes("ECONNREFUSED")){
-                        err.description = "Perhaps MongoDB is not running?";
-                        res.status(500).json(auxtools.fromError(500, err));
-                    } else if (err.code === undefined) {
-                        // Not a MongoDB error.
-                        res.status(400).json(auxtools.fromError(400, err));
-                    } else if (err.code === 11000) {
-                        // MongoDB duplicate key error
-                        debug("Attempt to insert packet with duplicate time stamp");
-                        err.description = "Duplicate time stamp";
-                        res.status(409).json(auxtools.fromError(409, err));
-                    } else {
-                        // Other database error
-                        debug("Error code:", err.code, "error message:", err.message);
-                        err.description = "Unable to insert packet";
-                        res.status(400).json(auxtools.fromError(400, err));
-                    }
+                    error.sendError(err, res);
                 });
         } else {
             res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
@@ -155,7 +138,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to find packets. Reason", err);
+            debug("Bad query for getting packets from stream. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -174,7 +157,7 @@ var StreamRouterFactory = function (stream_manager) {
                 })
                 .catch(function (err) {
                     debug("Unable to satisfy aggregation request. Reason", err);
-                    res.status(400).json(auxtools.fromError(400, err));
+                    error.sendError(err, res);
                 });
         } else {
             debug("Request for packets with start, stop times of", req.query.start, req.query.stop);
@@ -186,7 +169,7 @@ var StreamRouterFactory = function (stream_manager) {
                 })
                 .catch(function (err) {
                     debug("Unable to satisfy request for packets. Reason", err);
-                    res.status(400).json(auxtools.fromError(400, err));
+                    error.sendError(err, res);
                 });
         }
     });
@@ -204,7 +187,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to find packet. Reason", err);
+            debug("Bad query for requesting paket. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -217,8 +200,8 @@ var StreamRouterFactory = function (stream_manager) {
                 else res.json(packet);
             })
             .catch(function (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
+                debug("Unable to satisfy request for packet. Reason", err);
+                error.sendError(err, res);
             })
     });
 
@@ -232,7 +215,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to delete packets. Reason", err);
+            debug("Bad query for deleting packet. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -253,9 +236,8 @@ var StreamRouterFactory = function (stream_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request. Reason", err);
-                res.status(400).json(auxtools.fromError(400, err));
-
+                debug("Unable to satisfy request to delete packet. Reason", err);
+                error.sendError(err, res);
             })
     });
 

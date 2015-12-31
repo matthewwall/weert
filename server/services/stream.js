@@ -48,9 +48,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                     var stream_final_metadata = result.ops[0];
                     return resolve(stream_final_metadata);
                 })
-                .catch(function (err) {
-                    return reject(err);
-                });
+                .catch(reject);
         });
     };
 

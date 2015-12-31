@@ -60,7 +60,6 @@ var PlatformManagerFactory = function (dbPromise, options) {
                         })
                 })
                 .then(function(dummy){
-                    console.log("final metadata=", platform_final_metadata);
                     return resolve(platform_final_metadata);
                 })
                 .catch(reject);

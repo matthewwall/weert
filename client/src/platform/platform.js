@@ -6,8 +6,8 @@ angular
 
     .module('platform', ['ngResource', 'location', 'stream'])
 
-    .controller('PlatformListCtrl', ['$scope', 'Platform', 'Location', 'Stream',
-        function ($scope, Platform, Location, Stream) {
+    .controller('PlatformListCtrl', ['$scope', '$location', 'Platform', 'Location', 'Stream',
+        function ($scope, $location, Platform, Location, Stream) {
 
             var getLocations = function (platform) {
                 var locations = [];
