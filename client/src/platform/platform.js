@@ -6,45 +6,47 @@ angular
 
     .module('platform', ['ngResource', 'location', 'stream'])
 
-    .controller('PlatformListCtrl', ['$scope', '$location', 'Platform', 'Location', 'Stream',
-        function ($scope, $location, Platform, Location, Stream) {
+    .controller('PlatformListCtrl', ['$scope', '$location', 'Platform',
+        function ($scope, $location, Platform) {
 
-            var getLocations = function (platform) {
+            // Get an array holding all the platforms
+            $scope.platforms = Platform.query({as: 'values'});
+
+            // Default ordering is by id
+            $scope.orderProp = '_id';
+
+            $scope.gotoDetail = function (platformID) {
+                var path = $location.path();
+                var url  = path + '/' + platformID;
+                $location.path(url);
+            }
+        }
+    ])
+
+    .controller('PlatformDetailCtrl', ['$scope', '$routeParams', 'Platform', 'Location', 'Stream',
+        function ($scope, $routeParams, Platform, Location, Stream) {
+
+            // Function to get the location records for a platform
+            var getLocationDetails = function (platformID) {
                 var locations = [];
                 // If the platform ID is available, go fetch the locations
                 // TODO: Should only get the last 5 locations or so.
-                if (platform && platform._id) {
-                    locations = Location.query({platformID: platform._id});
+                if (platformID) {
+                    locations = Location.query({platformID: platformID});
                 }
                 return locations;
             };
 
-            // Function to get the stream details for a specific platform
-            var getStreamDetails = function (platform) {
+            // Function to get the stream details for a platform
+            var getStreamDetails = function (streamIDs) {
                 var streams_details = [];
-                if (platform && platform.streams) {
-                    for (var i = 0; i < platform.streams.length; i++) {
-                        streams_details[i] = Stream.query({streamID: platform.streams[i]});
+                if (streamIDs) {
+                    for (var i = 0; i < streamIDs.length; i++) {
+                        streams_details[i] = Stream.query({streamID: streamIDs[i]});
                     }
                 }
                 return streams_details;
             };
-
-            // Function to set the platform whose details we are looking at
-            $scope.setDetail = function (platform) {
-                $scope.selected_platform = platform;
-                $scope.locations         = getLocations(platform);
-                $scope.streams           = getStreamDetails(platform);
-            };
-
-            // Get an array holding all the platforms
-            $scope.platforms = Platform.query({as: 'values'}, function () {
-                // Set the detail to the first platform
-                $scope.setDetail($scope.platforms[0]);
-            });
-
-            // Default ordering is by id
-            $scope.orderProp = '_id';
 
             $scope.createMode = function () {
                 // If we are creating a new platform, set the fields to null strings
@@ -74,16 +76,21 @@ angular
                 }
             };
 
-            $scope.notImplemented = function(msg){
+            $scope.notImplemented = function (msg) {
                 alert("Not implemented yet: " + msg);
-            }
+            };
+
+            var platformID   = $routeParams.platformID;
+            $scope.metadata  = Platform.get({platformID: platformID});
+            $scope.locations = getLocationDetails(platformID);
+            $scope.streams   = getStreamDetails($scope.metadata.streams);
 
         }])
 
     .controller('PlatformTabsCtrl', ['$scope', function ($scope) {
         $scope.tabs = [
             {
-                label: 'Details',
+                label: 'Metadata',
                 url  : "src/platform/platform-detail.html"
             }, {
                 label: 'Streams',

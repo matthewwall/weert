@@ -1,0 +1,21 @@
+<div class="col-md-10"
+     style="margin-top:20px"
+     id="tabbed-view"
+     ng-controller="PlatformTabsCtrl">
+    <!-- Set up the tab controls -->
+    <uib-tabset>
+        <uib-tab ng-repeat="tab in tabs"
+                 heading="{{tab.label}}"
+                 active="tab.active"
+                 disable="tab.disabled"
+                 select="setActiveTab(tab)">
+        </uib-tab>
+    </uib-tabset>
+
+    <div id="detail-view">
+        <div ng-include="activeTab.url"></div>
+    </div>
+</div> <!-- End tabbed-view -->
+
+
+

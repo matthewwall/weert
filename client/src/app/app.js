@@ -25,8 +25,8 @@ angular
                     controller : 'PlatformListCtrl'
                 })
                 .when('/platforms/:platformID', {
-                    templateUrl: 'src/platform/platform-list.html',
-                    controller : 'PlatformListCtrl'
+                    templateUrl: 'src/platform/platform-tab.html',
+                    controller : 'PlatformDetailCtrl'
                 })
                 .when('/streams', {
                     templateUrl: 'src/stream/stream-list.html',

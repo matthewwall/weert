@@ -1,6 +1,4 @@
-<div class="container-fluid">
-
-    <h2>Platforms</h2>
+<div class="container-fluid" style="margin-top:20px">
 
     <div class="col-md-2" id="platform-sidebar">
 
@@ -8,8 +6,6 @@
             <label for="query">Filter</label>
             <input id="query" ng-model="query"/>
         </div>
-
-        <hr/>
 
         <div class="row">
             <label for="ordering">Order by</label>
@@ -19,8 +15,10 @@
             </select>
         </div>
 
-        <hr/>
+    </div>  <!-- End platform-sidebar -->
 
+
+    <div class="col-md-10" id="platform-list">
         <table class="table table-hover">
             <thead>
             <tr>
@@ -31,29 +29,14 @@
             </thead>
             <tbody>
             <tr ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
-                ng-click="setDetail(platform)"
-                ng-class="{'active': platform._id === selected_platform._id}"
+                ng-click="gotoDetail(platform._id)"
                 style="cursor:pointer">
-                <td>{{platform.name}}</td>
+                <td>
+                    <p class="platform-name">{{platform.name}}</p>
+                    <p class="platform-description">{{platform.description}}</p>
+                </td>
             </tr>
             </tbody>
         </table>
-    </div>  <!-- End platform-sidebar -->
-
-    <div class="col-md-10" id="tabbed-view" ng-controller="PlatformTabsCtrl">
-        <!-- Set up the tab controls -->
-        <uib-tabset>
-            <uib-tab ng-repeat="tab in tabs"
-                     heading="{{tab.label}}"
-                     active="tab.active"
-                     disable="tab.disabled"
-                     select="setActiveTab(tab)">
-            </uib-tab>
-        </uib-tabset>
-
-        <div id="detail-view">
-            <div ng-include="activeTab.url"></div>
-        </div>
-    </div> <!-- End tabbed-view -->
-
+    </div> <!-- End platform-list -->
 </div>

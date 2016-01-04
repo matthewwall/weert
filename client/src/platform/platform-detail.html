@@ -1,67 +1,67 @@
 <form editable-form name="editPlatformDetail" onaftersave="saveSelectedPlatform()" class="form-horizontal">
     <h3>Platform name</h3>
 
-    <p editable-text="selected_platform.name"
+    <p editable-text="metadata.name"
        e-name="name"
        e-required>
-        {{ selected_platform.name || "empty"}}
+        {{ metadata.name || "empty"}}
     </p>
 
     <h3>Description</h3>
 
-    <p editable-textarea="selected_platform.description"
+    <p editable-textarea="metadata.description"
        e-name="description"
        e-rows="7"
        e-cols="40">
-        {{selected_platform.description || "empty"}}
+        {{metadata.description || "empty"}}
     </p>
 
     <h3>Platform ID</h3>
-    <pre>{{selected_platform._id}}</pre>
+    <pre>{{metadata._id}}</pre>
 
     <!-- Buttons to edit, create, copy, and delete. Visible only when an edit is not in progress. -->
-    <span ng-show="!editPlatformDetail.$visible">
-        <button type="button"
-                class="btn btn-default"
-                aria-label="Edit"
-                ng-click="editPlatformDetail.$show()">
-            <span class="glyphicon glyphicon-pencil"> Edit</span>
-        </button>
+<span ng-show="!editPlatformDetail.$visible">
+<button type="button"
+        class="btn btn-default"
+        aria-label="Edit"
+        ng-click="editPlatformDetail.$show()">
+    <span class="glyphicon glyphicon-pencil"> Edit</span>
+</button>
 
-        <button type="button"
-                class="btn btn-default"
-                aria-label="Create"
-                ng-click="createMode(); editPlatformDetail.$show()">
-            <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"> Create</span>
-        </button>
+<button type="button"
+        class="btn btn-default"
+        aria-label="Create"
+        ng-click="createMode(); editPlatformDetail.$show()">
+    <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"> Create</span>
+</button>
 
-        <button type="button"
-                class="btn btn-default"
-                aria-label="Copy"
-                ng-click="notImplemented('Copy')">
-            <span class="glyphicon glyphicon-duplicate" aria-hidden="true"> Copy</span>
-        </button>
-        <button type="button"
-                class="btn btn-default"
-                aria-label="Delete"
-                ng-click="notImplemented('Delete')">
-            <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"> Delete</span>
-        </button>
-    </span>
+<button type="button"
+        class="btn btn-default"
+        aria-label="Copy"
+        ng-click="notImplemented('Copy')">
+    <span class="glyphicon glyphicon-duplicate" aria-hidden="true"> Copy</span>
+</button>
+<button type="button"
+        class="btn btn-default"
+        aria-label="Delete"
+        ng-click="notImplemented('Delete')">
+    <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"> Delete</span>
+</button>
+</span>
 
     <!-- Buttons to submit / cancel the edit. Visible only when an edit is in progress -->
-    <span ng-show="editPlatformDetail.$visible">
-        <button type="submit"
-                class="btn btn-primary"
-                ng-disabled="editPlatformDetail.$waiting">
-            <span class="glyphicon glyphicon-save"> Save changes</span> 
-        </button>
-        <button type="button"
-                class="btn btn-default"
-                ng-disabled="editPlatformDetail.$waiting"
-                ng-click="editPlatformDetail.$cancel()">
-            <span class="glyphicon glyphicon-remove"> Cancel</span>
-        </button>
-    </span>
+<span ng-show="editPlatformDetail.$visible">
+<button type="submit"
+        class="btn btn-primary"
+        ng-disabled="editPlatformDetail.$waiting">
+    <span class="glyphicon glyphicon-save"> Save changes</span> 
+</button>
+<button type="button"
+        class="btn btn-default"
+        ng-disabled="editPlatformDetail.$waiting"
+        ng-click="editPlatformDetail.$cancel()">
+    <span class="glyphicon glyphicon-remove"> Cancel</span>
+</button>
+</span>
 
 </form>
