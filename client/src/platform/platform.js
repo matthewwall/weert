@@ -84,16 +84,16 @@ angular
         $scope.tabs = [
             {
                 label: 'Details',
-                url  : "src/platform/platform-detail.tpl.html"
+                url  : "src/platform/platform-detail.html"
             }, {
                 label: 'Streams',
-                url  : "src/platform/stream.tpl.html"
+                url  : "src/platform/stream.html"
             }, {
                 label: 'Location',
-                url  : "src/platform/location.tpl.html"
+                url  : "src/platform/location.html"
             }, {
                 label: 'Map',
-                url  : "src/platform/map.tpl.html"
+                url  : "src/platform/map.html"
             }];
 
         $scope.setActiveTab = function (tab) {

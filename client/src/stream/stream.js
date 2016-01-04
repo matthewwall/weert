@@ -13,10 +13,10 @@ angular
         $scope.tabs = [
             {
                 label: 'Details',
-                url  : "src/stream/stream-detail.tpl.html"
+                url  : "src/stream/stream-detail.html"
             }, {
                 label: 'Live',
-                url  : "src/stream/rt.tpl.html"
+                url  : "src/stream/rt.html"
             }];
 
         $scope.setActiveTab = function (tab) {
