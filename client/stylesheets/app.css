@@ -2,6 +2,22 @@
 
 }
 
-.platform-description{
+.platform-description {
     font-style: italic;
+}
+
+.css-form input.ng-invalid.ng-touched {
+    background-color: #FA787E;
+}
+
+.css-form input.ng-valid.ng-touched {
+    background-color: #78FA89;
+}
+
+.response-buttons {
+    margin-top: 20px;
+}
+
+.entry-form {
+    margin: 20px;
 }

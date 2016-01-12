@@ -4,7 +4,7 @@
 
         <div class="row">
             <label for="query">Filter</label>
-            <input id="query" ng-model="query"/>
+            <input id="query" ng-model="query_filter"/>
         </div>
 
         <div class="row">
@@ -14,6 +14,15 @@
                 <option value="_id">ID</option>
             </select>
         </div>
+
+
+        <button type="button"
+                class="btn btn-default"
+                aria-label="Create"
+                ng-click="goTo('platforms/create')">
+            <span class="glyphicon glyphicon-plus-sign" aria-hidden="true"> New platform</span>
+        </button>
+
 
     </div>  <!-- End platform-sidebar -->
 
@@ -28,8 +37,8 @@
             </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="platform in platforms | filter:{name:query} | orderBy:orderProp"
-                ng-click="gotoDetail(platform._id)"
+            <tr ng-repeat="platform in platforms | filter:{name:query_filter} | orderBy:orderProp"
+                ng-click="goToDetail(platform._id)"
                 style="cursor:pointer">
                 <td>
                     <p class="platform-name">{{platform.name}}</p>

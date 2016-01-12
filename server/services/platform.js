@@ -37,6 +37,8 @@ var PlatformManagerFactory = function (dbPromise, options) {
             if (platform_metadata._id !== undefined) {
                 return reject(new Error("Field _id is already defined"));
             }
+            if (!platform_metadata.name)
+                return reject(new Error("Field 'name' is required"));
             // If the metadata doesn't already have one, include an array to hold the streams associated
             // with this platform.
             if (platform_metadata.streams === undefined) {

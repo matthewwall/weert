@@ -20,6 +20,10 @@ angular
         function ($routeProvider) {
 
             $routeProvider
+                .when('/platforms/create', {
+                    templateUrl: 'src/platform/platform-create.html',
+                    controller : 'PlatformCreateCtrl'
+                })
                 .when('/platforms', {
                     templateUrl: 'src/platform/platform-list.html',
                     controller : 'PlatformListCtrl'
@@ -41,5 +45,9 @@ angular
     .controller('MainCtrl', ['$scope', '$location', function ($scope, $location) {
         $scope.goTo = function (hash) {
             $location.path(hash);
+        };
+
+        $scope.notImplemented = function (msg) {
+            alert("Not implemented yet: " + msg);
         };
     }]);

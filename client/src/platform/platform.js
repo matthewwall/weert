@@ -1,7 +1,5 @@
 "use strict";
 
-var emptyPlatform = {name: "", description: "", _id: undefined, streams: []};
-
 angular
 
     .module('platform', ['ngResource', 'location', 'stream'])
@@ -15,7 +13,10 @@ angular
             // Default ordering is by id
             $scope.orderProp = '_id';
 
-            $scope.gotoDetail = function (platformID) {
+            // Default query filter is no filter
+            $scope.query_filter = undefined;
+
+            $scope.goToDetail = function (platformID) {
                 var path = $location.path();
                 var url  = path + '/' + platformID;
                 $location.path(url);
@@ -48,43 +49,45 @@ angular
                 return streams_details;
             };
 
-            $scope.createMode = function () {
-                // If we are creating a new platform, set the fields to null strings
-                $scope.setDetail(angular.copy(emptyPlatform));
-            };
-
-            // Function to call to save the selected platform to the server
-            $scope.saveSelectedPlatform = function () {
-                if ($scope.selected_platform._id) {
-                    // Editing existing platform (not implemented yet).
-                } else {
-                    // Creating a new platform.
-
-                    // This call will create a Resource object, which has a '$save()' method.
-                    // See https://docs.angularjs.org/api/ngResource/service/$resource
-                    var newPlatform = new Platform($scope.selected_platform);
-                    // Call the $save() method to save to server
-                    newPlatform.$save(
-                        function (newPlatform) {
-                            // Successful save. Push the new platform on to the list we wave
-                            $scope.platforms.push(newPlatform);
-                            // Set the detail to the new platform
-                            $scope.setDetail(newPlatform);
-                        }, function (err) {
-                            alert("Unable to create platform. Error code: " + err.status);
-                        });
-                }
-            };
-
-            $scope.notImplemented = function (msg) {
-                alert("Not implemented yet: " + msg);
-            };
-
             var platformID   = $routeParams.platformID;
             $scope.metadata  = Platform.get({platformID: platformID});
             $scope.locations = getLocationDetails(platformID);
             $scope.streams   = getStreamDetails($scope.metadata.streams);
 
+        }])
+
+    .controller('PlatformCreateCtrl', ['$scope', '$location', 'Platform',
+        function ($scope, $location, Platform) {
+
+            $scope.metadata             = {};
+            $scope.metadata.name        = undefined;
+            $scope.metadata.description = undefined;
+            $scope.metadata.streams     = [];
+            $scope.locations            = [];
+
+            $scope.save   = function () {
+
+                // Make sure a name has been provided. If not, alert the user and return.
+                if (!$scope.metadata.name)
+                    return alert("Please supply a name");
+
+                // This call will create a Resource object, which has a '$save()' method.
+                // See https://docs.angularjs.org/api/ngResource/service/$resource
+                var newPlatform = new Platform($scope.metadata);
+                // Call the $save() method to save to server
+                newPlatform
+                    .$save()
+                    .then(function (response) {
+                        // Go to the detail page for this platform
+                        $location.path('platforms/' + response._id);
+                    })
+                    .catch(function(err){
+                        alert(err.data.message);
+                    });
+            };
+            $scope.cancel = function () {
+                $location.path('platforms/');
+            };
         }])
 
     .controller('PlatformTabsCtrl', ['$scope', function ($scope) {
