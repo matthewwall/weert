@@ -24,8 +24,8 @@ angular
         }
     ])
 
-    .controller('PlatformDetailCtrl', ['$scope', '$routeParams', 'Platform', 'Location', 'Stream',
-        function ($scope, $routeParams, Platform, Location, Stream) {
+    .controller('PlatformDetailCtrl', ['$scope', '$routeParams', '$location', 'Platform', 'Location', 'Stream',
+        function ($scope, $routeParams, $location, Platform, Location, Stream) {
 
             // Function to get the location records for a platform
             var getLocationDetails = function (platformID) {
@@ -54,6 +54,12 @@ angular
             $scope.locations = getLocationDetails(platformID);
             $scope.streams   = getStreamDetails($scope.metadata.streams);
 
+            $scope.deletePlatform = function () {
+                console.log("Requestion to delete platform");
+                Platform.delete({platformID: $scope.metadata._id});
+                $location.path('platforms/')
+            };
+
         }])
 
     .controller('PlatformCreateCtrl', ['$scope', '$location', 'Platform',
@@ -69,7 +75,7 @@ angular
 
                 // Make sure a name has been provided. If not, alert the user and return.
                 if (!$scope.metadata.name)
-                    return alert("Please supply a name");
+                    return alert("Please supply a name for the platform");
 
                 // This call will create a Resource object, which has a '$save()' method.
                 // See https://docs.angularjs.org/api/ngResource/service/$resource
@@ -81,7 +87,7 @@ angular
                         // Go to the detail page for this platform
                         $location.path('platforms/' + response._id);
                     })
-                    .catch(function(err){
+                    .catch(function (err) {
                         alert(err.data.message);
                     });
             };

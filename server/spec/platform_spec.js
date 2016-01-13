@@ -153,7 +153,55 @@ frisby
     .toss();
 
 frisby
+    .create("Try to create a platform with a missing name field")
+    .post(test_url,
+        {"description": "A platform with a missing name field"},
+        {json: true}
+    )
+    .expectStatus(400)
+    .toss();
+
+frisby
     .create("GET the locations for a non-existent platform")
     .get(test_url + '/5680aaba377084a10b8d6521/locations')
     .expectStatus(404)
+    .toss();
+
+// Tests for deleting a platform
+frisby
+    .create('Create a platform with the intention of deleting it')
+    .post(test_url,
+        {"name": "Deleter1", "description": "Platform that will be deleted"},
+        {json: true}
+    )
+    .expectStatus(201)
+    .after(function (error, res, body) {
+        // Having created a platform, delete it
+        // Form the URL for the platform
+        var platform_link = res.headers.location;
+        // And the URL for its location records
+        var platform_locrec_link = normalizeUrl(platform_link + '/locations');
+        frisby
+            .create('DELETE the platform that was created with the intention of deleting it')
+            .delete(platform_link)
+            .expectStatus(204)
+            .after(function (error, res, body) {
+                // Now make sure it is really deleted.
+                frisby.create("Try to get the freshly deleted platform")
+                    .get(platform_link)
+                    .expectStatus(404)
+                    .toss();
+                // Also make sure its location records no longer exist
+                frisby.create("Try to get location records of a deleted platform")
+                    .get(platform_locrec_link)
+                    .expectStatus(404)
+                    .toss()
+                // Try deleting a non-existing platform
+                frisby.create("Try to DELETE a platform which has already been deleted")
+                    .delete(platform_link)
+                    .expectStatus(404)
+                    .toss();
+            })
+            .toss();
+    })
     .toss();

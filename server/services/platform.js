@@ -61,13 +61,33 @@ var PlatformManagerFactory = function (dbPromise, options) {
                                 .createCollection(collection_name);
                         })
                 })
-                .then(function(dummy){
+                .then(function (dummy) {
                     return resolve(platform_final_metadata);
                 })
                 .catch(reject);
         });
     };
 
+
+    var deleteOnePlatform = function (platformID) {
+        return new Promise(function (resolve, reject) {
+            var locrecs_collection_name = options.locrecs.name(platformID);
+
+            // TODO: Need to delete the location records collection as well.
+            var platform_collection_name = options.platforms.metadata_name;
+            dbPromise
+                .then(function (db) {
+                    db.collection(platform_collection_name, {strict: true}, function (err, collection) {
+                        if (err) return reject(err);
+                        collection
+                            .deleteOne({_id: {$eq: platformID}}, {})
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                })
+                .catch(reject);
+        });
+    };
 
     /**
      * Find all platforms
@@ -231,6 +251,7 @@ var PlatformManagerFactory = function (dbPromise, options) {
      */
     return {
         createPlatform   : createPlatform,
+        deleteOnePlatform: deleteOnePlatform,
         findPlatforms    : findPlatforms,
         findPlatform     : findPlatform,
         insertOneLocation: insertOneLocation,

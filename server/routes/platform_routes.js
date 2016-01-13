@@ -111,6 +111,31 @@ var PlatformRouterFactory = function (platform_manager) {
             });
     });
 
+    // DELETE a specific platform
+    router.delete('/platforms/:platformID', function (req, res){
+        // Get the platformID out of the router path
+        var platformID = req.params.platformID;
+        debug("Request to delete platform", platformID);
+
+        platform_manager
+            .deleteOnePlatform(platformID)
+            .then(function (result) {
+                if (result.result.n) {
+                    // Success
+                    res.sendStatus(204);
+                    // Emit an event
+                    res.app.emit('platforms/DELETE', {_id: platformID});
+                } else {
+                    // Couldn't find the doc
+                    res.sendStatus(404);
+                }
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request to delete platform. Reason", err);
+                error.sendError(err, res);
+            });
+    });
+
     // POST a new location for a specific platform
     router.post('/platforms/:platformID/locations', function (req, res) {
         // Make sure the incoming packet is encoded in JSON.
