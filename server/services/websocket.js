@@ -14,6 +14,7 @@ var socket_io = require('socket.io');
 
 var event_list = [
     'platforms/POST',
+    'platforms/DELETE',
     'platforms/locations/POST',
     'platforms/locations/DELETE',
     'streams/POST',

@@ -120,7 +120,7 @@ var PlatformRouterFactory = function (platform_manager) {
         platform_manager
             .deleteOnePlatform(platformID)
             .then(function (result) {
-                if (result.result.n) {
+                if (result.n) {
                     // Success
                     res.sendStatus(204);
                     // Emit an event

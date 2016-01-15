@@ -167,7 +167,7 @@ frisby
     .expectStatus(404)
     .toss();
 
-// Tests for deleting a platform
+// ******************* Tests for deleting a platform ****************************
 frisby
     .create('Create a platform with the intention of deleting it')
     .post(test_url,
@@ -195,7 +195,7 @@ frisby
                 frisby.create("Try to get location records of a deleted platform")
                     .get(platform_locrec_link)
                     .expectStatus(404)
-                    .toss()
+                    .toss();
                 // Try deleting a non-existing platform
                 frisby.create("Try to DELETE a platform which has already been deleted")
                     .delete(platform_link)
@@ -204,4 +204,10 @@ frisby
             })
             .toss();
     })
+    .toss();
+
+frisby
+    .create("Delete a platform with a malformed ID")
+    .delete(test_url + "/569854a26c9badbadbadbad")
+    .expectStatus(400)
     .toss();

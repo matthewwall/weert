@@ -278,7 +278,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/platforms`                            | Get an array of platforms, or an array of platform URIs.                                               | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID`                | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
 | `PUT`       | `/api/v1/platforms/:platformID`                | Set or update the metadata for platform with id *platformID*.                                          |          |
-| `DELETE`    | `/api/v1/platforms/:platformID`                | Delete platform with id *platformID*.                                                                  |          |
+| `DELETE`    | `/api/v1/platforms/:platformID`                | Delete platform with id *platformID*.                                                                  | I, D, T  |
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Get the location for the platform with id *platformID*, at a specific time.                      | I, D, T  |
@@ -416,6 +416,44 @@ Connection: keep-alive
   "streams":[]}
 }
 ```
+
+
+
+## Delete a particular platform
+
+```
+DELETE /api/v1/platforms/:platformID
+```
+
+| *Status* | *Meaning*             |
+|----------|-----------------------|
+| 204      | Success               |
+| 404      | Platform not found    |
+
+*Example of deleting a platform*
+
+```Shell
+$ curl -i -X DELETE http://localhost:3000/api/v1/platforms/569855b66c9e3ce76956aeb6
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
+Date: Fri, 15 Jan 2016 02:34:55 GMT
+Connection: keep-alive
+```
+
+*Example of deleting a non-existent platform*
+
+```Shell
+$ curl -i -X DELETE http://localhost:3000/api/v1/platforms/5643f96b9b7a70494bce9763
+HTTP/1.1 404 Not Found
+X-Powered-By: Express
+Content-Type: text/plain; charset=utf-8
+Content-Length: 9
+ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"
+Date: Fri, 15 Jan 2016 02:33:12 GMT
+Connection: keep-alive
+```
+
 
 ## Post a new location record
 

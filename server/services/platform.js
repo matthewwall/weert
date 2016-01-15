@@ -68,22 +68,64 @@ var PlatformManagerFactory = function (dbPromise, options) {
         });
     };
 
-
+    /**
+     * Delete a specific platform
+     * @method insertOneLocation
+     * @param {number} platformID - The ID of the platform to delete
+     * @returns {bluebird|exports|module.exports}
+     */
     var deleteOnePlatform = function (platformID) {
         return new Promise(function (resolve, reject) {
-            var locrecs_collection_name = options.locrecs.name(platformID);
 
-            // TODO: Need to delete the location records collection as well.
+            // A bad _id will cause an exception. Be prepared to catch it
+            try {
+                var id_obj = new mongodb.ObjectID(platformID);
+            } catch (err) {
+                err.description = "Unable to form ObjectID for platformID of " + platformID;
+                return reject(err);
+            }
+
             var platform_collection_name = options.platforms.metadata_name;
+            var locrecs_collection_name  = options.locrecs.name(platformID);
+
             dbPromise
                 .then(function (db) {
-                    db.collection(platform_collection_name, {strict: true}, function (err, collection) {
-                        if (err) return reject(err);
-                        collection
-                            .deleteOne({_id: {$eq: platformID}}, {})
-                            .then(resolve)
-                            .catch(reject);
+
+                    // First, a promise to delete the platform from the collection of platforms
+                    var p1 = new Promise(function (resolve1, reject1) {
+                        db.collection(platform_collection_name, {strict: true}, function (err, collection) {
+                            if (err) {
+                                // The metadata collection doesn't exist. That's OK, because our goal is to
+                                // delete the platform, so our mission is accomplished.
+                                return resolve1({result: {ok: 1, n: 0}});
+                            }
+                            // Delete the platform metadata from the collection of platform metadata
+                            collection
+                                .deleteOne({_id: {$eq: id_obj}}, {})
+                                .then(resolve1)
+                                .catch(reject1);
+                        });
                     });
+
+                    // Then a promise to delete the location records collection
+                    var p2 = new Promise(function (resolve2, reject2) {
+                        db
+                            .dropCollection(locrecs_collection_name)
+                            .then(resolve2)
+                            .catch(resolve2);   // Even if the collection is not there, we have been successful.
+                    });
+
+                    // Resolve both the promises, using Promise.all.
+                    Promise
+                        .all([p1, p2])
+                        .then(function (result) {
+                            return resolve(result[0].result);
+                        })
+                        .catch(function (err) {
+                            // Only the first promise can generate an error.
+                            return resolve({ok: 1, n: 0});
+                        });
+
                 })
                 .catch(reject);
         });
