@@ -4,6 +4,8 @@
  *  See the file LICENSE for your full rights.
  */
 
+"use strict";
+
 /**
  * StreamManagerFactory module
  * @module services/stream

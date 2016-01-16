@@ -111,8 +111,45 @@ var PlatformRouterFactory = function (platform_manager) {
             });
     });
 
+
+    // PUT (save) the metadata for a single platform
+    router.put('/platforms/:platformID', function (req, res) {
+        if (req.is('json')) {
+
+            // Get the platformID out of the route path
+            var platformID = req.params.platformID;
+            debug("Request to update metadata for platformID", platformID);
+
+            // Get the platform metadata
+            var metadata = req.body;
+
+            // Ask the PlatformManager to update the platform metadata
+            platform_manager
+                .updateOnePlatform(platformID, metadata)
+                .then(function (result) {
+                    console.log("Result from PUT=", result);
+                    if (result.result.n) {
+                        // Success
+                        res.sendStatus(204);
+                        // Emit an event
+                        res.app.emit('platforms/PUT', metadata);
+                    } else {
+                        // Couldn't find the doc
+                        res.sendStatus(404);
+                    }
+                })
+                .catch(function (err) {
+                    error.sendError(err, res);
+                });
+        } else {
+            // POST was not in JSON format. Send an error msg.
+            res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
+        }
+    });
+
+
     // DELETE a specific platform
-    router.delete('/platforms/:platformID', function (req, res){
+    router.delete('/platforms/:platformID', function (req, res) {
         // Get the platformID out of the router path
         var platformID = req.params.platformID;
         debug("Request to delete platform", platformID);

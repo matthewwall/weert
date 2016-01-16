@@ -4,6 +4,8 @@
  *  See the file LICENSE for your full rights.
  */
 
+"use strict";
+
 var debug    = require('debug')('weert:server');
 var auxtools = require('../auxtools');
 

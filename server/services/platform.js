@@ -4,6 +4,8 @@
  *  See the file LICENSE for your full rights.
  */
 
+"use strict";
+
 /**
  * PlatformManagerFactory module
  * @module services/platform
@@ -12,6 +14,7 @@
 var debug   = require('debug')('weert:server');
 var mongodb = require('mongodb');
 var Promise = require('bluebird');
+var util    = require('util');
 
 var dbtools = require('../dbtools');
 
@@ -67,6 +70,50 @@ var PlatformManagerFactory = function (dbPromise, options) {
                 .catch(reject);
         });
     };
+
+
+    var updateOnePlatform = function (platformID, platform_metadata) {
+        return new Promise(function (resolve, reject) {
+
+            // If the platformID was included in the metadata, make sure it matches
+            // the one in the URL:
+            if (platform_metadata._id && (platformID !== platform_metadata._id)) {
+                return reject(new Error({
+                    message    : "Mismatch in platformID",
+                    description: platformID + " vs " + platform_metadata._id
+                }));
+            }
+
+            // A bad _id will cause an exception. Be prepared to catch it
+            try {
+                var id_obj = new mongodb.ObjectID(platformID);
+            } catch (err) {
+                err.description = "Unable to form ObjectID for platformID of " + platformID;
+                return reject(err);
+            }
+
+            var platform_collection_name = options.platforms.metadata_name;
+
+            dbPromise
+                .then(function (db) {
+                    db.collection(platform_collection_name, {strict: true}, function (err, collection) {
+                        if (err)
+                            return reject(err);
+                        // Make a copy of the metadata. We're going to modify it
+                        var md = util._extend({}, platform_metadata);
+                        // The save method does not overwrite the streams data, so delete it.
+                        delete md.streams;
+                        delete md._id;
+
+                        collection
+                            .updateOne({_id: {$eq: id_obj}}, {$set: md})
+                            .then(resolve)
+                            .catch(reject);
+                    });
+                });
+        });
+    };
+
 
     /**
      * Delete a specific platform
@@ -293,6 +340,7 @@ var PlatformManagerFactory = function (dbPromise, options) {
      */
     return {
         createPlatform   : createPlatform,
+        updateOnePlatform: updateOnePlatform,
         deleteOnePlatform: deleteOnePlatform,
         findPlatforms    : findPlatforms,
         findPlatform     : findPlatform,

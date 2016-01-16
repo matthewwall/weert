@@ -172,8 +172,7 @@ frisby
     .create('Create a platform with the intention of deleting it')
     .post(test_url,
         {"name": "Deleter1", "description": "Platform that will be deleted"},
-        {json: true}
-    )
+        {json: true})
     .expectStatus(201)
     .after(function (error, res, body) {
         // Having created a platform, delete it
@@ -211,3 +210,70 @@ frisby
     .delete(test_url + "/569854a26c9badbadbadbad")
     .expectStatus(400)
     .toss();
+
+// ******************* Tests for updating a platform ****************************
+frisby
+    .create('Create a platform with the intention of updating it')
+    .post(test_url,
+        {"name": "Updater1", "description": "Platform that will be updated"},
+        {json: true}
+    )
+    .expectStatus(201)
+    .after(function (error, res, body) {
+        // Having created a platform, update it
+        // Form the URL for the platform
+        var platform_link = res.headers.location;
+        frisby
+            .create('PUT to the platform that was created with the intention of updating it')
+            .put(platform_link,
+                {"name": "UpdatedName1", "streams": ["569a738bb62e21547a1a06e9"]},
+                {json: true})
+            .expectStatus(204)
+            .after(function (error, res, body) {
+                // Now make sure it was updated
+                frisby.create("Get the freshly updated platform")
+                    .get(platform_link)
+                    .expectStatus(200)
+                    .expectHeaderContains('content-type', 'application/json')
+                    .expectJSONTypes('', {_id: String, name: String, description: String, streams: Array})
+                    .expectJSON('', {name: "UpdatedName1", description: "Platform that will be updated"})
+                    .expectJSON('streams', [])// streams should NOT be updated, despite appearing in the PUT
+                    .after(function (error, res, body) {
+                        // Try putting again, this time by including the _id in the PUT
+                        frisby.create("PUT to the platform that was created with " +
+                                "the intention of updating it, but with _id included")
+                            .put(platform_link,
+                                {"_id": body._id, "name": "UpdatedName2"},
+                                {json: true})
+                            .expectStatus(204)
+                            .after(function (error, res, body) {
+                                // PUT again, but with a non-existent _id
+                                frisby.create("PUT to the platform that was created with " +
+                                        "the intention of updating it, but with a mismatched _id")
+                                    .put(platform_link,
+                                        {"_id": "569a8aafd579b3c37a549690", "name": "UpdatedName3"},
+                                        {json: true})
+                                    .expectStatus(400)
+                                    .toss();
+                            })
+                            .toss();
+                    })
+                    .toss();
+            })
+            .toss();
+    })
+    .toss();
+
+frisby
+    .create("PUT to a platform with a malformed ID")
+    .delete(test_url + "/569854a26c9badbadbadbad")
+    .expectStatus(400)
+    .toss();
+
+frisby
+    .create("PUT to a non-existent platform")
+    .delete(test_url + "/569854a26c90000000000000")
+    .expectStatus(404)
+    .toss();
+
+// TODO: Try to PUT to a non-existent platformID

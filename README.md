@@ -1,15 +1,15 @@
 # WeeRT
-A real-time interface to weewx using MongoDB, Express, Node, and D3 (MEND?)
+A real-time logging and display server, using Angular, MongoDB, Express, Node, and D3 (AMEND?)
 
 ## General architecture
 - Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/)
-- Data is stored in a [MongoDB](https://www.mongodb.org/) server
-- The server receives packet updates from weewx via a RESTful interface
-- The server then sends the new packets on to clients through a Websocket
-connection (using [socket.io](http://socket.io/)).
-- When a new client connects to the WeeRT server, it can receive up to
-an hour's worth of loop data.
-- After that, the display is updated with every new loop packet
+- The server offers a RESTful API for storing, retrieving, deleting, and editing platforms,
+streams, and data.
+- Mutating actions are sent on to clients through a Websocket connection (using [socket.io](http://socket.io/)),
+allowing a real-time display.
+- The server offers a web interface (using [Angular](http://angularjs.com))
+for provisioning (things like setting up platforms and streams).
+- Data are stored in a [MongoDB](https://www.mongodb.org/) server
 - Real-time plots are done using [D3](http://d3js.org/).
 
 For experimental purposes. Tested on Node V4.2.2, although other versions should work fine.
@@ -277,7 +277,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              | I, D, T  |
 | `GET`       | `/api/v1/platforms`                            | Get an array of platforms, or an array of platform URIs.                                               | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID`                | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
-| `PUT`       | `/api/v1/platforms/:platformID`                | Set or update the metadata for platform with id *platformID*.                                          |          |
+| `PUT`       | `/api/v1/platforms/:platformID`                | Set or update the metadata for platform with id *platformID*.                                          | I, D, T  |
 | `DELETE`    | `/api/v1/platforms/:platformID`                | Delete platform with id *platformID*.                                                                  | I, D, T  |
 | `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
 | `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
@@ -416,6 +416,98 @@ Connection: keep-alive
   "streams":[]}
 }
 ```
+
+
+
+
+
+
+## Update an existing platform
+
+Update the metadata of an existing platform
+
+```
+PUT /api/v1/platforms/:platformID
+```
+
+*Return status*
+
+| *Status* | *Meaning*              |
+|----------|------------------------|
+| 204      | Success                |
+| 400      | Malformed request      |
+| 404      | Platform not found     |
+| 415      | Invalid content type   |
+
+If successful, the server will return status code `204`, with nothing in the response body.
+
+*Example*
+
+```Shell
+# First create a platform:
+$  curl -i -H "Content-type: application/json" -X POST  \
+> -d '{"name":"Bennys Ute", "description" : "Yellow, with black cap"}' \
+> http://localhost:3000/api/v1/platforms
+HTTP/1.1 201 Created
+X-Powered-By: Express
+Location: http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
+Content-Type: application/json; charset=utf-8
+Content-Length: 106
+ETag: W/"6a-nTY0yTw2XWhpC2BSzqsHvA"
+Date: Sat, 16 Jan 2016 19:46:13 GMT
+Connection: keep-alive
+
+{
+  "_id":"569a9e0505be9995051ee8f8",
+  "name":"Bennys Ute",
+  "description":"Yellow, with black cap",
+  "streams":[]
+}
+
+# Now modify the platform, using PUT:
+$ curl -i -H "Content-type: application/json" -X PUT \
+> -d '{"name":"Charlies Ute"}' \
+> http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
+HTTP/1.1 204 No Content
+X-Powered-By: Express
+ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
+Date: Sat, 16 Jan 2016 19:49:42 GMT
+Connection: keep-alive
+
+# Now retrieve the platform, verifying the update worked:
+$ curl -i  http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 108
+ETag: W/"6c-ZN4yYmtfB8xRh62KbxblkQ"
+Date: Sat, 16 Jan 2016 19:50:19 GMT
+Connection: keep-alive
+
+{
+  "_id":"569a9e0505be9995051ee8f8",
+  "name":"Charlies Ute",
+  "description":"Yellow, with black cap",
+  "streams":[]
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
