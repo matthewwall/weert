@@ -49,16 +49,20 @@ angular
                 return streams_details;
             };
 
+            $scope.deletePlatform = function () {
+                console.log("Request to delete platform");
+                Platform.delete({platformID: $scope.metadata._id});
+                $location.path('platforms/')
+            };
+
+            $scope.updatePlatform = function () {
+                Platform.update($scope.metadata);
+            };
+
             var platformID   = $routeParams.platformID;
             $scope.metadata  = Platform.get({platformID: platformID});
             $scope.locations = getLocationDetails(platformID);
             $scope.streams   = getStreamDetails($scope.metadata.streams);
-
-            $scope.deletePlatform = function () {
-                console.log("Requestion to delete platform");
-                Platform.delete({platformID: $scope.metadata._id});
-                $location.path('platforms/')
-            };
 
         }])
 
@@ -119,7 +123,11 @@ angular
     }])
 
     .factory('Platform', ['$resource',
+        // Resource to be used to create / update / delete platforms. See https://goo.gl/ST5H8T for how
+        // this all works.
         function ($resource) {
-            return $resource('api/v1/platforms/:platformID', {platformID: '@_id'});
+            return $resource('api/v1/platforms/:platformID',
+                {platformID: '@_id'},
+                {update: {method: 'PUT'}});
         }]);
 

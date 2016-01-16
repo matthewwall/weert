@@ -127,7 +127,6 @@ var PlatformRouterFactory = function (platform_manager) {
             platform_manager
                 .updateOnePlatform(platformID, metadata)
                 .then(function (result) {
-                    console.log("Result from PUT=", result);
                     if (result.result.n) {
                         // Success
                         res.sendStatus(204);
