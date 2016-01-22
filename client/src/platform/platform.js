@@ -107,13 +107,13 @@ angular
                 url  : "src/platform/platform-detail.html"
             }, {
                 label: 'Streams',
-                url  : "src/platform/stream.html"
+                url  : "src/platform/platform-stream.html"
             }, {
                 label: 'Location',
-                url  : "src/platform/location.html"
+                url  : "src/platform/platform-location.html"
             }, {
                 label: 'Map',
-                url  : "src/platform/map.html"
+                url  : "src/platform/platform-map.html"
             }];
 
         $scope.setActiveTab = function (tab) {
@@ -123,8 +123,10 @@ angular
     }])
 
     .factory('Platform', ['$resource',
-        // Resource to be used to create / update / delete platforms. See https://goo.gl/ST5H8T for how
-        // this all works.
+        // Resource to be used to create / update / delete platforms.
+        // The returned object will have methods such as 'get, 'query', 'delete', etc,
+        // as well as the explicitly listed method 'update'.
+        // See https://goo.gl/ST5H8T for how this all works.
         function ($resource) {
             return $resource('api/v1/platforms/:platformID',
                 {platformID: '@_id'},

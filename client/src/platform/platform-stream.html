@@ -1,0 +1,62 @@
+<h3>Member streams</h3>
+<table class="table">
+    <thead>
+    <tr>
+        <th>StreamId</th>
+        <th>Name</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="stream in streams">
+        <td>{{stream._id}}</td>
+        <td>{{stream.name}}</td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- Buttons to edit, create, copy, and delete. Visible only when an edit is not in progress. -->
+<span ng-show="!editPlatformStream.$visible">
+
+        <button type="button"
+                class="btn btn-default"
+                aria-label="Edit"
+                ng-click="editPlatformDetail.$show()">
+            <span class="glyphicon glyphicon-pencil"> Edit</span>
+        </button>
+
+       <button type="button"
+               class="btn btn-default"
+               aria-label="Delete"
+               ng-click="deletePlatform()">
+           <span class="glyphicon glyphicon-minus-sign" aria-hidden="true"> Delete</span>
+       </button>
+
+    <!--<button type="button"-->
+    <!--class="btn btn-default"-->
+    <!--aria-label="Create"-->
+    <!--ng-click="createMode(); editPlatformDetail.$show()">-->
+    <!--<span class="glyphicon glyphicon-plus-sign" aria-hidden="true"> Create</span>-->
+    <!--</button>-->
+
+    <!--<button type="button"-->
+    <!--class="btn btn-default"-->
+    <!--aria-label="Copy"-->
+    <!--ng-click="notImplemented('Copy')">-->
+    <!--<span class="glyphicon glyphicon-duplicate" aria-hidden="true"> Copy</span>-->
+    <!--</button>-->
+    </span>
+
+<!-- Buttons to submit / cancel the edit. Visible only when an edit is in progress -->
+<span ng-show="editPlatformDetail.$visible">
+        <button type="submit"
+                class="btn btn-primary"
+                ng-disabled="editPlatformDetail.$waiting">
+            <span class="glyphicon glyphicon-save"> Save changes</span> 
+        </button>
+        <button type="button"
+                class="btn btn-default"
+                ng-disabled="editPlatformDetail.$waiting"
+                ng-click="editPlatformDetail.$cancel()">
+            <span class="glyphicon glyphicon-remove"> Cancel</span>
+        </button>
+    </span>
