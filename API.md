@@ -3,7 +3,7 @@
 ## Objects
 
 This section lists various objects that the WeeRT API uses, either passed in via the request body, or returned in
-the response body.
+the response body. They are all in JSON.
 
 ### The `error` object
 
@@ -31,22 +31,20 @@ In case of an error, an `error` object is returned in the body of the response.
 
 #### Definition
 
-|     Attribute | Type   | Description                                                                                |
-|--------------:|--------|--------------------------------------------------------------------------------------------|
-|         `_id` | string | A unique identifier for the stream.                                                        |
-|        `name` | string | A name or nickname for the stream. Need not be unique.                                     |
-| `description` | string | A free-form description of the stream.                                                     |
-|        `join` | string | A key to an external database, holding additional information about the stream. [Optional] |
-|       `model` | string | The hardware model. [Optional]                                                             |
+|     Attribute | Type   | Description                                                |
+|--------------:|--------|------------------------------------------------------------|
+|         `_id` | string | A unique identifier. or `streamID`, for the stream.        |
+|        `name` | string | A unique name for the stream.                              |
+| `description` | string | A free-form description of the stream.                     |
+| `unit_group`  | string | The Standard Unit Group used by the stream.                |
 
 #### Example
 ```JSON
 {
-  "_id"         : "309ae56b8d",
-  "name"        : "Boiler feed",
+  "_id"         : "569aa06605be9995051ee8fe",
+  "name"        : "Boiler feed 93",
   "description" : "Onewire feed from boiler; uses blue wire",
-  "join"        : "87340",
-  "model"       : "DS18B20"
+  "unit_group"  : "METRIC"
 }
 ```
 
@@ -57,41 +55,19 @@ In case of an error, an `error` object is returned in the body of the response.
 
 |     Attribute | Type   | Description                                                                                 |
 |--------------:|--------|---------------------------------------------------------------------------------------------|
-|         `_id` | string | A unique identifier for the platform.                                                       |
-|        `name` | string | A name or nickname for the platform. Need not be unique.                                    |
+|         `_id` | string | A unique identifier, or `platformID`, for the platform.                                     |
+|        `name` | string | A unique name for the platform.                                                             |
 | `description` | string | A free-form description of the platform.                                                    |
-|     `streams` | array  | An array holding the IDs of any streams located on the platform.                            |
-|        `join` | string | A key to an external database, holding additional information about the platform. [Optional] |
+|    `location` | string | The *streamID* of the Location Stream                                                       |
 
 #### Example
+
 ```JSON
 {
-  "_id"         : "29e8a6bc",
+  "_id"         : "569aa06605be9995051ee8f9",
   "name"        : "Benny's Ute",
   "description" : "Benny's Ute. Yellow Chevy with a black cap",
-  "streams"     : ["663f5e", "d65e3a", "2a9b9a"],
-  "join"        : "benny_ute"
-}
-```
-
-### The `location` object
-
-#### Definition
-
-|   Attribute | Type    | Description                                                        |
-|------------:|---------|--------------------------------------------------------------------|
-| `timestamp` | integer | Unix epoch time in milliseconds.                                   |
-|  `latitude` | real    | The latitude in decimal degrees; negative for southern hemisphere. |
-| `longitude` | real    | The longitude in decimal degrees; negative for western hemisphere. |
-|  `altitude` | real    | The altitude of the platform in meters. [Optional]                 |
-
-#### Example
-```JSON
-{
-  "timestamp" : 1446767591000,
-  "latitude"  : 45.1082,
-  "longitude" : -122.0395,
-  "altitude"  : 235.2
+  "location"    : "569aa06705be9995051ee900"
 }
 ```
 
@@ -114,6 +90,30 @@ In case of an error, an `error` object is returned in the body of the response.
  ...
 }
 ```
+
+### The `location` packet
+
+This is a specialized version of the `packet` object, which holds location information.
+
+#### Definition
+
+|   Attribute | Type    | Description                                                        |
+|------------:|---------|--------------------------------------------------------------------|
+| `timestamp` | integer | Unix epoch time in milliseconds.                                   |
+|  `latitude` | real    | The latitude in decimal degrees; negative for southern hemisphere. |
+| `longitude` | real    | The longitude in decimal degrees; negative for western hemisphere. |
+|  `altitude` | real    | The altitude of the platform. [Optional]                           |
+
+#### Example
+```JSON
+{
+  "timestamp" : 1446767591000,
+  "latitude"  : 45.1082,
+  "longitude" : -122.0395,
+  "altitude"  : 235.2
+}
+```
+
 
 
 
@@ -152,17 +152,16 @@ So, we regard a packet with timestamp `XXXXX` as representing the world leading 
 
 and the same packet is not included twice.
 
-## General patterns
+## Return codes
 
-*Return status*
-
-The following table gives the return code pattern used by WeeRT
+The following table gives the pattern of return codes used by WeeRT
 
 | *Status* | *Meaning*                                                                                   |
 |----------|---------------------------------------------------------------------------------------------|
 | 200      | Successfully completed the request.                                                         |
-| 201      | Success creation of a new resource, such as a stream, platform, packet, or location         |
-| 400      | Bad or malformed request. This may be because the `streamID` or `platformID` doesn't exist. |
+| 201      | Successful creation of a new resource, such as a stream, platform, packet, or location. Generally, the new resource is returned in the response body. |
+| 204      | Successful completion of the request, but no content is being returned in the response body.|
+| 400      | Bad or malformed request. Possibilities include a bad resource ID, or a duplicate resource ID|
 | 404      | Non existent resource. You requested, or tried to delete, a resource that does not exist.   |
 | 415      | Invalid content type (perhaps you forgot to set `Content-type` to `application-json`?)      |
 
@@ -170,26 +169,30 @@ The following table gives the return code pattern used by WeeRT
 ## API summary
 Unless otherwise noted, data is returned in the response body, formatted as JSON.
 
-| *HTTP verb* | *Endpoint*                                     | *Description*                                                                                          | *STATUS* |
-|-------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------|----------|
-| `POST`      | `/api/v1/platforms`                            | Create a new platform and return its URI.                                                              | I, D, T  |
-| `GET`       | `/api/v1/platforms`                            | Get an array of platforms, or an array of platform URIs.                                               | I, D, T  |
-| `GET`       | `/api/v1/platforms/:platformID`                | Get the metadata for the platform with id *platformID*.                                                | I, D, T  |
-| `PUT`       | `/api/v1/platforms/:platformID`                | Set or update the metadata for platform with id *platformID*.                                          | I, D, T  |
-| `DELETE`    | `/api/v1/platforms/:platformID`                | Delete platform with id *platformID*.                                                                  | I, D, T  |
-| `POST`      | `/api/v1/platforms/:platformID/locations`      | Post a new location for the platform with id *platformID*.                                             | I, D, T  |
-| `GET`       | `/api/v1/platforms/:platformID/locations`      | Get all locations for the platform with id *platformID*, satisfying certain search criteria.           | I, D, T  |
-| `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Get the location for the platform with id *platformID*, at a specific time.                      | I, D, T  |
-| `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete the location for the platform with id *platformID*, at a specific time.                   | I,       |
-| `POST`      | `/api/v1/streams`                              | Create a new stream, returning its URI in the Locations field. Return its metadata.                    | I,    T  |
-| `GET`       | `/api/v1/streams`                              | Return an array of URIs to all the streams.                                                            | I     T  |
-| `GET`       | `/api/v1/streams/:streamID`                    | Get the metadata for the stream with id *streamID*.                                                    | I     T  |
-| `PUT`       | `/api/v1/streams/:streamID`                    | Set or update the metadata for the stream with id *streamID*                                           |          |
-| `DELETE`    | `/api/v1/streams/:streamID`                    | Delete stream with id *streamID*                                                                       |          |
-| `POST`      | `/api/v1/streams/:streamID/packets`            | Post a new packet to the stream with id *streamID*, returning its URI in Locations field.              | I, D, T  |
-| `GET`       | `/api/v1/streams/:streamID/packets`            | Get all packets from the stream with id *streamID*, satisfying certain search or aggregation criteria. | I, D, T  |
-| `GET`       | `/api/v1/streams/:streamID/packets/:timestamp` | Return a packet from *streamID* with the given timestamp.                                              | I, D, T  |
-| `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp` | Delete a packet from *streamID* with the given timestamp.                                              | I, D, T  |
+| *HTTP verb* | *Endpoint*                                           | *Description*                                                                                     | *STATUS* |
+|-------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------|----------|
+| `POST`      | `/api/v1/platforms`                                  | Create a new platform, returning its UR in the Locations field. Return its metadata.              |          |
+| `GET`       | `/api/v1/platforms`                                  | Get an array of platforms, or an array of platform URIs, satisfying certain search criteria.      |          |
+| `GET`       | `/api/v1/platforms/:platformID`                      | Get the metadata for platform *platformID*.                                                       |          |
+| `PUT`       | `/api/v1/platforms/:platformID`                      | Set or update the metadata for platform *platformID*.                                             |          |
+| `DELETE`    | `/api/v1/platforms/:platformID`                      | Delete platform *platformID*.                                                                     |          |
+| `POST`      | `/api/v1/platforms/:platformID/streams`              | Post a new set of streams associated with platform *platformID*                                   |          |
+| `GET`       | `/api/v1/platforms/:platformID/streams`              | Get all sets of streams associated with platform *platformID*, satisfying certain search criteria |          |
+| `GET`       | `/api/v1/platforms/:platformID/streams/:timestamp`   | Get the set of streams associated with *platformID* at the given time                             |          |
+| `DELETE`    | `/api/v1/platforms/:platformID/streams/:timestamp`   | Delete the set of streams associated with *platformID* at the given time                          |          |
+| `POST`      | `/api/v1/platforms/:platformID/locations`            | Post a new location for platform *platformID*, returning its URI in the Locations field.          |          |
+| `GET`       | `/api/v1/platforms/:platformID/locations`            | Get all locations for platform *platformID*, satisfying certain search or aggregation criteria.   |          |
+| `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Return a location packet for platform *platformID* with the given timestamp.                      |          |
+| `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete a location packet for platfirm *platform*D* with the given timestamp.                      |          |
+| `POST`      | `/api/v1/streams`                                    | Create a new stream, returning its URI in the Locations field. Return its metadata.               |         |
+| `GET`       | `/api/v1/streams`                                    | Return an array of URIs to all the streams.                                                       |        |
+| `GET`       | `/api/v1/streams/:streamID`                          | Get the metadata for stream *streamID*.                                                           |          |
+| `PUT`       | `/api/v1/streams/:streamID`                          | Set or update the metadata for stream *streamID*                                                  |          |
+| `DELETE`    | `/api/v1/streams/:streamID`                          | Delete stream *streamID*                                                                          |          |
+| `POST`      | `/api/v1/streams/:streamID/packets`                  | Post a new packet to stream *streamID*, returning its URI in Locations field.                     |          |
+| `GET`       | `/api/v1/streams/:streamID/packets`                  | Get all packets from stream *streamID*, satisfying certain search or aggregation criteria.        |          |
+| `GET`       | `/api/v1/streams/:streamID/packets/:timestamp`       | Return a packet from stream *streamID* with the given timestamp.                                  |          |
+| `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp`       | Delete a packet from stream *streamID* with the given timestamp.                                  |          |
 
 Status codes:
 I = Implemented
@@ -240,7 +243,7 @@ Connection: keep-alive
 ## Get platforms
 
 Query the database for information about platforms. Return either an array of URIs to the platforms,
-or the platform data itself.
+or the platform data itself, depending on the `as` parameter.
 
 ```
 GET /api/v1/platforms
@@ -445,7 +448,7 @@ Connection: keep-alive
 ```
 
 
-## Post a new location record
+## Post a new location packet
 
 Post a new location for a specific platform
 
@@ -460,13 +463,13 @@ POST /api/v1/platforms/:platformID/locations
 | 201      | Success   |
 | 415      | Invalid content type |
 
-Post a new location record for the platform with ID *platformID*.
-The record should be contained as a JSON payload in the body of the POST. The packet
-must contain keyword `timestamp`, holding the unix epoch time in *milliseconds* (JavaScript style).
+Post a new location packet for the platform with ID *platformID*. The packet should be contained as a JSON payload in
+the body of the POST. The packet must contain keyword `timestamp`, holding the unix epoch time in *milliseconds*
+(JavaScript style).
 
-If successful, the server will return a response code of `201`, with the response `location` field set to the URL
-of the newly created resource (the new location record). The response body will contain a copy of the newly
-created location record.
+If successful, the server will return a response code of `201`, with the response `location` field set to the URI of the
+newly created resource (the new location packet). The response body will contain a copy of the newly created location
+packet.
 
 *Example*
 ```Shell
@@ -492,7 +495,7 @@ Connection: keep-alive
 
 ## Get locations
 
-Return all location records from the platform with ID `:platformID` that satisfy a search query.
+Return all location packets from the platform with ID `:platformID` that satisfy a search query.
 
 ```
 GET /api/v1/platforms/:platformID/locations
@@ -502,9 +505,9 @@ GET /api/v1/platforms/:platformID/locations
 
 | *Name*      | *Type*  | *Description*                                                                                                                      |
 |-------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
-| `start`     | integer | All timestamps greater than this value will be included in the results. Default: first available record.                           |
-| `stop`      | integer | All timestamps less than or equal to this value will be included in the results. Default: last available record.                   |
-| `limit`     | integer | Limit the number of returned records to this value. Default: 0 (no limit).                                                         |
+| `start`     | integer | All timestamps greater than this value will be included in the results. Default: first available packet.                           |
+| `stop`      | integer | All timestamps less than or equal to this value will be included in the results. Default: last available packet.                   |
+| `limit`     | integer | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
 | `sort`      | string  | What to sort results by. Default: `timestamp`.                                                                                     |
 | `direction` | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
 
@@ -562,7 +565,7 @@ GET /api/v1/platforms/:platformID/locations/:timestamp
 | `match`  | string | `latest`     | Use latest value in database.                          |
 
 If the query `match` is `lastBefore` or `firstAfter`, then an exact match is not necessary.
-Instead, the last location before, or after, (respectively) the given `timestamp` is returned.
+Instead, the last location before, or after (respectively), the given `timestamp` is returned.
 If the query `match` is `latest`, then *:timestamp* is ignored.
 
 *Return status*
@@ -784,6 +787,19 @@ Get a packet from a specific stream with a specific timestamp
 GET /api/v1/streams/:streamID/packets/:timestamp
 ```
 
+*Parameters*
+
+| *Name*   | *Type* | *Value*      | *Description*                                          |
+|----------|--------|--------------|--------------------------------------------------------|
+| `match`  | string | `exact`      | Require exact match of timestamp (default).            |
+| `match`  | string | `lastBefore` | Use timestamp or closest previous timestamp.           |
+| `match`  | string | `firstAfter` | Use timestamp or closest later timestamp.              |
+| `match`  | string | `latest`     | Use latest value in database.                          |
+
+If the query `match` is `lastBefore` or `firstAfter`, then an exact match is not necessary.
+Instead, the last location before, or after (respectively), the given `timestamp` is returned.
+If the query `match` is `latest`, then *:timestamp* is ignored.
+
 *Return status*
 
 | *Status* | *Meaning*             |
@@ -860,6 +876,6 @@ Connection: keep-alive
 
 # License & Copyright
 
-Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+Copyright (c) 2016 Tom Keffer <tkeffer@gmail.com>
 
   See the file LICENSE for your full rights.

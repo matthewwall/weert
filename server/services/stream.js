@@ -39,18 +39,24 @@ var StreamManagerFactory = function (dbPromise, options) {
             if (stream_metadata._id !== undefined) {
                 return reject(new Error("Field _id is already defined"));
             }
+            if (!stream_metadata.unit_group) {
+                return reject(new Error("Missing unit_group"));
+            }
             dbPromise
                 .then(function (db) {
-                    // This returns a promise
-                    return db
-                        .collection(options.streams.metadata_name, options.streams.options)
-                        .insertOne(stream_metadata, {});
+                    db
+                        .collection(options.streams.metadata_name, options.streams.options, function (err, coln) {
+                            if (err) return reject(err);
+                            coln
+                                .insertOne(stream_metadata)
+                                .then(function (result) {
+                                    var stream_final_metadata = result.ops[0];
+                                    return resolve(stream_final_metadata);
+                                })
+                                .catch(reject);
+                        })
                 })
-                .then(function (result) {
-                    var stream_final_metadata = result.ops[0];
-                    return resolve(stream_final_metadata);
-                })
-                .catch(reject);
+                .catch(reject)
         });
     };
 
@@ -67,9 +73,9 @@ var StreamManagerFactory = function (dbPromise, options) {
         return new Promise(function (resolve, reject) {
             dbPromise
                 .then(function (db) {
-                    db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
+                    db.collection(options.streams.metadata_name, {strict: true}, function (err, coln) {
                         if (err) return reject(err);
-                        collection
+                        coln
                             .find()
                             .limit(dbQuery.limit)
                             .sort(dbQuery.sort)
@@ -86,7 +92,7 @@ var StreamManagerFactory = function (dbPromise, options) {
         return new Promise(function (resolve, reject) {
             dbPromise
                 .then(function (db) {
-                    db.collection(options.streams.metadata_name, {strict: true}, function (err, collection) {
+                    db.collection(options.streams.metadata_name, {strict: true}, function (err, coln) {
                         if (err) return reject(err);
                         // A bad _id will cause an exception. Be prepared to catch it
                         try {
@@ -95,7 +101,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                             err.description = "Unable to form ObjectID for streamID of " + streamID;
                             return reject(err)
                         }
-                        collection
+                        coln
                             .find({_id: {$eq: id_obj}})
                             .toArray()
                             .then(resolve)
@@ -105,6 +111,34 @@ var StreamManagerFactory = function (dbPromise, options) {
                 .catch(reject);
         });
     };
+
+
+    var deleteOneStream = function (streamID) {
+        return new Promise(function (resolve, reject) {
+            // A bad _id will cause an exception. Be prepared to catch it
+            try {
+                var id_obj = new mongodb.ObjectID(streamID);
+            } catch (err) {
+                err.description = "Unable to form ObjectID for platformID of " + platformID;
+                return reject(err);
+            }
+
+            dbPromise
+                .then(function (db) {
+                    db.collection(options.streams.metadata_name, {strict: true}, function (err, coln) {
+                        if (err) {
+                            // The metadata collection doesn't exist. That's OK, because our goal is to
+                            // delete the stream, so our mission is accomplished.
+                            return resolve({ok: 1, n: 0});
+                        }
+                        coln
+                            .deleteOne({_id: {$eq: streamID}}, {})
+                            .then(resolve)
+                            .catch(reject)
+                    })
+                })
+        })
+    }
 
 
     /**
@@ -130,9 +164,14 @@ var StreamManagerFactory = function (dbPromise, options) {
             var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
+                    // TODO: should be an error to insert into a non-existent stream
                     return db
-                        .collection(collection_name, options.packets.options)
-                        .insertOne(packet);
+                        .collection(collection_name, options.packets.options, function (err, coln) {
+                            if (err)
+                                return reject(new errors.NoSuchIDError("Non existent stream " + streamID));
+                            coln
+                                .insertOne(packet);
+                        })
                 })
                 .then(function (result) {
                     var final_packet       = result.ops[0];
@@ -162,10 +201,10 @@ var StreamManagerFactory = function (dbPromise, options) {
             var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
-                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                    db.collection(collection_name, {strict: true}, function (err, coln) {
                         if (err) return reject(err);
                         dbtools
-                            .findByTimestamp(collection, dbQuery)
+                            .findByTimestamp(coln, dbQuery)
                             .then(resolve)
                             .catch(reject);
                     });
@@ -179,10 +218,10 @@ var StreamManagerFactory = function (dbPromise, options) {
             var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
-                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                    db.collection(collection_name, {strict: true}, function (err, coln) {
                         if (err) return reject(err);
                         dbtools
-                            .calcAggregate(collection, obs_type, dbQuery)
+                            .calcAggregate(coln, obs_type, dbQuery)
                             .then(resolve)
                             .catch(reject);
                     });
@@ -196,10 +235,10 @@ var StreamManagerFactory = function (dbPromise, options) {
             var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
-                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                    db.collection(collection_name, {strict: true}, function (err, coln) {
                         if (err) return reject(err);
                         dbtools
-                            .findOneByTimestamp(collection, dbQuery)
+                            .findOneByTimestamp(coln, dbQuery)
                             .then(resolve)
                             .catch(reject)
                     });
@@ -214,9 +253,9 @@ var StreamManagerFactory = function (dbPromise, options) {
             var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
-                    db.collection(collection_name, {strict: true}, function (err, collection) {
+                    db.collection(collection_name, {strict: true}, function (err, coln) {
                         if (err) return reject(err);
-                        collection
+                        coln
                             .deleteOne({_id: {$eq: new Date(timestamp)}}, {})
                             .then(resolve)
                             .catch(reject);
@@ -234,6 +273,7 @@ var StreamManagerFactory = function (dbPromise, options) {
         createStream    : createStream,
         findStreams     : findStreams,
         findStream      : findStream,
+        deleteOneStream : deleteOneStream,
         insertOnePacket : insertOnePacket,
         findPackets     : findPackets,
         aggregatePackets: aggregatePackets,

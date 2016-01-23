@@ -13,7 +13,7 @@ module.exports = {
     streams: {
         metadata_name: 'streams_metadata',
         options      : {
-            strict: false
+            strict: true
         }
     },
 
@@ -21,7 +21,7 @@ module.exports = {
     platforms: {
         metadata_name: 'platforms_metadata',
         options      : {
-            strict: false
+            strict: true
         }
     },
 
@@ -31,23 +31,11 @@ module.exports = {
             return "streams_" + streamID + "_packets"
         },
         options: {
-            strict: false,
-            capped: true,
-            size  : 1000000,
-            max   : 3600
-        }
-    },
-
-    // Options to be used for the collections holding location data
-    locrecs: {
-        name   : function (platformID) {
-            return "platforms_" + platformID + "_locations"
-        },
-        options: {
-            strict: false,
+            strict: true,
             capped: true,
             size  : 1000000,
             max   : 3600
         }
     }
+
 };
