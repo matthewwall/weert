@@ -17,15 +17,13 @@ var Promise = require('bluebird');
 
 var dbtools = require('../dbtools');
 
-/**
- * Factory that produces an interface to manage streams. The interface is dependent
- * on a database Promise, and some options.
- * @param dbPromise - A Promise to a database connection
- * @param options - A set of options for the database collections
- * @alias module:services/stream.StreamManagerFactory
- * @return {StreamManager}
- */
-var StreamManagerFactory = function (dbPromise, options) {
+var StreamManagerFactory = function (connectPromise, options) {
+
+    // Create a promise to create the streams metadata collection. It will resolve to a MongoClient Promise,
+    // which can be used by the other methods.
+    var dbPromise = dbtools.promiseACollection(connectPromise,
+        options.streams.metadata_name,
+        options.streams.options);
 
     /**
      * Create a new stream

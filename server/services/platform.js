@@ -23,13 +23,14 @@ var errors  = require('../errors');
 /**
  * Factory that produces an interface to manage platforms. The interface is dependent
  * on a database Promise, and some options.
- * @param dbPromise - A Promise to a database connection
- * @param options - A set of options for the database collections
- * @param streamManager - An instance of a streamManager
- * @alias module:services/platform.PlatformManagerFactory
- * @return {PlatformManager}
  */
-var PlatformManagerFactory = function (dbPromise, options, streamManager) {
+var PlatformManagerFactory = function (connectPromise, options, streamManager) {
+
+    // Create a promise to create the platform metadata collection. It will resolve to a MongoClient Promise,
+    // which can be used by the other methods.
+    var dbPromise = dbtools.promiseACollection(connectPromise,
+        options.platforms.metadata_name,
+        options.platforms.options);
 
     /**
      * Create a new platform

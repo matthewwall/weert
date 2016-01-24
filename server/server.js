@@ -7,8 +7,6 @@
 
 "use strict";
 
-// TODO: Need to create the platform and stream metadata collections on startup
-
 var bodyParser = require('body-parser');
 var debug      = require('debug')('weert:server');
 var express    = require('express');
@@ -37,6 +35,7 @@ var streamManager   = require('./services/stream')(dbPromise, dbconfig);
 var platformManager = require('./services/platform')(dbPromise, dbconfig, streamManager);
 var stream_routes   = require('./routes/stream_routes');
 var platform_routes = require('./routes/platform_routes');
+
 app.use('/api/v1', stream_routes(streamManager));
 app.use('/api/v1', platform_routes(platformManager));
 
