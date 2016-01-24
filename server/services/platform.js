@@ -189,7 +189,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
                                     .then(function (result) {
                                         return new Promise.resolve(result[0].result);
                                     })
-                                    .catch(function (err) {
+                                    .catch(function () {
                                         return new Promise.resolve({result: {ok: 1, n: 0}});
                                     });
                             })
@@ -255,7 +255,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
         // Open up the metadata collection to get the streamID of the location stream
         return dbtools
             .collection(db, options.platforms.metadata_name, options.platforms.options)
-            .find(function (coln) {
+            .then(function (coln) {
                 // Hit the database to get the ID of the location stream
                 return coln
                     .find({_id: {$eq: platformID}})
@@ -337,10 +337,6 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
             });
     };
 
-    /**
-     * @typedef PlatformManager
-     * @property {function} createPlatform - Create a new platform
-     */
     return {
         createPlatform   : createPlatform,
         updateOnePlatform: updateOnePlatform,
