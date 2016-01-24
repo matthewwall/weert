@@ -16,6 +16,7 @@ var mongodb = require('mongodb');
 var Promise = require('bluebird');
 
 var dbtools = require('../dbtools');
+var errors  = require('../errors');
 
 var StreamManagerFactory = function (connectPromise, options) {
 
@@ -48,13 +49,21 @@ var StreamManagerFactory = function (connectPromise, options) {
                             coln
                                 .insertOne(stream_metadata)
                                 .then(function (result) {
+                                    // Get the final metadata, and the streamID
                                     var stream_final_metadata = result.ops[0];
-                                    return resolve(stream_final_metadata);
+                                    var streamID              = stream_final_metadata._id;
+                                    // Now create the collection that will hold the actual stream packets
+                                    db
+                                        .createCollection(options.packets.name(streamID), options.packets.options)
+                                        .then(function () {
+                                            return resolve(stream_final_metadata);
+                                        })
+                                        .catch(reject);
                                 })
                                 .catch(reject);
-                        })
+                        });
                 })
-                .catch(reject)
+                .catch(reject);
         });
     };
 
@@ -129,12 +138,19 @@ var StreamManagerFactory = function (connectPromise, options) {
                             // delete the stream, so our mission is accomplished.
                             return resolve({ok: 1, n: 0});
                         }
-                        coln
-                            .deleteOne({_id: {$eq: streamID}}, {})
-                            .then(resolve)
-                            .catch(reject)
-                    })
+                        // First a promise to delete the metadata
+                        var p1 = coln.deleteOne({_id: {$eq: streamID}}, {});
+                        // Second a promise to delete the collection of stream packets
+                        var p2 = db.dropCollection(options.packets.name(streamID));
+                        Promise
+                            .all([p1, p2])
+                            .then(function(result){
+                                return resolve(result[0]);
+                            })
+                            .catch(reject);
+                    });
                 })
+                .catch(reject);
         })
     }
 
@@ -162,20 +178,19 @@ var StreamManagerFactory = function (connectPromise, options) {
             var collection_name = options.packets.name(streamID);
             dbPromise
                 .then(function (db) {
-                    // TODO: should be an error to insert into a non-existent stream
-                    return db
-                        .collection(collection_name, options.packets.options, function (err, coln) {
-                            if (err)
-                                return reject(new errors.NoSuchIDError("Non existent stream " + streamID));
-                            coln
-                                .insertOne(packet);
-                        })
-                })
-                .then(function (result) {
-                    var final_packet       = result.ops[0];
-                    final_packet.timestamp = final_packet._id.getTime();
-                    delete final_packet._id;
-                    return resolve(final_packet);
+                    db.collection(collection_name, options.packets.options, function (err, coln) {
+                        if (err)
+                            return reject(new errors.NoSuchIDError("Non existent stream " + streamID));
+                        coln
+                            .insertOne(packet)
+                            .then(function (result) {
+                                var final_packet       = result.ops[0];
+                                final_packet.timestamp = final_packet._id.getTime();
+                                delete final_packet._id;
+                                return resolve(final_packet);
+                            })
+                            .catch(reject);
+                    })
                 })
                 .catch(reject);
         });
