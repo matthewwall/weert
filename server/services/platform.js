@@ -28,7 +28,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
 
     // Create a promise to create the platform metadata collection. It will resolve to a MongoClient Promise,
     // which can be used by the other methods.
-    var dbPromise = dbtools.promiseACollection(connectPromise,
+    var dbPromise = dbtools.createCollection(connectPromise,
         options.platforms.metadata_name,
         options.platforms.options);
 
@@ -279,6 +279,33 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
     };
 
 
+    // Returns a promise for the streamID
+    var _getLocationStreamID = function (db, platformID) {
+        return new Promise(function (resolve, reject) {
+
+            // Open up the metadata collection to get the streamID of the location stream
+            db
+                .collection(options.platforms.metadata_name, options.platforms.options, function (err, coln) {
+                    if (err) reject(err);
+                    // Hit the database to get the ID of the location stream
+                    coln
+                        .find({_id: {$eq: platformID}})
+                        .toArray()
+                        .then(function (result) {
+                            if (result.length === 0) {
+                                return reject(new errors.NoSuchIDError("No such platformID " + platformID));
+                            }
+                            // Resolve the streamID of the location stream
+                            return resolve(result[0].location);
+                        })
+                        .catch(reject);
+                })
+        });
+    }
+
+
+    // TODO: Use the above function
+
     /**
      * Insert a new location packet for an existing platform
      * @method insertOneLocation
@@ -287,38 +314,17 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
      */
     var insertOneLocation = function (platformID, locrec) {
 
-        return new Promise(function (resolve, reject) {
-
-            dbPromise
-                .then(function (db) {
-                    var platform_collection_name = options.platforms.metadata_name;
-
-                    // Open up the metadata collection
-                    db
-                        .collection(platform_collection_name, options.platforms.options, function (err, coln) {
-                            if (err) reject(err);
-                            // Hit the database to get the ID of the location stream
-                            coln
-                                .find({_id: {$eq: platformID}})
-                                .toArray()
-                                .then(function (result) {
-                                    if (result.length === 0) {
-                                        return reject(new errors.NoSuchIDError("Unable to insert location. No platformID " + platformID));
-                                    }
-                                    // Now use the streamID to insert into the right collection
-                                    var location_streamID = result[0].location;
-                                    // Return the promise from the streamManager
-                                    return streamManager.insertOnePacket(location_streamID, locrec);
-                                })
-                                .then(resolve)
-                                .catch(reject);
-                        })
-
-                })
-                .catch(reject);
-        });
+        return dbPromise
+            .then(function (db) {
+                // Return the promise to return the ID of the location stream
+                return _getLocationStreamID(db, platformID);
+            })
+            .then(function (location_streamID) {
+                // Return the promise to insert the location packet
+                return streamManager
+                    .insertOnePacket(location_streamID, locrec)
+            });
     };
-
 
     /**
      * Find all locrecs satifying a query

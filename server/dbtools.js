@@ -11,9 +11,9 @@
 
 var Promise = require('bluebird');
 
-// Create a promise to create the platform metadata collection. It will resolve to a MongoClient Promise,
+// Returns a promise to create a collection. It will resolve to a MongoClient Promise,
 // which can be used by the other methods.
-var promiseACollection = function (connectPromise, coln_name, coln_options) {
+var createCollection = function (connectPromise, coln_name, coln_options) {
     return new Promise(function (resolve, reject) {
         connectPromise
             .then(function (db) {
@@ -30,7 +30,17 @@ var promiseACollection = function (connectPromise, coln_name, coln_options) {
                     })
             })
     });
-}
+};
+
+// Returns a promise to open a collection.
+var collection = function (db, coln_name, coln_options) {
+    return new Promise(function (resolve, reject) {
+        db.collection(coln_name, coln_options, function (err, coln) {
+            if (err) return reject(err);
+            resolve(coln);
+        });
+    });
+};
 
 
 var findByTimestamp = function (collection, dbQuery) {
@@ -138,7 +148,8 @@ var calcAggregate = function (collection, obs_type, dbQuery) {
 };
 
 module.exports = {
-    promiseACollection: promiseACollection,
+    createCollection  : createCollection,
+    collection        : collection,
     findByTimestamp   : findByTimestamp,
     findOneByTimestamp: findOneByTimestamp,
     calcAggregate     : calcAggregate

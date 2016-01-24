@@ -22,7 +22,7 @@ var StreamManagerFactory = function (connectPromise, options) {
 
     // Create a promise to create the streams metadata collection. It will resolve to a MongoClient Promise,
     // which can be used by the other methods.
-    var dbPromise = dbtools.promiseACollection(connectPromise,
+    var dbPromise = dbtools.createCollection(connectPromise,
         options.streams.metadata_name,
         options.streams.options);
 
