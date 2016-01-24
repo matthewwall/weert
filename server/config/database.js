@@ -4,6 +4,8 @@
  *  See the file LICENSE for your full rights.
  */
 
+"use strict";
+
 // Config information for the MongoDB server
 module.exports = {
     // URL to the MongoDB database to be used:

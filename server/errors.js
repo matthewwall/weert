@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2016 Tom Keffer <tkeffer@gmail.com>
+ *
+ *  See the file LICENSE for your full rights.
+ */
+
+"use strict";
+
 // Set of exception classes
 
 function NoSuchIDError(msg) {

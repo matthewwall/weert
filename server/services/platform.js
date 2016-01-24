@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016 Tom Keffer <tkeffer@gmail.com>
  *
  *  See the file LICENSE for your full rights.
  */
@@ -28,9 +28,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
 
     // Create a promise to create the platform metadata collection. It will resolve to a MongoClient Promise,
     // which can be used by the other methods.
-    var dbPromise = dbtools.createCollection(connectPromise,
-        options.platforms.metadata_name,
-        options.platforms.options);
+    var dbPromise = dbtools.createCollection(connectPromise, options.platforms.metadata_name, options.platforms.options);
 
     /**
      * Create a new platform
@@ -40,121 +38,109 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
      */
     var createPlatform = function (platform_metadata) {
 
-        return new Promise(function (resolve, reject) {
+        // Make sure the _id field has not been already defined. This is MongoDB's job
+        if (platform_metadata._id !== undefined) {
+            return new Promise.reject(new Error("Field _id is already defined"));
+        }
 
-            // Make sure the _id field has not been already defined. MongoDB will do this.
-            if (platform_metadata._id !== undefined) {
-                return reject(new Error("Field _id is already defined"));
-            }
-
-            // Extract a database object out of the promise
-            dbPromise
-                .then(function (db) {
-                    var namePromise;
-                    // Platform names must be unique. If a name was given, check to make sure it's unique
-                    if (platform_metadata.name) {
-                        // A name was given. Create a promise to hit the database
-                        namePromise = new Promise(function (res1, rej1) {
-                            db.collection(options.platforms.metadata_name,
-                                options.platforms.options,
-                                function (err, coln) {
-                                    coln
-                                        .find({name: {$eq: platform_metadata.name}})
-                                        .toArray()
-                                        .then(res1)
-                                        .catch(rej1);
+        return dbPromise
+            .then(function (db) {
+                var namePromise;
+                // Platform names must be unique. If a name was given, check the database to see if already exists.
+                if (platform_metadata.name) {
+                    // A name was given. Hit the database
+                    namePromise = dbtools.collection(db, options.platforms.metadata_name, options.platforms.options)
+                        .then(function (coln) {
+                            // Returns a promise to resolve to an array, possibly containing the name
+                            return coln
+                                .find({name: {$eq: platform_metadata.name}})
+                                .toArray();
+                        })
+                } else {
+                    // No name was given, so no need to test for uniqueness.
+                    // Create an already fulfilled promise, holding an empty array.
+                    namePromise = new Promise.resolve([]);
+                }
+                return namePromise
+                    .then(function (result) {
+                        if (result.length) {
+                            // Name already exists. Error.
+                            return new Promise.reject(new errors.DuplicateNameError("Platform name already exists"))
+                        } else {
+                            // Name was either not given, or it's unique, so we're OK.
+                            // See if a stream to hold the locations has been given.
+                            if (!platform_metadata.location) {
+                                // The platform location stream is undefined. Return a Promise to create one
+                                return streamManager.createStream({
+                                    description: "Locations stream",
+                                    unit_group : "METRIC"
                                 });
-                        })
-                    } else {
-                        // No name was given, so no need to test for uniqueness.
-                        // Create an already fulfilled promise, holding an empty array.
-                        namePromise = new Promise.resolve([]);
-                    }
-                    namePromise
-                        .then(function (result) {
-                            if (result.length) {
-                                // Name already exists. Error.
-                                return reject(new errors.DuplicateNameError("Platform name already exists"))
                             } else {
-                                // Name was either not given, or it's unique, so we're OK.
-                                // See if a stream to hold the locations has been given.
-                                if (!platform_metadata.location) {
-                                    // The platform location stream is undefined. Return a Promise to create one
-                                    return streamManager.createStream({
-                                        description: "Locations stream",
-                                        unit_group : "METRIC"
+                                // The location stream already exists. Return a fulfilled promise of 'undefined'.
+                                return new Promise.resolve(undefined);
+                            }
+                        }
+                    })
+                    .then(function (results) {
+                        // If results are defined, it holds the metadata of a new location stream
+                        if (results) {
+                            // We've got a freshly allocated stream. Record its ID in the platform metadata
+                            platform_metadata.location = results._id;
+                        }
+
+                        // Return a promise to insert the metadata
+                        return dbtools
+                            .collection(db, options.platforms.metadata_name, options.platforms.options)
+                            .then(function (coln) {
+                                return coln
+                                    .insertOne(platform_metadata)
+                                    .then(function (results) {
+                                        return new Promise.resolve(results.ops[0])
                                     });
-                                } else {
-                                    // The location stream already exists. Return a fulfilled promise of 'undefined'.
-                                    return new Promise.resolve(undefined);
-                                }
-                            }
-                        })
-                        .then(function (results) {
-                            if (results) {
-                                // We've got a freshly allocated stream. Record its ID in the metadata
-                                platform_metadata.location = results._id;
-                            }
-                            // Finally, insert the metadata into the database
-                            db
-                                .collection(options.platforms.metadata_name,
-                                    options.platforms.options,
-                                    function (err, coln) {
-                                        coln
-                                            .insertOne(platform_metadata)
-                                            .then(function (results) {
-                                                return resolve(results.ops[0]);
-                                            })
-                                            .catch(reject);
-                                    })
-                        })
-                        .catch(reject);
-                })
-                .catch(reject);
-        });
+                            })
+                    })
+            })
     };
 
 
     var updateOnePlatform = function (platformID, platform_metadata) {
-        return new Promise(function (resolve, reject) {
 
-            // If the platformID was included in the metadata, make sure it matches
-            // the one in the URL:
-            if (platform_metadata._id && (platformID !== platform_metadata._id)) {
-                return reject(new Error({
-                    message    : "Mismatch in platformID",
-                    description: platformID + " vs " + platform_metadata._id
-                }));
-            }
+        // If the platformID was included in the metadata, make sure it matches
+        // the one in the URL:
+        if (platform_metadata._id && (platformID !== platform_metadata._id)) {
+            return new Promise.reject(new Error({
+                message    : "Mismatch in platformID",
+                description: platformID + " vs " + platform_metadata._id
+            }));
+        }
 
-            // A bad _id will cause an exception. Be prepared to catch it
-            try {
-                var id_obj = new mongodb.ObjectID(platformID);
-            } catch (err) {
-                err.description = "Unable to form ObjectID for platformID of " + platformID;
-                return reject(err);
-            }
+        // A bad _id will cause an exception. Be prepared to catch it
+        try {
+            var id_obj = new mongodb.ObjectID(platformID);
+        } catch (err) {
+            err.description = "Unable to form ObjectID for platformID of " + platformID;
+            return new Promise.reject(err);
+        }
 
-            var platform_collection_name = options.platforms.metadata_name;
-
-            dbPromise
-                .then(function (db) {
-                    db.collection(platform_collection_name, options.platforms.options, function (err, coln) {
-                        if (err)
-                            return reject(err);
+        // This will return a promise
+        return dbPromise
+            .then(function (db) {
+                // This will return a promise
+                return dbtools
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .then(function (coln) {
                         // Make a copy of the metadata. We're going to modify it
                         var md = util._extend({}, platform_metadata);
-                        // The save method does not overwrite the locations data, so delete it.
+                        // The save method does not overwrite the locations data, , and you can't change
+                        // the platformID, so delete them.
                         delete md.location;
                         delete md._id;
 
-                        coln
-                            .updateOne({_id: {$eq: id_obj}}, {$set: md})
-                            .then(resolve)
-                            .catch(reject);
-                    });
-                });
-        });
+                        // Returns a promise
+                        return coln
+                            .updateOne({_id: {$eq: id_obj}}, {$set: md});
+                    })
+            });
     };
 
 
@@ -165,60 +151,50 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
      * @returns {bluebird|exports|module.exports}
      */
     var deleteOnePlatform = function (platformID) {
-        return new Promise(function (resolve, reject) {
+        // A bad _id will cause an exception. Be prepared to catch it
+        try {
+            var id_obj = new mongodb.ObjectID(platformID);
+        } catch (err) {
+            err.description = "Unable to form ObjectID for platformID of " + platformID;
+            return new Promise.reject(err);
+        }
 
-            // A bad _id will cause an exception. Be prepared to catch it
-            try {
-                var id_obj = new mongodb.ObjectID(platformID);
-            } catch (err) {
-                err.description = "Unable to form ObjectID for platformID of " + platformID;
-                return reject(err);
-            }
+        return dbPromise
+            .then(function (db) {
 
-            dbPromise
-                .then(function (db) {
-                    var platform_collection_name = options.platforms.metadata_name;
+                return dbtools
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .then(function (coln) {
+                        // Hit the database to get the metadata of the platform
+                        return coln
+                            .find({_id: {$eq: platformID}})
+                            .toArray()
+                            .then(function (result) {
+                                if (result.length === 0) {
+                                    // Platform not found. We're done.
+                                    return new Promise.resolve({result: {ok: 1, n: 0}})
+                                }
 
-                    // Open up the metadata collection
-                    db
-                        .collection(platform_collection_name, options.platforms.options, function (err, coln) {
-                            if (err) {
-                                // The metadata coln doesn't exist. That's OK, because our goal is to
-                                // delete the platform, so our mission is accomplished.
-                                return resolve({result: {ok: 1, n: 0}});
-                            }
-                            // Hit the database to get the ID of the location stream
-                            coln
-                                .find({_id: {$eq: platformID}})
-                                .toArray()
-                                .then(function (result) {
-                                    if (result.length === 0) {
-                                        // Platform not found. We're done.
-                                        return resolve({result: {ok: 1, n: 0}})
-                                    }
+                                // Got the metadata of the platform. Get the ID of the location stream out of it.
+                                var location_streamID = result[0].location;
 
-                                    var location_streamID = result[0].location;
+                                // First, a promise to delete the platform metadata from the metadata collection
+                                var p1 = coln.deleteOne({_id: {$eq: id_obj}});
+                                // Then a promise to delete the location stream
+                                var p2 = streamManager.deleteOneStream(location_streamID);
 
-                                    // First, a promise to delete the platform metadata from the metadata collection
-                                    var p1 = coln.deleteOne({_id: {$eq: id_obj}});
-                                    // Then a promise to delete the location stream
-                                    var p2 = streamManager.deleteOneStream(location_streamID);
-
-                                    // Resolve both promises, using Promise.all.
-                                    Promise
-                                        .all([p1, p2])
-                                        .then(function (result) {
-                                            return resolve(result[0].result);
-                                        })
-                                        .catch(function (err) {
-                                            return resolve({result: {ok: 1, n: 0}});
-                                        });
-                                })
-                                .catch(reject);
-                        })
-                })
-                .catch(reject);
-        });
+                                // Resolve both promises, using Promise.all.
+                                return Promise
+                                    .all([p1, p2])
+                                    .then(function (result) {
+                                        return new Promise.resolve(result[0].result);
+                                    })
+                                    .catch(function (err) {
+                                        return new Promise.resolve({result: {ok: 1, n: 0}});
+                                    });
+                            })
+                    })
+            })
     };
 
     /**
@@ -233,78 +209,69 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
 
         // Make a copy of the query. We're going to modify it
         var findQuery = util._extend({}, dbQuery);
+        // Remove limit and sort, which have their own functions
         delete findQuery.limit;
         delete findQuery.sort;
 
-        return new Promise(function (resolve, reject) {
-            dbPromise
-                .then(function (db) {
-                    db.collection(options.platforms.metadata_name, options.platforms.options, function (err, coln) {
-                        if (err) return reject(err);
-                        coln
+        return dbPromise
+            .then(function (db) {
+                return dbtools
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .then(function (coln) {
+                        return coln
                             .find(findQuery)
                             .limit(dbQuery.limit)
                             .sort(dbQuery.sort)
-                            .toArray()
-                            .then(resolve)
-                            .catch(reject);
+                            .toArray();
                     });
-                })
-                .catch(reject);
-        })
+            })
     };
 
     var findPlatform = function (platformID) {
-        return new Promise(function (resolve, reject) {
-            // A bad _id will cause an exception. Be prepared to catch it
-            try {
-                var id_obj = new mongodb.ObjectID(platformID);
-            } catch (err) {
-                err.description = "Unable to form ObjectID for platformID of " + platformID;
-                return reject(err)
-            }
-            dbPromise
-                .then(function (db) {
-                    db.collection(options.platforms.metadata_name, options.platforms.options, function (err, coln) {
-                        if (err) return reject(err);
-                        coln
+        // A bad _id will cause an exception. Be prepared to catch it
+        try {
+            var id_obj = new mongodb.ObjectID(platformID);
+        } catch (err) {
+            err.description = "Unable to form ObjectID for platformID of " + platformID;
+            return new Promise.reject(err)
+        }
+        return dbPromise
+            .then(function (db) {
+                return dbtools
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .then(function (coln) {
+                        return coln
                             .find({_id: {$eq: id_obj}})
-                            .toArray()
-                            .then(resolve)
-                            .catch(reject);
+                            .limit(1)
+                            .toArray();
                     });
-                })
-                .catch(reject);
-        });
+            })
     };
 
 
-    // Returns a promise for the streamID
+    // Returns a promise for the streamID of the locations stream
     var _getLocationStreamID = function (db, platformID) {
-        return new Promise(function (resolve, reject) {
 
-            // Open up the metadata collection to get the streamID of the location stream
-            db
-                .collection(options.platforms.metadata_name, options.platforms.options, function (err, coln) {
-                    if (err) reject(err);
-                    // Hit the database to get the ID of the location stream
-                    coln
-                        .find({_id: {$eq: platformID}})
-                        .toArray()
-                        .then(function (result) {
-                            if (result.length === 0) {
-                                return reject(new errors.NoSuchIDError("No such platformID " + platformID));
-                            }
+        // Open up the metadata collection to get the streamID of the location stream
+        return dbtools
+            .collection(db, options.platforms.metadata_name, options.platforms.options)
+            .find(function (coln) {
+                // Hit the database to get the ID of the location stream
+                return coln
+                    .find({_id: {$eq: platformID}})
+                    .limit(1)
+                    .toArray()
+                    .then(function (result) {
+                        if (result.length) {
                             // Resolve the streamID of the location stream
-                            return resolve(result[0].location);
-                        })
-                        .catch(reject);
-                })
-        });
-    }
+                            return new Promise.resolve(result[0].location);
+                        } else {
+                            return new Promise.reject(new errors.NoSuchIDError("No such platformID " + platformID));
+                        }
+                    })
+            })
+    };
 
-
-    // TODO: Use the above function
 
     /**
      * Insert a new location packet for an existing platform
@@ -338,56 +305,36 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
      * @returns {Promise}
      */
     var findLocations = function (platformID, dbQuery) {
-        return new Promise(function (resolve, reject) {
-            // Get the name of the Mongo collection from the platformID
-            var collection_name = options.locrecs.name(platformID);
-            dbPromise
-                .then(function (db) {
-                    db.collection(collection_name, options.platforms.options, function (err, coln) {
-                        if (err) return reject(err);
-                        dbtools
-                            .findByTimestamp(coln, dbQuery)
-                            .then(resolve)
-                            .catch(reject);
-                    });
-                })
-                .catch(reject);
-        });
+        return dbPromise
+            .then(function (db) {
+                return _getLocationStreamID(db, platformID);
+            })
+            .then(function (location_streamID) {
+                return streamManager
+                    .findPackets(location_streamID, dbQuery);
+            });
     };
 
     var findOneLocation = function (platformID, dbQuery) {
-        return new Promise(function (resolve, reject) {
-            var collection_name = options.locrecs.name(platformID);
-            dbPromise
-                .then(function (db) {
-                    db.collection(collection_name, options.platforms.options, function (err, coln) {
-                        if (err) return reject(err);
-                        dbtools
-                            .findOneByTimestamp(coln, dbQuery)
-                            .then(resolve)
-                            .catch(reject);
-                    });
-                })
-                .catch(reject);
-        });
+        return dbPromise
+            .then(function (db) {
+                return _getLocationStreamID(db, platformID);
+            })
+            .then(function (location_streamID) {
+                return streamManager
+                    .findOnePacket(location_streamID, dbQuery);
+            });
     };
 
     var deleteOneLocation = function (platformID, dbQuery) {
-        return new Promise(function (resolve, reject) {
-            var timestamp       = +dbQuery.timestamp;
-            var collection_name = options.locrecs.name(platformID);
-            dbPromise
-                .then(function (db) {
-                    db.collection(collection_name, options.platforms.options, function (err, coln) {
-                        if (err) return reject(err);
-                        coln
-                            .deleteOne({_id: {$eq: new Date(timestamp)}}, {})
-                            .then(resolve)
-                            .catch(reject);
-                    });
-                })
-                .catch(reject);
-        });
+        return dbPromise
+            .then(function (db) {
+                return _getLocationStreamID(db, platformID);
+            })
+            .then(function (location_streamID) {
+                return streamManager
+                    .deleteOnePacket(location_streamID, dbQuery);
+            });
     };
 
     /**
