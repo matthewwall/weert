@@ -46,18 +46,38 @@ var StreamManagerFactory = function (connectPromise, options) {
                     return dbtools
                         .collection(db, options.streams.metadata_name, options.streams.options)
                         .then(function (coln) {
-                            return coln
-                                .insertOne(stream_metadata)
+
+                            var namePromise;
+                            // If a name was given, make sure it's not already in the database
+                            if (stream_metadata.name) {
+                                namePromise = coln
+                                    .find({name: {$eq: stream_metadata.name}})
+                                    .toArray();
+                            } else {
+                                namePromise = new Promise.resolve([]);
+                            }
+                            return namePromise
                                 .then(function (result) {
-                                    // Get the final metadata
-                                    var final_stream_metadata = result.ops[0];
-                                    // Now create the collection that will hold the actual stream packets
-                                    return db
-                                        .createCollection(options.packets.name(final_stream_metadata._id), options.packets.options)
-                                        .then(function () {
-                                            return new Promise.resolve(final_stream_metadata);
-                                        });
-                                });
+                                    if (result.length) {
+                                        // Name already exists. Error.
+                                        return new Promise.reject(new errors.DuplicateNameError("Platform name already exists"))
+                                    } else {
+                                        return coln
+                                            .insertOne(stream_metadata)
+                                            .then(function (result) {
+                                                // Get the final metadata
+                                                var final_stream_metadata = result.ops[0];
+                                                // Now create the collection that will hold the actual stream packets
+                                                return db
+                                                    .createCollection(options.packets.name(final_stream_metadata._id), options.packets.options)
+                                                    .then(function () {
+                                                        return new Promise.resolve(final_stream_metadata);
+                                                    });
+                                            });
+
+                                    }
+                                })
+
                         });
                 });
         };

@@ -18,7 +18,7 @@ var normalizeUrl = require('normalize-url');
 frisby
     .create('Create a WeeRT platform with a missing Content-Type')
     .post(test_url,
-        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1"}
+        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", unit_group: "METRIC"}
     )
     .expectStatus(415)
     .expectHeaderContains('content-type', 'application/json')
@@ -30,13 +30,13 @@ frisby
 frisby
     .create('Create a WeeRT platform #1')
     .post(test_url,
-        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1"},
+        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", unit_group: "METRIC"},
         {json: true}
     )
     .expectStatus(201)
     .expectHeaderContains('content-type', 'application/json')
     .expectJSONTypes('', {_id: String, name: String, description: String, join: String, streams: Array})
-    .expectJSON('', {name: "Benny's Ute", description: "Yellow, with a black cap", join: "join_keyword1"})
+    .expectJSON('', {name: "Benny's Ute", description: "Yellow, with a black cap", join: "join_keyword1", unit_group: "METRIC"})
     .expectJSON('streams', [])
     .after(function (error, res, body) {
         // Having created a platform, retrieve it and validate it
@@ -50,7 +50,7 @@ frisby
             .expectStatus(200)
             .expectHeaderContains('content-type', 'application/json')
             .expectJSONTypes('', {_id: String, name: String, description: String, join: String, streams: Array})
-            .expectJSON('', {name: "Benny's Ute", description: "Yellow, with a black cap", join: "join_keyword1"})
+            .expectJSON('', {name: "Benny's Ute", description: "Yellow, with a black cap", join: "join_keyword1", unit_group: "METRIC"})
             .expectJSON('streams', [])
             .toss();
         frisby
@@ -61,13 +61,13 @@ frisby
         frisby
             .create('Create a WeeRT platform #2')
             .post(test_url,
-                {"name": "Willie's Ute", "description": "Green, with no cap", "join": "join_keyword2"},
+                {"name": "Willie's Ute", "description": "Green, with no cap", "join": "join_keyword2", unit_group: "METRIC"},
                 {json: true}
             )
             .expectStatus(201)
             .expectHeaderContains('content-type', 'application/json')
             .expectJSONTypes('', {_id: String, name: String, description: String, join: String, streams: Array})
-            .expectJSON('', {name: "Willie's Ute", description: "Green, with no cap", join: "join_keyword2"})
+            .expectJSON('', {name: "Willie's Ute", description: "Green, with no cap", join: "join_keyword2", unit_group: "METRIC"})
             .after(function (error, res, body) {
                 var platform_link2 = res.headers.location;
 
@@ -146,7 +146,7 @@ frisby
 frisby
     .create("Try to create a platform with an _id field")
     .post(test_url,
-        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", _id: "foo"},
+        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", _id: "foo", unit_group: "METRIC"},
         {json: true}
     )
     .expectStatus(400)
@@ -155,7 +155,16 @@ frisby
 frisby
     .create("Try to create a platform with a missing name field")
     .post(test_url,
-        {"description": "A platform with a missing name field"},
+        {"description": "A platform with a missing name field", unit_group: "METRIC"},
+        {json: true}
+    )
+    .expectStatus(201)
+    .toss();
+
+frisby
+    .create("Try to create a platform with a missing unit_group field")
+    .post(test_url,
+        {"name": "Try to create a platform with a missing unit_group field", "description": "A platform with a missing unit_group field"},
         {json: true}
     )
     .expectStatus(400)
@@ -171,7 +180,7 @@ frisby
 frisby
     .create('Create a platform with the intention of deleting it')
     .post(test_url,
-        {"name": "Deleter1", "description": "Platform that will be deleted"},
+        {"name": "Deleter1", "description": "Platform that will be deleted", unit_group: "METRIC"},
         {json: true})
     .expectStatus(201)
     .after(function (error, res, body) {
@@ -215,7 +224,7 @@ frisby
 frisby
     .create('Create a platform with the intention of updating it')
     .post(test_url,
-        {"name": "Updater1", "description": "Platform that will be updated"},
+        {"name": "Updater1", "description": "Platform that will be updated", unit_group: "METRIC"},
         {json: true}
     )
     .expectStatus(201)

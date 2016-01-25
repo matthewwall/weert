@@ -9,12 +9,17 @@
  */
 
 var test_url = require('./test_config').test_root_url + '/streams';
-var frisby = require('frisby');
+var frisby   = require('frisby');
 
 // First try to create a stream, but with a missing Content-Type
-frisby.create('Create a WeeRT stream with a missing Content-Type')
+frisby.create('A WeeRT stream with a missing Content-Type')
     .post(test_url,
-        {"name": "Test stream", "description": "Created to test streams API", "join": "join_keyword1"}
+        {
+            name       : "A WeeRT stream with a missing Content-Type",
+            description: "Created to test streams API",
+            join       : "join_keyword1",
+            unit_group : "METRIC"
+        }
     )
     .expectStatus(415)
     .expectHeaderContains('content-type', 'application/json')
@@ -23,15 +28,25 @@ frisby.create('Create a WeeRT stream with a missing Content-Type')
     .toss();
 
 // Now try again, but with a Content-Type
-frisby.create('Create a WeeRT stream #1')
+frisby.create('A WeeRT stream #1')
     .post(test_url,
-        {"name": "Test stream #1", "description": "Created to test streams API", "join": "join_keyword1"},
+        {
+            name       : "A WeeRT stream #1",
+            description: "Created to test streams API",
+            join       : "join_keyword1",
+            unit_group : "METRIC"
+        },
         {json: true}
     )
     .expectStatus(201)
     .expectHeaderContains('content-type', 'application/json')
     .expectJSONTypes('', {_id: String, name: String, description: String, join: String})
-    .expectJSON('', {name: "Test stream #1", description: "Created to test streams API", join: "join_keyword1"})
+    .expectJSON('', {
+        name       : "A WeeRT stream #1",
+        description: "Created to test streams API",
+        join       : "join_keyword1",
+        unit_group : "METRIC"
+    })
     .after(function (error, res, body) {
         // Having created a stream, retrieve it and validate it
         var stream_link1 = res.headers.location;
@@ -39,17 +54,32 @@ frisby.create('Create a WeeRT stream #1')
             .get(stream_link1)
             .expectStatus(200)
             .expectHeaderContains('content-type', 'application/json')
-            .expectJSON('', {name: "Test stream #1", description: "Created to test streams API", join: "join_keyword1"})
+            .expectJSON('', {
+                name       : "A WeeRT stream #1",
+                description: "Created to test streams API",
+                join       : "join_keyword1",
+                unit_group : "METRIC"
+            })
             .toss();
-        frisby.create('Create a WeeRT stream #2')
+        frisby.create('A WeeRT stream #2')
             .post(test_url,
-                {"name": "Test stream #2", "description": "Created to test streams API", "join": "join_keyword2"},
+                {
+                    name       : "A WeeRT stream #2",
+                    description: "Created to test streams API",
+                    join       : "join_keyword2",
+                    unit_group : "METRIC"
+                },
                 {json: true}
             )
             .expectStatus(201)
             .expectHeaderContains('content-type', 'application/json')
-            .expectJSONTypes('', {_id: String, description: String, join: String})
-            .expectJSON('', {name: "Test stream #2", description: "Created to test streams API", join: "join_keyword2"})
+            .expectJSONTypes('', {_id: String, description: String, join: String, unit_group: String})
+            .expectJSON('', {
+                name       : "A WeeRT stream #2",
+                description: "Created to test streams API",
+                join       : "join_keyword2",
+                unit_group : "METRIC"
+            })
             .after(function (error, res, body) {
                 var stream_link2 = res.headers.location;
                 // We've ßcreated two streams. Fetch them.
@@ -59,17 +89,17 @@ frisby.create('Create a WeeRT stream #1')
                     .expectHeaderContains('content-type', 'application/json')
                     .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
-                    .afterJSON(function(json){
+                    .afterJSON(function (json) {
                         // Make sure the array of returned links contains the two stream links, and that they
                         // are in the right order
-                        describe("Test for array of returned stream URIs", function(){
-                            it("contains first stream link", function(){
+                        describe("Test for array of returned stream URIs", function () {
+                            it("contains first stream link", function () {
                                 expect(json).toContain(stream_link1)
                             });
-                            it("contains second stream link", function(){
+                            it("contains second stream link", function () {
                                 expect(json).toContain(stream_link2)
                             });
-                            it("holds first link before second link", function(){
+                            it("holds first link before second link", function () {
                                 expect(json.indexOf(stream_link1)).toBeLessThan(json.indexOf(stream_link2))
                             });
 
@@ -96,7 +126,13 @@ frisby.create('GET a stream with a malformed streamID')
 
 frisby.create('Try to create a stream that has an _id field already defined')
     .post(test_url,
-        {"name": "Test stream #1", "description": "Created to test streams API", "join": "join_keyword1", _id: "foo"},
+        {
+            _id          : "foo",
+            "name"       : "Try to create a stream that has an _id field already defined",
+            "description": "Created to test streams API",
+            "join"       : "join_keyword1",
+            unit_group   : "METRIC"
+        },
         {json: true}
     )
     .expectStatus(400)
