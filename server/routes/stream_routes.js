@@ -111,7 +111,7 @@ var StreamRouterFactory = function (stream_manager) {
             var packet = req.body;
             // Insert the packet into the database
             stream_manager
-                .insertOnePacket(streamID, packet)
+                .insertPacket(streamID, packet)
                 .then(function (result) {
                     var resource_url = auxtools.resourcePath(req, result.timestamp);
                     res.status(201).location(resource_url).json(result);
@@ -194,7 +194,7 @@ var StreamRouterFactory = function (stream_manager) {
         debug("Request for packet with timestamp", dbQuery.timestamp);
 
         stream_manager
-            .findOnePacket(streamID, dbQuery)
+            .findPacket(streamID, dbQuery)
             .then(function (packet) {
                 if (packet === null) res.sendStatus(404);
                 else res.json(packet);
@@ -222,7 +222,7 @@ var StreamRouterFactory = function (stream_manager) {
         debug("Request to delete packet at timestamp", dbQuery.timestamp);
 
         stream_manager
-            .deleteOnePacket(streamID, dbQuery)
+            .deletePacket(streamID, dbQuery)
             .then(function (result) {
                 // The property 'n' holds the number of documents deleted
                 if (result.result.n) {

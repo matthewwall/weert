@@ -103,7 +103,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
     };
 
 
-    var updateOnePlatform = function (platformID, platform_metadata) {
+    var updatePlatform = function (platformID, platform_metadata) {
 
         // If the platformID was included in the metadata, make sure it matches
         // the one in the URL:
@@ -150,7 +150,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
      * @param {number} platformID - The ID of the platform to delete
      * @returns {bluebird|exports|module.exports}
      */
-    var deleteOnePlatform = function (platformID) {
+    var deletePlatform = function (platformID) {
         // A bad _id will cause an exception. Be prepared to catch it
         try {
             var id_obj = new mongodb.ObjectID(platformID);
@@ -181,7 +181,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
                                 // First, a promise to delete the platform metadata from the metadata collection
                                 var p1 = coln.deleteOne({_id: {$eq: id_obj}});
                                 // Then a promise to delete the location stream
-                                var p2 = streamManager.deleteOneStream(location_streamID);
+                                var p2 = streamManager.deleteStream(location_streamID);
 
                                 // Resolve both promises, using Promise.all.
                                 return Promise
@@ -289,7 +289,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
             .then(function (location_streamID) {
                 // Return the promise to insert the location packet
                 return streamManager
-                    .insertOnePacket(location_streamID, locrec)
+                    .insertPacket(location_streamID, locrec)
             });
     };
 
@@ -315,38 +315,38 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
             });
     };
 
-    var findOneLocation = function (platformID, dbQuery) {
+    var findLocation = function (platformID, dbQuery) {
         return dbPromise
             .then(function (db) {
                 return _getLocationStreamID(db, platformID);
             })
             .then(function (location_streamID) {
                 return streamManager
-                    .findOnePacket(location_streamID, dbQuery);
+                    .findPacket(location_streamID, dbQuery);
             });
     };
 
-    var deleteOneLocation = function (platformID, dbQuery) {
+    var deleteLocation = function (platformID, dbQuery) {
         return dbPromise
             .then(function (db) {
                 return _getLocationStreamID(db, platformID);
             })
             .then(function (location_streamID) {
                 return streamManager
-                    .deleteOnePacket(location_streamID, dbQuery);
+                    .deletePacket(location_streamID, dbQuery);
             });
     };
 
     return {
         createPlatform   : createPlatform,
-        updateOnePlatform: updateOnePlatform,
-        deleteOnePlatform: deleteOnePlatform,
+        updatePlatform   : updatePlatform,
+        deletePlatform   : deletePlatform,
         findPlatforms    : findPlatforms,
         findPlatform     : findPlatform,
         insertOneLocation: insertOneLocation,
         findLocations    : findLocations,
-        findOneLocation  : findOneLocation,
-        deleteOneLocation: deleteOneLocation
+        findLocation     : findLocation,
+        deleteLocation   : deleteLocation
     }
 }
     ;

@@ -125,7 +125,7 @@ var PlatformRouterFactory = function (platform_manager) {
 
             // Ask the PlatformManager to update the platform metadata
             platform_manager
-                .updateOnePlatform(platformID, metadata)
+                .updatePlatform(platformID, metadata)
                 .then(function (result) {
                     if (result.result.n) {
                         // Success
@@ -154,7 +154,7 @@ var PlatformRouterFactory = function (platform_manager) {
         debug("Request to delete platform", platformID);
 
         platform_manager
-            .deleteOnePlatform(platformID)
+            .deletePlatform(platformID)
             .then(function (result) {
                 if (result.n) {
                     // Success
@@ -244,7 +244,7 @@ var PlatformRouterFactory = function (platform_manager) {
         debug("Request for location at timestamp", dbQuery.timestamp);
 
         platform_manager
-            .findOneLocation(platformID, dbQuery)
+            .findLocation(platformID, dbQuery)
             .then(function (record) {
                 if (record === null) res.sendStatus(404);
                 else res.json(record);
@@ -272,7 +272,7 @@ var PlatformRouterFactory = function (platform_manager) {
         debug("Request to delete location record at timestamp", dbQuery.timestamp);
 
         platform_manager
-            .deleteOneLocation(platformID, dbQuery)
+            .deleteLocation(platformID, dbQuery)
             .then(function (result) {
                 if (result.result.n) {
                     // Success

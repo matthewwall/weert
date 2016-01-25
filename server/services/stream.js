@@ -14,6 +14,7 @@
 var debug   = require('debug')('weert:server');
 var mongodb = require('mongodb');
 var Promise = require('bluebird');
+var util    = require('util');
 
 var dbtools = require('../dbtools');
 var errors  = require('../errors');
@@ -80,7 +81,7 @@ var StreamManagerFactory = function (connectPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db.options.streams.metadata_name, options.streams.options)
+                        .collection(db, options.streams.metadata_name, options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .find(findQuery)
@@ -113,7 +114,7 @@ var StreamManagerFactory = function (connectPromise, options) {
         };
 
 
-        var deleteOneStream = function (streamID) {
+        var deleteStream = function (streamID) {
             // A bad _id will cause an exception. Be prepared to catch it
             try {
                 var id_obj = new mongodb.ObjectID(streamID);
@@ -144,11 +145,11 @@ var StreamManagerFactory = function (connectPromise, options) {
 
         /**
          * Insert a new packet into an existing stream
-         * @method insertOnePacket
+         * @method insertPacket
          * @param {number} streamID - The ID of the stream in which to insert the packet
          * @param {object} packet - The packet
          */
-        var insertOnePacket = function (streamID, packet) {
+        var insertPacket = function (streamID, packet) {
             // Make sure the incoming packet contains a timestamp
             if (packet.timestamp === undefined) {
                 return new Promise.reject(new Error("No timestamp in packet"));
@@ -244,7 +245,7 @@ var StreamManagerFactory = function (connectPromise, options) {
                 })
         };
 
-        var findOnePacket = function (streamID, dbQuery) {
+        var findPacket = function (streamID, dbQuery) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
@@ -273,7 +274,7 @@ var StreamManagerFactory = function (connectPromise, options) {
                 });
         };
 
-        var deleteOnePacket = function (streamID, dbQuery) {
+        var deletePacket = function (streamID, dbQuery) {
             var timestamp = +dbQuery.timestamp;
             return dbPromise
                 .then(function (db) {
@@ -290,12 +291,12 @@ var StreamManagerFactory = function (connectPromise, options) {
             createStream    : createStream,
             findStreams     : findStreams,
             findStream      : findStream,
-            deleteOneStream : deleteOneStream,
-            insertOnePacket : insertOnePacket,
+            deleteStream    : deleteStream,
+            insertPacket    : insertPacket,
             findPackets     : findPackets,
             aggregatePackets: aggregatePackets,
-            findOnePacket   : findOnePacket,
-            deleteOnePacket : deleteOnePacket
+            findPacket      : findPacket,
+            deletePacket    : deletePacket
         }
     }
     ;
