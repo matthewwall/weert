@@ -15,7 +15,7 @@ module.exports = {
     streams: {
         metadata_name: 'streams_metadata',
         options      : {
-            strict: true
+            strict: false
         }
     },
 
@@ -23,7 +23,7 @@ module.exports = {
     platforms: {
         metadata_name: 'platforms_metadata',
         options      : {
-            strict: true
+            strict: false
         }
     },
 
@@ -33,7 +33,7 @@ module.exports = {
             return "streams_" + streamID + "_packets"
         },
         options: {
-            strict: true,
+            strict: false,
             capped: true,
             size  : 1000000,
             max   : 3600

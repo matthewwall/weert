@@ -11,5 +11,5 @@
 
 module.exports = {
     // The test root url. Should not end with a slash
-    test_root_url: 'http://localhost:3000/api/v1'
+    test_root_url: 'http://localhost:3000/test/v1'
 };

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2016 Tom Keffer <tkeffer@gmail.com>
  *
  *  See the file LICENSE for your full rights.
  */
@@ -28,16 +28,28 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Serve all static files from the "client" subdirectory:
 app.use(express.static(path.join(__dirname, '../client')));
 
-// Set up the WeeRT database and routes
-var dbconfig        = require('./config/database');
-var dbPromise       = require('./services/database')(dbconfig);
-var streamManager   = require('./services/stream')(dbPromise, dbconfig);
-var platformManager = require('./services/platform')(dbPromise, dbconfig, streamManager);
+// Set up the routes and the WeeRT database
 var stream_routes   = require('./routes/stream_routes');
 var platform_routes = require('./routes/platform_routes');
 
+var dbConfig        = require('./config/db');
+var dbPromise       = require('./services/database')(dbConfig);
+var streamManager   = require('./services/stream')(dbPromise, dbConfig);
+var platformManager = require('./services/platform')(dbPromise, dbConfig, streamManager);
+
 app.use('/api/v1', stream_routes(streamManager));
 app.use('/api/v1', platform_routes(platformManager));
+
+if (app.get('env') === 'development') {
+    // Create a duplicate test environment, that uses the /test/v1 URL:
+    var testDbConfig        = require('./config/testdb');
+    var testDbPromise       = require('./services/database')(testDbConfig);
+    var testStreamManager   = require('./services/stream')(testDbPromise, testDbConfig);
+    var testPlatformManager = require('./services/platform')(testDbPromise, testDbConfig, testStreamManager);
+
+    app.use('/test/v1', stream_routes(testStreamManager));
+    app.use('/test/v1', platform_routes(testPlatformManager));
+}
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

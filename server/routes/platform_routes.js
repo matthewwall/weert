@@ -17,6 +17,7 @@ var express = require('express');
 
 var auxtools = require('../auxtools');
 var error    = require('./error');
+var errors   = require('../errors');
 
 var PlatformRouterFactory = function (platform_manager) {
 
@@ -222,8 +223,12 @@ var PlatformRouterFactory = function (platform_manager) {
                 res.json(locrec_array);
             })
             .catch(function (err) {
-                debug("Unable to satisfy request for location records. Reason", err);
-                error.sendError(err, res);
+                if (err.name === "NoSuchIDError"){
+                    res.sendStatus(404);
+                } else {
+                    debug("Unable to satisfy request for location records. Reason", err);
+                    error.sendError(err, res);
+                }
             });
     });
 

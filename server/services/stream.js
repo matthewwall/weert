@@ -19,13 +19,13 @@ var util    = require('util');
 var dbtools = require('../dbtools');
 var errors  = require('../errors');
 
-var StreamManagerFactory = function (connectPromise, options) {
+var StreamManagerFactory = function (dbPromise, options) {
 
         // Create a promise to create the streams metadata collection. It will resolve to a MongoClient Promise,
         // which can be used by the other methods.
-        var dbPromise = dbtools.createCollection(connectPromise,
-            options.streams.metadata_name,
-            options.streams.options);
+        //var dbPromise = dbtools.createCollection(connectPromise,
+        //    options.streams.metadata_name,
+        //    options.streams.options);
 
         /**
          * Create a new stream

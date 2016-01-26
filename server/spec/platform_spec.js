@@ -18,7 +18,11 @@ var normalizeUrl = require('normalize-url');
 frisby
     .create('Create a WeeRT platform with a missing Content-Type')
     .post(test_url,
-        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", unit_group: "METRIC"}
+        {
+            name       : "Create a WeeRT platform with a missing Content-Type",
+            description: "Yellow, with a black cap",
+            join       : "join_keyword1"
+        }
     )
     .expectStatus(415)
     .expectHeaderContains('content-type', 'application/json')
@@ -28,16 +32,29 @@ frisby
 
 // Now try again, but with a Content-Type
 frisby
-    .create('Create a WeeRT platform #1')
+    .create('A WeeRT platform #1')
     .post(test_url,
-        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", unit_group: "METRIC"},
+        {
+            name       : "A WeeRT platform #1",
+            description: "Yellow, with a black cap",
+            join       : "join_keyword1"
+        },
         {json: true}
     )
     .expectStatus(201)
     .expectHeaderContains('content-type', 'application/json')
-    .expectJSONTypes('', {_id: String, name: String, description: String, join: String, streams: Array})
-    .expectJSON('', {name: "Benny's Ute", description: "Yellow, with a black cap", join: "join_keyword1", unit_group: "METRIC"})
-    .expectJSON('streams', [])
+    .expectJSONTypes('', {
+        _id        : String,
+        name       : String,
+        description: String,
+        join       : String,
+        location   : String
+    })
+    .expectJSON('', {
+        name       : "A WeeRT platform #1",
+        description: "Yellow, with a black cap",
+        join       : "join_keyword1"
+    })
     .after(function (error, res, body) {
         // Having created a platform, retrieve it and validate it
         // Form the URL for the platform
@@ -49,25 +66,49 @@ frisby
             .get(platform_link1)
             .expectStatus(200)
             .expectHeaderContains('content-type', 'application/json')
-            .expectJSONTypes('', {_id: String, name: String, description: String, join: String, streams: Array})
-            .expectJSON('', {name: "Benny's Ute", description: "Yellow, with a black cap", join: "join_keyword1", unit_group: "METRIC"})
-            .expectJSON('streams', [])
+            .expectJSONTypes('', {
+                _id        : String,
+                name       : String,
+                description: String,
+                join       : String,
+                location   : String
+            })
+            .expectJSON('', {
+                name       : "A WeeRT platform #1",
+                description: "Yellow, with a black cap",
+                join       : "join_keyword1"
+            })
             .toss();
         frisby
             .create('Validate the locations collection for platform #1')
             .get(platform_locrec_link1)
             .expectStatus(200)
+            .expectJSONTypes('', Array)     // There should not be any locations yet.
             .toss();
         frisby
             .create('Create a WeeRT platform #2')
             .post(test_url,
-                {"name": "Willie's Ute", "description": "Green, with no cap", "join": "join_keyword2", unit_group: "METRIC"},
+                {
+                    name       : "Create a WeeRT platform #2",
+                    description: "Green, with no cap",
+                    join       : "join_keyword2"
+                },
                 {json: true}
             )
             .expectStatus(201)
             .expectHeaderContains('content-type', 'application/json')
-            .expectJSONTypes('', {_id: String, name: String, description: String, join: String, streams: Array})
-            .expectJSON('', {name: "Willie's Ute", description: "Green, with no cap", join: "join_keyword2", unit_group: "METRIC"})
+            .expectJSONTypes('', {
+                _id        : String,
+                name       : String,
+                description: String,
+                join       : String,
+                location   : String
+            })
+            .expectJSON('', {
+                name       : "Create a WeeRT platform #2",
+                description: "Green, with no cap",
+                join       : "join_keyword2"
+            })
             .after(function (error, res, body) {
                 var platform_link2 = res.headers.location;
 
@@ -77,7 +118,6 @@ frisby
                     .get(test_url + '?sort=name')
                     .expectStatus(200)
                     .expectHeaderContains('content-type', 'application/json')
-                    .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
                     .afterJSON(function (json) {
                         expect(json.indexOf(platform_link1)).not.toBe(-1);
@@ -91,7 +131,6 @@ frisby
                     .get(test_url + '?sort=name&direction=desc')
                     .expectStatus(200)
                     .expectHeaderContains('content-type', 'application/json')
-                    .expectJSONTypes('', Array)
                     .expectJSONTypes('*', String)
                     .afterJSON(function (json) {
                         expect(json.indexOf(platform_link1)).not.toBe(-1);
@@ -111,7 +150,6 @@ frisby
                     .get(test_url + '?as=values')
                     .expectStatus(200)
                     .expectHeaderContains('content-type', 'application/json')
-                    .expectJSONTypes('', Array)
                     .expectJSONTypes('*', Object)
                     .afterJSON(function (json) {
                         // Define a function that can find a particular 'name' in the array json
@@ -121,9 +159,9 @@ frisby
                             }
                             return -1;
                         };
-                        expect(idx_name("Benny's Ute")).not.toBe(-1);
-                        expect(idx_name("Willie's Ute")).not.toBe(-1);
-                        expect(idx_name("Benny's Ute")).toBeLessThan(idx_name("Willie's Ute"));
+                        expect(idx_name("A WeeRT platform #1")).not.toBe(-1);
+                        expect(idx_name("Create a WeeRT platform #2")).not.toBe(-1);
+                        expect(idx_name("A WeeRT platform #1")).toBeLessThan(idx_name("Create a WeeRT platform #2"));
                     })
                     .toss();
 
@@ -137,7 +175,6 @@ frisby
                         expect(json.description).toBe('foo');
                     })
                     .toss();
-
             })
             .toss();
     })
@@ -146,7 +183,12 @@ frisby
 frisby
     .create("Try to create a platform with an _id field")
     .post(test_url,
-        {"name": "Benny's Ute", "description": "Yellow, with a black cap", "join": "join_keyword1", _id: "foo", unit_group: "METRIC"},
+        {
+            "name"       : "Benny's Ute",
+            "description": "Yellow, with a black cap",
+            "join"       : "join_keyword1",
+            _id          : "foo"
+        },
         {json: true}
     )
     .expectStatus(400)
@@ -159,15 +201,6 @@ frisby
         {json: true}
     )
     .expectStatus(201)
-    .toss();
-
-frisby
-    .create("Try to create a platform with a missing unit_group field")
-    .post(test_url,
-        {"name": "Try to create a platform with a missing unit_group field", "description": "A platform with a missing unit_group field"},
-        {json: true}
-    )
-    .expectStatus(400)
     .toss();
 
 frisby
@@ -221,46 +254,82 @@ frisby
     .toss();
 
 // ******************* Tests for updating a platform ****************************
+
+// TODO: Need to test for updating to a non-unique name
+
 frisby
-    .create('Create a platform with the intention of updating it')
+    .create('Create platform with the intention of updating it')
     .post(test_url,
-        {"name": "Updater1", "description": "Platform that will be updated", unit_group: "METRIC"},
+        {
+            name       : "Updater1",
+            description: "Updater1 description"
+        },
         {json: true}
     )
     .expectStatus(201)
     .after(function (error, res, body) {
         // Having created a platform, update it
         // Form the URL for the platform
-        var platform_link = res.headers.location;
+        var platform_link1 = res.headers.location;
+
         frisby
-            .create('PUT to the platform that was created with the intention of updating it')
-            .put(platform_link,
-                {"name": "UpdatedName1", "streams": ["569a738bb62e21547a1a06e9"]},
-                {json: true})
-            .expectStatus(204)
+            .create('Create a 2nd platform to test update')
+            .post(test_url,
+                {
+                    name       : "Updater2",
+                    description: "Updater2 description"
+                },
+                {json: true}
+            )
+            .expectStatus(201)
             .after(function (error, res, body) {
-                // Now make sure it was updated
-                frisby.create("Get the freshly updated platform")
-                    .get(platform_link)
-                    .expectStatus(200)
-                    .expectHeaderContains('content-type', 'application/json')
-                    .expectJSONTypes('', {_id: String, name: String, description: String, streams: Array})
-                    .expectJSON('', {name: "UpdatedName1", description: "Platform that will be updated"})
-                    .expectJSON('streams', [])// streams should NOT be updated, despite appearing in the PUT
+
+                frisby
+                    .create('PUT to the platform that was created with the intention of updating it')
+                    .put(platform_link1,
+                        {
+                            name       : "Updated1",
+                            description: "Updater1 new description A"
+                        },
+                        {json: true})
+                    .expectStatus(204)
                     .after(function (error, res, body) {
-                        // Try putting again, this time by including the _id in the PUT
-                        frisby.create("PUT to the platform that was created with " +
-                                "the intention of updating it, but with _id included")
-                            .put(platform_link,
-                                {"_id": body._id, "name": "UpdatedName2"},
-                                {json: true})
-                            .expectStatus(204)
+                        // Now make sure it was updated
+                        frisby.create("Get the freshly updated platform")
+                            .get(platform_link1)
+                            .expectStatus(200)
+                            .expectHeaderContains('content-type', 'application/json')
+                            .expectJSONTypes('', {
+                                _id        : String,
+                                name       : String,
+                                description: String,
+                                location   : String
+                            })
+                            .expectJSON('', {
+                                name       : "Updated1",    // name gets updated because it is still unique
+                                description: "Updater1 new description A"
+                            })
                             .after(function (error, res, body) {
-                                // PUT again, but with a non-existent _id
+                                // Try time, include a mismatched _id in the metadata
                                 frisby.create("PUT to the platform that was created with " +
                                         "the intention of updating it, but with a mismatched _id")
-                                    .put(platform_link,
-                                        {"_id": "569a8aafd579b3c37a549690", "name": "UpdatedName3"},
+                                    .put(platform_link1,
+                                        {
+                                            _id : "569a8aafd579b3c37a549690",
+                                            description: "Updater1 new description B"
+                                        },
+                                        {json: true})
+                                    .expectStatus(400)
+                                    .toss();
+
+                                // Also, try updating the name to a non-unique name
+                                frisby.create("PUT to the platform that was created with " +
+                                        "the intention of updating it, with a non-unique name")
+                                    .put(platform_link1,
+                                        {
+                                            name: "Updater2",
+                                            description: "Updater1 new description C"
+                                        },
                                         {json: true})
                                     .expectStatus(400)
                                     .toss();
@@ -268,8 +337,7 @@ frisby
                             .toss();
                     })
                     .toss();
-            })
-            .toss();
+            }).toss();
     })
     .toss();
 

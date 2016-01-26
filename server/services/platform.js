@@ -24,11 +24,11 @@ var errors  = require('../errors');
  * Factory that produces an interface to manage platforms. The interface is dependent
  * on a database Promise, and some options.
  */
-var PlatformManagerFactory = function (connectPromise, options, streamManager) {
+var PlatformManagerFactory = function (dbPromise, options, streamManager) {
 
     // Create a promise to create the platform metadata collection. It will resolve to a MongoClient Promise,
     // which can be used by the other methods.
-    var dbPromise = dbtools.createCollection(connectPromise, options.platforms.metadata_name, options.platforms.options);
+    //var dbPromise = dbtools.createCollection(connectPromise, options.platforms.metadata_name, options.platforms.options);
 
     /**
      * Create a new platform
@@ -45,25 +45,26 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
 
         return dbPromise
             .then(function (db) {
+                return dbtools
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+            })
+            .then(function (coln) {
                 var namePromise;
                 // Platform names must be unique. If a name was given, check the database to see if already exists.
                 if (platform_metadata.name) {
-                    // A name was given. Hit the database
-                    namePromise = dbtools.collection(db, options.platforms.metadata_name, options.platforms.options)
-                        .then(function (coln) {
-                            // Returns a promise to resolve to an array, possibly containing the name
-                            return coln
-                                .find({name: {$eq: platform_metadata.name}})
-                                .toArray();
-                        })
+                    // A name was given. Return a promise for all the platforms potentially matching the name
+                    namePromise = coln
+                        .find({name: {$eq: platform_metadata.name}})
+                        .toArray();
+
                 } else {
                     // No name was given, so no need to test for uniqueness.
                     // Create an already fulfilled promise, holding an empty array.
                     namePromise = new Promise.resolve([]);
                 }
                 return namePromise
-                    .then(function (result) {
-                        if (result.length) {
+                    .then(function (platforms) {
+                        if (platforms.length) {
                             // Name already exists. Error.
                             return new Promise.reject(new errors.DuplicateNameError("Platform name already exists"))
                         } else {
@@ -89,17 +90,14 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
                         }
 
                         // Return a promise to insert the metadata
-                        return dbtools
-                            .collection(db, options.platforms.metadata_name, options.platforms.options)
-                            .then(function (coln) {
-                                return coln
-                                    .insertOne(platform_metadata)
-                                    .then(function (results) {
-                                        return new Promise.resolve(results.ops[0])
-                                    });
-                            })
-                    })
-            })
+                        return coln
+                            .insertOne(platform_metadata)
+                            .then(function (results) {
+                                // We need to massage the promise a bit before returning it
+                                return new Promise.resolve(results.ops[0])
+                            });
+                    });
+            });
     };
 
 
@@ -122,13 +120,34 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
             return new Promise.reject(err);
         }
 
-        // This will return a promise
         return dbPromise
             .then(function (db) {
-                // This will return a promise
                 return dbtools
                     .collection(db, options.platforms.metadata_name, options.platforms.options)
-                    .then(function (coln) {
+            })
+            .then(function (coln) {
+                var namePromise;
+                // You can change the name, but only to another unique name. So, if a name was specified,
+                // we need to make sure it is not already in the database
+                if (platform_metadata.name) {
+                    // A name was given. Return a promise for all the platforms potentially matching the name
+                    namePromise = coln
+                        .find({name: {$eq: platform_metadata.name}})
+                        .toArray();
+
+                } else {
+                    // No name was given, so no need to test for uniqueness.
+                    // Create an already fulfilled promise, holding an empty array.
+                    namePromise = new Promise.resolve([]);
+                }
+                return namePromise
+                    .then(function (platforms) {
+
+                        if (platforms.length) {
+                            // Unfortunately, the name is already taken. Signal the error
+                            return new Promise.reject(new errors.DuplicateNameError("Name" + platform_metadata.name + "already in use"))
+                        }
+
                         // Make a copy of the metadata. We're going to modify it
                         var md = util._extend({}, platform_metadata);
                         // The save method does not overwrite the locations data, , and you can't change
@@ -136,11 +155,11 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
                         delete md.location;
                         delete md._id;
 
-                        // Returns a promise
+                        // Returns a promise to update the platform metadata
                         return coln
                             .updateOne({_id: {$eq: id_obj}}, {$set: md});
                     })
-            });
+            })
     };
 
 
@@ -167,7 +186,7 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
                     .then(function (coln) {
                         // Hit the database to get the metadata of the platform
                         return coln
-                            .find({_id: {$eq: platformID}})
+                            .find({_id: {$eq: id_obj}})
                             .toArray()
                             .then(function (result) {
                                 if (result.length === 0) {
@@ -252,23 +271,30 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
     // Returns a promise for the streamID of the locations stream
     var _getLocationStreamID = function (db, platformID) {
 
+        // A bad _id will cause an exception. Be prepared to catch it
+        try {
+            var id_obj = new mongodb.ObjectID(platformID);
+        } catch (err) {
+            err.description = "Unable to form ObjectID for platformID of " + platformID;
+            return new Promise.reject(err)
+        }
         // Open up the metadata collection to get the streamID of the location stream
         return dbtools
             .collection(db, options.platforms.metadata_name, options.platforms.options)
             .then(function (coln) {
                 // Hit the database to get the ID of the location stream
                 return coln
-                    .find({_id: {$eq: platformID}})
+                    .find({_id: {$eq: id_obj}})
                     .limit(1)
                     .toArray()
                     .then(function (result) {
                         if (result.length) {
                             // Resolve the streamID of the location stream
-                            return new Promise.resolve(result[0].location);
+                            return Promise.resolve(result[0].location);
                         } else {
-                            return new Promise.reject(new errors.NoSuchIDError("No such platformID " + platformID));
+                            return Promise.reject(new errors.NoSuchIDError("No such platformID " + platformID));
                         }
-                    })
+                    });
             })
     };
 
@@ -307,7 +333,8 @@ var PlatformManagerFactory = function (connectPromise, options, streamManager) {
     var findLocations = function (platformID, dbQuery) {
         return dbPromise
             .then(function (db) {
-                return _getLocationStreamID(db, platformID);
+                var lp = _getLocationStreamID(db, platformID);
+                return lp;
             })
             .then(function (location_streamID) {
                 return streamManager

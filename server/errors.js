@@ -8,15 +8,28 @@
 
 // Set of exception classes
 
-function NoSuchIDError(msg) {
-    this.message = msg;
-}
-NoSuchIDError.prototype = Object.create(Error.prototype);
+// Ridiculously complicated inheritance, I know.
+// See http://goo.gl/Egw9qR for why this is necessary and how it works.
 
-function DuplicateNameError(msg) {
-    this.message = msg;
-}
-DuplicateNameError.prototype = Object.create(Error.prototype);
+var NoSuchIDError = function(msg) {
+    var err = Error.call(this, msg);
+    err.name = "NoSuchIDError";
+    return err;
+};
+
+NoSuchIDError.prototype = Object.create(Error.prototype, {
+    constructor: { value: NoSuchIDError }
+});
+
+var DuplicateNameError = function(msg) {
+    var err = Error.call(this, msg);
+    err.name = "DuplicateNameError";
+    return err;
+};
+
+DuplicateNameError.prototype = Object.create(Error.prototype, {
+    constructor: { value: DuplicateNameError }
+});
 
 module.exports = {
     NoSuchIDError     : NoSuchIDError,

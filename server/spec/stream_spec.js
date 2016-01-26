@@ -27,6 +27,29 @@ frisby.create('A WeeRT stream with a missing Content-Type')
     .expectJSON('', {code: 415, message: "Invalid Content-type"})
     .toss();
 
+frisby
+    .create("Try to create a stream with a missing name field")
+    .post(test_url,
+        {"description": "A platform with a missing name field", unit_group: "METRIC"},
+        {json: true}
+    )
+    .expectStatus(201)
+    .toss();
+
+frisby
+    .create("Try to create a stream with a missing unit_group field")
+    .post(test_url,
+        {
+            "name"       : "Try to create a stream with a missing unit_group field",
+            "description": "A platform with a missing unit_group field"
+        },
+        {json: true}
+    )
+    .expectStatus(400)
+    .toss();
+
+
+
 // Now try again, but with a Content-Type
 frisby.create('A WeeRT stream #1')
     .post(test_url,

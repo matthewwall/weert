@@ -6,15 +6,10 @@
 
 "use strict";
 
-var mongodb = require('mongodb');
+var mongodb     = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 
-// This is a singleton:
-var mongoPromise = undefined;
-
-module.exports = function (dbConfig){
-    if (!mongoPromise)
-        mongoPromise = MongoClient.connect(dbConfig.url);
-    return mongoPromise;
+module.exports = function (dbConfig) {
+    console.log("creating connection to", dbConfig.url)
+    return MongoClient.connect(dbConfig.url);
 };
-
