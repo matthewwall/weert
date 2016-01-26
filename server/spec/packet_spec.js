@@ -29,8 +29,9 @@ var testSinglePacket = function () {
     frisby.create('Create a WeeRT stream to hold a single packet')
         .post(test_url,
             {
-                "name": "Test packet stream",
-                "description": "Created to test the insertion of a single packet into a stream"
+                name       : "Test packet stream 1",
+                description: "Created to test the insertion of a single packet into a stream",
+                unit_group : "METRIC"
             },
             {json: true}
         )
@@ -46,7 +47,7 @@ var testSinglePacket = function () {
             frisby.create("POST a single packet")
                 .post(stream_packet_link,
                     {
-                        timestamp: timestamp(0),
+                        timestamp          : timestamp(0),
                         outside_temperature: temperature(0)
                     },
                     {json: true}
@@ -55,7 +56,7 @@ var testSinglePacket = function () {
                 .expectHeaderContains('content-type', 'application/json')
                 .expectJSON('',
                     {
-                        timestamp: timestamp(0),
+                        timestamp          : timestamp(0),
                         outside_temperature: temperature(0)
                     })
                 .after(function (error, res, body) {
@@ -67,7 +68,7 @@ var testSinglePacket = function () {
                         .expectHeaderContains('content-type', 'application/json')
                         .expectJSON('',
                             {
-                                timestamp: timestamp(0),
+                                timestamp          : timestamp(0),
                                 outside_temperature: temperature(0)
                             })
                         .after(function (error, res, body) {
@@ -106,9 +107,9 @@ var testSinglePacket = function () {
             frisby.create("Post a packet with an _id field")
                 .post(stream_packet_link,
                     {
-                        timestamp : timestamp(0),
+                        timestamp          : timestamp(0),
                         outside_temperature: temperature(0),
-                        _id : "foo"
+                        _id                : "foo"
                     },
                     {json: true}
                 )
@@ -122,15 +123,16 @@ var testMultiplePackets = function () {
     var packets = [];
     for (var i = 0; i < 3; i++) {
         packets[i] = {
-            timestamp  : timestamp(i),
+            timestamp          : timestamp(i),
             outside_temperature: temperature(i)
         }
     }
     frisby.create('Create a WeeRT stream to hold several packets')
         .post(test_url,
             {
-                "name": "Test multiple packet stream",
-                "description": "Created to test the insertion of multiple packets into a stream"
+                name       : "Test multiple packet stream",
+                description: "Created to test the insertion of multiple packets into a stream",
+                unit_group : "METRIC"
             },
             {json: true}
         )

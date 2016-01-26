@@ -35,12 +35,16 @@ module.exports = {
         name   : function (streamID) {
             return "streams_" + streamID + "_packets"
         },
-        options: {
-            strict: false,
-            capped: true,
-            size  : 1000000,
-            max   : 3600
+        options:{
+            strict: false
         }
+        // This is an alternative, which will cap the size of the packet collection.
+        // However, documents cannot be arbitrarily removed.
+        //options: {
+        //    strict: false,
+        //    capped: true,
+        //    size  : 1000000,
+        //    max   : 3600
+        //}
     }
-
 };
