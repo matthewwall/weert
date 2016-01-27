@@ -164,12 +164,6 @@ var testMultipleLocrecs = function () {
                             .expectJSON('', locrecs[3])
                             .toss();
 
-                        frisby.create("Search for last timestamp in database")
-                            .get(time_link(locrecs[2].timestamp) + '?match=latest')
-                            .expectStatus(200)
-                            .expectJSON('', locrecs[N-1])
-                            .toss();
-
                         frisby.create("Search for a location using a bad match")
                             .get(time_link(locrecs[2].timestamp) + '?match=foo')
                             .expectStatus(400)

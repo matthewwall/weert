@@ -1,9 +1,6 @@
 # SERVER
 
-Use a "test" database for testing, which can be blown away when done.
-
-Right now, the platform and stream metadata collection is created on startup. Mostly
-works, but it requires a server restart if the database is blown away.
+Need to test 'lastBefore' match for locations.
 
 The websocket channels may be too broad. Should probably allow clients to subscribe
 to specific streams.

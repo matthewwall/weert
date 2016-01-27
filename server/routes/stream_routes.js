@@ -175,6 +175,31 @@ var StreamRouterFactory = function (stream_manager) {
     });
 
 
+    // GET the last packet in a stream
+    router.get('/streams/:streamID/packets/latest', function (req, res) {
+        // Get the streamID and timestamp out of the route path
+        var streamID = req.params.streamID;
+        debug("Request for last packet in stream", streamID);
+
+        stream_manager
+            .findPacket(streamID, {query: {}, sort: {_id: -1}})
+            .then(function (packet) {
+                if (packet === null) res.sendStatus(404);
+                else {
+                    // They asked for the 'latest' packet. Calculate its actual URL,
+                    // and include it in the Location response header.
+                    var replaceUrl = req.originalUrl.replace('latest', packet.timestamp);
+                    var resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '');
+                    res.status(200).location(resource_url).json(packet);
+                }
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request for latest packet in", streamID, ". Reason", err);
+                error.sendError(err, res);
+            })
+    });
+
+
     // GET a packet with a specific timestamp
     router.get('/streams/:streamID/packets/:timestamp', function (req, res) {
         // Get the streamID and timestamp out of the route path
@@ -187,7 +212,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Bad query for requesting paket. Reason", err);
+            debug("Bad query for requesting packet. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }

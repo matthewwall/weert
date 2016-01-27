@@ -333,8 +333,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
     var findLocations = function (platformID, dbQuery) {
         return dbPromise
             .then(function (db) {
-                var lp = _getLocationStreamID(db, platformID);
-                return lp;
+                return _getLocationStreamID(db, platformID);
             })
             .then(function (location_streamID) {
                 return streamManager

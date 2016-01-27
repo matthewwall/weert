@@ -30,10 +30,15 @@ frisby.create('A WeeRT stream with a missing Content-Type')
 frisby
     .create("Try to create a stream with a missing name field")
     .post(test_url,
-        {"description": "A platform with a missing name field", unit_group: "METRIC"},
+        {description: "A platform with a missing name field", unit_group: "METRIC"},
         {json: true}
     )
     .expectStatus(201)
+    .expectJSONTypes('', {name: undefined, _id: String, description: String, unit_group: String})
+    .expectJSON('', {
+        description: "A platform with a missing name field",
+        unit_group : "METRIC"
+    })
     .toss();
 
 frisby
@@ -49,8 +54,7 @@ frisby
     .toss();
 
 
-
-// Now try again, but with a Content-Type
+// Now try again, but with a Content-Type and a unit_group
 frisby.create('A WeeRT stream #1')
     .post(test_url,
         {

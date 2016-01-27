@@ -182,6 +182,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `DELETE`    | `/api/v1/platforms/:platformID/streams/:timestamp`   | Delete the set of streams associated with *platformID* at the given time                          |          |
 | `POST`      | `/api/v1/platforms/:platformID/locations`            | Post a new location for platform *platformID*, returning its URI in the Locations field.          |          |
 | `GET`       | `/api/v1/platforms/:platformID/locations`            | Get all locations for platform *platformID*, satisfying certain search or aggregation criteria.   |          |
+| `GET`       | `/api/v1/platforms/:platformID/locations/latest`     | Return the last location packet for platform *platformID*.                                        |          |
 | `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Return a location packet for platform *platformID* with the given timestamp.                      |          |
 | `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete a location packet for platfirm *platform*D* with the given timestamp.                      |          |
 | `POST`      | `/api/v1/streams`                                    | Create a new stream, returning its URI in the Locations field. Return its metadata.               |         |
@@ -191,6 +192,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `DELETE`    | `/api/v1/streams/:streamID`                          | Delete stream *streamID*                                                                          |          |
 | `POST`      | `/api/v1/streams/:streamID/packets`                  | Post a new packet to stream *streamID*, returning its URI in Locations field.                     |          |
 | `GET`       | `/api/v1/streams/:streamID/packets`                  | Get all packets from stream *streamID*, satisfying certain search or aggregation criteria.        |          |
+| `GET`       | `/api/v1/streams/:streamID/packets/latest`           | Return the last packet in the stream *streamID*.                                                  |          |
 | `GET`       | `/api/v1/streams/:streamID/packets/:timestamp`       | Return a packet from stream *streamID* with the given timestamp.                                  |          |
 | `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp`       | Delete a packet from stream *streamID* with the given timestamp.                                  |          |
 
@@ -368,24 +370,7 @@ packet.
 
 *Example*
 ```Shell
-$ curl -i -H "Content-Type: application/json" -X POST \
-> -d '{"timestamp" : 1420070450000, "latitude":45.5, "longitude":-121.8, "altitude": 417.1}' \
-> http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations/1420070450000
-Content-Type: application/json; charset=utf-8
-Content-Length: 79
-ETag: W/"4f-FaShclzXS+U2s/g4Ns+bzw"
-Date: Fri, 13 Nov 2015 02:08:24 GMT
-Connection: keep-alive
-
-{
-  "timestamp":1420070450000,
-  "latitude":45.5,
-  "longitude":-121.8,
-  "altitude":417.1
-}
+$POST_platforms_platformID_location
 ```
 
 ## Get locations
@@ -412,35 +397,35 @@ Returns a status of `400` if the *platformID* does not exist. Additional details
 *Example*
 
 ```Shell
-$ curl -i 'http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations?start=1236239520000&stop=1447381877217&limit=3'
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 220
-ETag: W/"dc-MRvLguQdBc0+3vVriiscvA"
-Date: Fri, 13 Nov 2015 02:32:23 GMT
-Connection: keep-alive
-
-[
-  {
-    "latitude":45,
-    "longitude":-122,
-    "timestamp":1420070400000
-  },
-  {
-    "latitude":45.5,
-    "longitude":-121.8,
-    "altitude":417.1,
-    "timestamp":1420070420000
-  },
-  {
-    "latitude":45.5,
-    "longitude":-121.9,
-    "altitude":41.3,
-    "timestamp":1420070450000
-  }
-]
+$GET_platforms_platformID_location
 ```
+
+
+## Get last location
+
+Get the last location of a platform
+
+```
+GET /api/v1/platforms/:platformID/locations/latest
+```
+*Return status*
+
+| *Status* | *Meaning*               |
+|----------|-------------------------|
+| 200      | Success                 |
+| 400      | Platform does not exist |
+| 404      | Packet does not exist (empty location stream)  |
+
+If successful, the server will return a response code of `200`, with the URI of the matching timestamp
+in the Location field of the response.
+
+*Example*
+```Shell
+$GET_platforms_platformID_location_timestamp_latest
+```
+
+
+
 
 ## Get location at a specific time
 
@@ -457,11 +442,9 @@ GET /api/v1/platforms/:platformID/locations/:timestamp
 | `match`  | string | `exact`      | Require exact match of timestamp.                      |
 | `match`  | string | `lastBefore` | Use timestamp or closest previous timestamp (default). |
 | `match`  | string | `firstAfter` | Use timestamp or closest later timestamp.              |
-| `match`  | string | `latest`     | Use latest value in database.                          |
 
 If the query `match` is `lastBefore` or `firstAfter`, then an exact match is not necessary.
 Instead, the last location before, or after (respectively), the given `timestamp` is returned.
-If the query `match` is `latest`, then *:timestamp* is ignored.
 
 *Return status*
 
@@ -476,39 +459,7 @@ body.
 
 *Example of exact match*
 ```Shell
-curl -i http://localhost:3000/api/v1/platforms/56464ff14c472fde02c088ec/locations/1420071000000?match=exact
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 58
-ETag: W/"3a-zKvMB2BYuPgx7nYSa1Zk1w"
-Date: Fri, 13 Nov 2015 21:09:17 GMT
-Connection: keep-alive
-
-{
-  "latitude":47,
-  "longitude":-120,
-  "timestamp":1420071000000
-}
-```
-
-*Example of last before match*
-
-```Shell
-curl -i http://localhost:3000/api/v1/platforms/56464ff14c472fde02c088ec/locations/1420070999999?match=lastBefore
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 58
-ETag: W/"3a-qKhW0sQQlJjXAowIQJf3hQ"
-Date: Fri, 13 Nov 2015 21:10:52 GMT
-Connection: keep-alive
-
-{
-  "latitude":46,
-  "longitude":-121,
-  "timestamp":1420070700000
-}
+$GET_platforms_platformID_location_timestamp_exact
 ```
 
 ## Post a new packet

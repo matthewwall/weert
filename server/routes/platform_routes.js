@@ -223,7 +223,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 res.json(locrec_array);
             })
             .catch(function (err) {
-                if (err.name === "NoSuchIDError"){
+                if (err.name === "NoSuchIDError") {
                     res.sendStatus(404);
                 } else {
                     debug("Unable to satisfy request for location records. Reason", err);
@@ -231,6 +231,26 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             });
     });
+
+    // Get the latest location
+    // TODO: this should redirect to the appropriate streams route. In fact, all the location requests could
+    router.get('/platforms/:platformID/locations/latest', function (req, res) {
+        // Get the platformID out of the route path
+        var platformID = req.params.platformID;
+        debug("Request for latest location of ", platformID);
+
+        platform_manager
+            .findLocation(platformID, {query: {}, sort: {_id: -1}})
+            .then(function (record) {
+                if (record === null) res.sendStatus(404);
+                else res.json(record);
+            })
+            .catch(function (err) {
+                debug("Unable to satisfy request for latest location of", platformID, ". Reason", err);
+                error.sendError(err, res);
+            });
+    });
+
 
     // Get the location satisfying a time query
     router.get('/platforms/:platformID/locations/:timestamp', function (req, res) {

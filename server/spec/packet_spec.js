@@ -139,7 +139,6 @@ var testMultiplePackets = function () {
         .expectStatus(201)
         .expectHeaderContains('content-type', 'application/json')
         .after(function (error, res, body) {
-            "use strict";
             // Get the URI for the just created stream resource
             var stream_link        = res.headers.location;
             var stream_packet_link = normalizeUrl(stream_link + '/packets');
@@ -189,6 +188,17 @@ var testMultiplePackets = function () {
                                     frisby.create("Test for bad sort direction")
                                         .get(stream_packet_link + '?direction=foo')
                                         .expectStatus(400)
+                                        .toss();
+
+                                    frisby.create("Test to retrieve a specific timestamp")
+                                        .get(stream_packet_link + '/' + packets[1].timestamp)
+                                        .expectStatus(200)
+                                        .expectJSON('', packets[1])
+                                        .toss();
+                                    frisby.create("Test to retrieve the last timestamp")
+                                        .get(stream_packet_link + '/latest')
+                                        .expectStatus(200)
+                                        .expectJSON('', packets[2])
                                         .toss();
                                 })
                                 .toss();
