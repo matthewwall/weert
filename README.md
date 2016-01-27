@@ -1,5 +1,5 @@
 # WeeRT
-A real-time logging and display server, using Angular, MongoDB, Express, Node, and D3 (AMEND?)
+A real-time logging and display server, using Angular, MongoDB, Express, Node, and D3 (DMEAN? AMEND?)
 
 ## General architecture
 - Uses a [Node](https://nodejs.org/) server with the [Express framework](http://expressjs.com/)

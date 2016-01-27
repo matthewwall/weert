@@ -220,22 +220,7 @@ The URI of the new platform will be returned in the `Location` field.
 *Example*
 
 ```Shell
-$  curl -i --silent -X POST -H Content-type: application/json -d {"name":"Bennys Ute", "description" : "Yellow, with black cap"} http://localhost:3000/api/v1/platforms
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/platforms/56a7dff66b81c80f0f722ff7
-Content-Type: application/json; charset=utf-8
-Content-Length: 131
-ETag: W/"83-ucvMDa8kAWEXsFWEkSC30g"
-Date: Tue, 26 Jan 2016 21:07:02 GMT
-Connection: keep-alive
-
-{
-    "_id": "56a7dff66b81c80f0f722ff7",
-    "description": "Yellow, with black cap",
-    "location": "56a7dff66b81c80f0f722ff6",
-    "name": "Bennys Ute"
-}
+$POST_platforms
 ```
 
 
@@ -268,47 +253,13 @@ platform values, depending on the value of parameter `as`.
 *Example*
 
 ```Shell
-$  curl -i --silent -X GET http://localhost:3000/api/v1/platforms
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 133
-ETag: W/"85-rLOZXg4D7biXYxDcqZesiw"
-Date: Tue, 26 Jan 2016 21:07:02 GMT
-Connection: keep-alive
-
-[
-    "http://localhost:3000/api/v1/platforms/56a7dff66b81c80f0f722ff7",
-    "http://localhost:3000/api/v1/platforms/56a7dff66b81c80f0f722ff9"
-]
+$GET_platforms_ref
 ```
 
 *Do the example again, but by value*
 
 ```Shell
-$  curl -i --silent -X GET http://localhost:3000/api/v1/platforms?as=values
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 260
-ETag: W/"104-Fgw+o9IdBpUp6THzjK1PlQ"
-Date: Tue, 26 Jan 2016 21:07:02 GMT
-Connection: keep-alive
-
-[
-    {
-        "_id": "56a7dff66b81c80f0f722ff7",
-        "description": "Yellow, with black cap",
-        "location": "56a7dff66b81c80f0f722ff6",
-        "name": "Bennys Ute"
-    },
-    {
-        "_id": "56a7dff66b81c80f0f722ff9",
-        "description": "Blue Yamaha",
-        "location": "56a7dff66b81c80f0f722ff8",
-        "name": "Willie's scooter"
-    }
-]
+$GET_platforms_value
 ```
 
 ## Get the metadata of a particular platform
@@ -327,26 +278,8 @@ GET /api/v1/platforms/:platformID
 *Example*
 
 ```Shell
-$ curl -i http://localhost:3000/api/v1/platforms/5643f96b9b7a70494bce9763
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 132
-ETag: W/"84-H140aziFcSOUQAG7vvEEZg"
-Date: Thu, 12 Nov 2015 02:31:28 GMT
-Connection: keep-alive
-
-{
-  "_id":"5643f96b9b7a70494bce9763",
-  "name":"Benny's Ute",
-  "description":"Yellow, with a black cap",
-  "join":"join_keyword1",
-  "streams":[]}
-}
+$GET_platforms_platformID
 ```
-
-
-
 
 
 
@@ -372,68 +305,15 @@ If successful, the server will return status code `204`, with nothing in the res
 *Example*
 
 ```Shell
-# First create a platform:
-$  curl -i -H "Content-type: application/json" -X POST  \
-> -d '{"name":"Bennys Ute", "description" : "Yellow, with black cap"}' \
-> http://localhost:3000/api/v1/platforms
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
-Content-Type: application/json; charset=utf-8
-Content-Length: 106
-ETag: W/"6a-nTY0yTw2XWhpC2BSzqsHvA"
-Date: Sat, 16 Jan 2016 19:46:13 GMT
-Connection: keep-alive
-
-{
-  "_id":"569a9e0505be9995051ee8f8",
-  "name":"Bennys Ute",
-  "description":"Yellow, with black cap",
-  "streams":[]
-}
+# The platform before modifications:
+$GET_platforms_platformID
 
 # Now modify the platform, using PUT:
-$ curl -i -H "Content-type: application/json" -X PUT \
-> -d '{"name":"Charlies Ute"}' \
-> http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
-Date: Sat, 16 Jan 2016 19:49:42 GMT
-Connection: keep-alive
+$PUT_platforms_platformID
 
 # Now retrieve the platform, verifying the update worked:
-$ curl -i  http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 108
-ETag: W/"6c-ZN4yYmtfB8xRh62KbxblkQ"
-Date: Sat, 16 Jan 2016 19:50:19 GMT
-Connection: keep-alive
-
-{
-  "_id":"569a9e0505be9995051ee8f8",
-  "name":"Charlies Ute",
-  "description":"Yellow, with black cap",
-  "streams":[]
-}
+$GET_platforms_platformID_mod1
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -453,25 +333,13 @@ DELETE /api/v1/platforms/:platformID
 *Example of deleting a platform*
 
 ```Shell
-$ curl -i -X DELETE http://localhost:3000/api/v1/platforms/569855b66c9e3ce76956aeb6
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
-Date: Fri, 15 Jan 2016 02:34:55 GMT
-Connection: keep-alive
+$DELETE_platforms_platformID
 ```
 
 *Example of deleting a non-existent platform*
 
 ```Shell
-$ curl -i -X DELETE http://localhost:3000/api/v1/platforms/5643f96b9b7a70494bce9763
-HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: text/plain; charset=utf-8
-Content-Length: 9
-ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"
-Date: Fri, 15 Jan 2016 02:33:12 GMT
-Connection: keep-alive
+$DELETE_platforms_badID
 ```
 
 
@@ -905,4 +773,4 @@ Connection: keep-alive
 
 Copyright (c) 2016 Tom Keffer <tkeffer@gmail.com>
 
-  See the file LICENSE for your full rights.
+See the file LICENSE for your full rights.

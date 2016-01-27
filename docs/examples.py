@@ -31,23 +31,74 @@ def do_curl(endpoint, verb='GET', payload=None):
     
     platform_url = None
     
-    print "\n\n\n"
-    print "```Shell"
-    print "$ ", " ".join(cmd)
+    result =  "$ "
+    result += " ".join(cmd)
+    result += "\n"
 
     for line in output.split('\n'):
         if line.startswith('Location:'):
             platform_url = line.split(' ')[1].strip()
-        if line.startswith('{'):
+        if line.startswith('{') or line.startswith('['):
             # Pretty print any JSON
-            print json.dumps(json.loads(line), sort_keys=True, indent=4, separators=(',', ': '))
+            result += json.dumps(json.loads(line), sort_keys=True, indent=4, separators=(',', ': ')) + "\n"
         else:
-            print line
-    print "```"
-    return platform_url
+            result += line
 
-platform_url = do_curl(weert_url + 'platforms', 'POST', "{\"name\":\"Bennys Ute\", \"description\" : \"Yellow, with black cap\"}")
+    return (result, platform_url)
 
-print "platform_url=", platform_url
+def get_mapping():
+    mapping = {}
 
-do_curl(platform_url)
+    mapping["POST_platforms"], platform_url1 = do_curl(weert_url + 'platforms', 'POST', "{\"name\":\"Bennys Ute\", \"description\" : \"Yellow, with black cap\"}")
+    _, platform_url2 = do_curl(weert_url + 'platforms', 'POST', "{\"name\":\"Willie's scooter\", \"description\" : \"Blue Yamaha\"}")
+    
+    mapping["GET_platforms_ref"], _ = do_curl(weert_url + 'platforms')
+     
+    # Do the example again, but by value
+    mapping["GET_platforms_value"], _ = do_curl(weert_url + 'platforms?as=values')
+    
+    mapping["GET_platforms_platformID"], _ = do_curl(platform_url1)
+    
+    mapping["PUT_platforms_platformID"], _ = do_curl(platform_url1, 'PUT', "{\"description\" : \"Yellow, with green cap\"}")
+    
+    mapping["GET_platforms_platformID_mod1"], _ = do_curl(platform_url1)
+    
+    mapping["DELETE_platforms_platformID"], _ = do_curl(platform_url1, 'DELETE')
+    
+    mapping["DELETE_platforms_badID"], _ = do_curl(weert_url + 'platforms/564532f58719938114311ea3', 'DELETE')
+    
+    return mapping
+
+import optparse
+import sys
+
+description = """Generates the WeeRT API markdown documentation from a template"""
+
+usage = """%prog: template-file [--help]"""
+
+def main():
+    import string
+    
+    # Create a command line parser:
+    parser = optparse.OptionParser(description=description, usage=usage)
+    
+    # Parse the command line:
+    (options, args) = parser.parse_args()
+
+    if not args:
+        print >>sys.stdout, "missing template file"
+        sys.exit(1)
+        
+    template_file = args[0]
+
+    fd = open(template_file, 'r')
+    buff=fd.read()
+
+    mapping = get_mapping()
+    
+    template = string.Template(buff)
+    md = template.safe_substitute(mapping)
+    
+    print md
+if __name__=="__main__" :
+    main()
