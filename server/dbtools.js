@@ -25,13 +25,15 @@ var collection = function (db, coln_name, coln_options) {
 
 
 var calcAggregate = function (collection, obs_type, dbQuery) {
+
+    if (dbQuery.aggregate_type === undefined)
+        throw new Error("Attribute aggregate_type required for aggregation");
+
     var start = dbQuery.start;
     var stop  = dbQuery.stop;
     if (start === undefined) start = 0;
     if (stop === undefined) stop = new Date();
 
-    if (dbQuery.aggregate_type === undefined)
-        dbQuery.aggregate_type = 'avg';
     var agg_operator       = "$" + dbQuery.aggregate_type;
     var agg_expr           = {};
     agg_expr[agg_operator] = "$" + obs_type;
@@ -66,6 +68,6 @@ var calcAggregate = function (collection, obs_type, dbQuery) {
 };
 
 module.exports = {
-    collection        : collection,
-    calcAggregate     : calcAggregate
+    collection   : collection,
+    calcAggregate: calcAggregate
 };

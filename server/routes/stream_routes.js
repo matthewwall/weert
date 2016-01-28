@@ -177,8 +177,11 @@ var StreamRouterFactory = function (stream_manager) {
             return;
         }
 
+        // Accept either 'aggregate_type' or 'agg_type'. Former takes precedence.
+        req.query.aggregate_type = req.query.aggregate_type || req.query.agg_type;
+
         // Is an aggregation being requested?
-        if (req.query.aggregate_type !== undefined) {
+        if (req.query.aggregate_type) {
             // Yes, an aggregation is being requested.
             debug("Request for aggregation", req.query.aggregate_type,
                 "with start, stop times of", req.query.start, req.query.stop);

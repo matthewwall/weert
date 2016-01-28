@@ -242,11 +242,19 @@ var testMultiplePackets = function () {
                             .expectStatus(400)
                             .toss();
 
-                        frisby.create("Look for aggregate max value")
+                        frisby.create("Get aggregate_type max")
                             .get(stream_packet_link + '?aggregate_type=max&obs_type=outside_temperature')
                             .expectStatus(200)
                             .afterJSON(function (json) {
                                 expect(json).toEqual(temperature(0));
+                            })
+                            .toss();
+
+                        frisby.create("Get agg_type min value")
+                            .get(stream_packet_link + '?agg_type=min&obs_type=outside_temperature')
+                            .expectStatus(200)
+                            .afterJSON(function (json) {
+                                expect(json).toEqual(temperature(N - 1));
                             })
                             .toss();
 
