@@ -325,6 +325,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                         .collection(db, options.packets.name(streamID),
                             Object.assign(options.streams.options, {strict: true}))
                         .then(function (coln) {
+                            // This wil return a promise to calculate the aggregate:
                             return dbtools
                                 .calcAggregate(coln, obs_type, dbQuery)
                         });

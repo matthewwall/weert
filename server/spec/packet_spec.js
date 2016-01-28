@@ -146,8 +146,8 @@ var testMultiplePackets = function () {
     for (var i = 0; i < N; i++) {
         indices[i]                 = i;
         packets[i]                 = {
-            timestamp  : timestamp(i),
-            temperature: temperature(i)
+            timestamp          : timestamp(i),
+            outside_temperature: temperature(i)
         };
         reverse_packets[N - i - 1] = packets[i];
     }
@@ -226,13 +226,13 @@ var testMultiplePackets = function () {
                             .toss();
 
                         frisby.create("Retrieve packets sorted by temperature")
-                            .get(stream_packet_link + '?sort=temperature&direction=asc')
+                            .get(stream_packet_link + '?sort=outside_temperature&direction=asc')
                             .expectJSONTypes('', Array)
                             .expectJSON('', reverse_packets)
                             .toss();
 
                         frisby.create("Retrieve packets reverse sorted by temperature")
-                            .get(stream_packet_link + '?sort=temperature&direction=desc')
+                            .get(stream_packet_link + '?sort=outside_temperature&direction=desc')
                             .expectJSONTypes('', Array)
                             .expectJSON('', packets)
                             .toss();
@@ -240,6 +240,14 @@ var testMultiplePackets = function () {
                         frisby.create("Test packets using bad sort direction")
                             .get(stream_packet_link + '?direction=foo')
                             .expectStatus(400)
+                            .toss();
+
+                        frisby.create("Look for aggregate max value")
+                            .get(stream_packet_link + '?aggregate_type=max&obs_type=outside_temperature')
+                            .expectStatus(200)
+                            .afterJSON(function (json) {
+                                expect(json).toEqual(temperature(0));
+                            })
                             .toss();
 
                         frisby.create("Search for last packet")
@@ -251,7 +259,7 @@ var testMultiplePackets = function () {
                                 var packet_link = res.headers.location;
                                 describe("Test that search for last packet", function () {
                                     it("contains the packet link", function () {
-                                        expect(res.headers.location).toEqual(time_link(timestamp(N-1)))
+                                        expect(res.headers.location).toEqual(time_link(timestamp(N - 1)))
                                     });
                                 })
                             })

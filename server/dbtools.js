@@ -32,7 +32,7 @@ var calcAggregate = function (collection, obs_type, dbQuery) {
 
     if (dbQuery.aggregate_type === undefined)
         dbQuery.aggregate_type = 'avg';
-    var agg_operator       = "$" + aggregate_type;
+    var agg_operator       = "$" + dbQuery.aggregate_type;
     var agg_expr           = {};
     agg_expr[agg_operator] = "$" + obs_type;
     var match_expr         = {
@@ -61,7 +61,7 @@ var calcAggregate = function (collection, obs_type, dbQuery) {
         .toArray()
         .then(function (result) {
             var val = result[0] === undefined ? null : result[0].agg_value;
-            new Promise.resolve(val);
+            return new Promise.resolve(val);
         })
 };
 
