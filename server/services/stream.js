@@ -44,7 +44,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 .then(function (db) {
                     return dbtools
                         .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict:false}))
+                            Object.assign(options.streams.options, {strict: false}))
                         .then(function (coln) {
 
                             var namePromise;
@@ -83,6 +83,66 @@ var StreamManagerFactory = function (dbPromise, options) {
                 });
         };
 
+        var updateStream = function (streamID, stream_metadata) {
+
+            // If the streamID was included in the metadata, make sure it matches
+            // the one in the URL:
+            if (stream_metadata._id && (streamID !== stream_metadata._id)) {
+                return new Promise.reject(new Error({
+                    message    : "Mismatch in streamID",
+                    description: streamID + " vs " + stream_metadata._id
+                }));
+            }
+
+            // A bad _id will cause an exception. Be prepared to catch it
+            try {
+                var id_obj = new mongodb.ObjectID(streamID);
+            } catch (err) {
+                err.description = "Unable to form ObjectID for streamID of " + streamID;
+                return new Promise.reject(err);
+            }
+
+            return dbPromise
+                .then(function (db) {
+                    return dbtools
+                        .collection(db, options.streams.metadata_name,
+                            Object.assign(options.streams.options, {strict: false}))
+                })
+                .then(function (coln) {
+                    var namePromise;
+                    // You can change the name, but only to another unique name. So, if a name was specified,
+                    // we need to make sure it is not already in the database
+                    if (stream_metadata.name) {
+                        // A name was given. Return a promise for all the streams potentially matching the name
+                        namePromise = coln
+                            .find({name: {$eq: stream_metadata.name}})
+                            .toArray();
+
+                    } else {
+                        // No name was given, so no need to test for uniqueness.
+                        // Create an already fulfilled promise, holding an empty array.
+                        namePromise = new Promise.resolve([]);
+                    }
+                    return namePromise
+                        .then(function (streams) {
+
+                            if (streams.length) {
+                                // Unfortunately, the name is already taken. Signal the error
+                                return new Promise.reject(new errors.DuplicateNameError("Name" + stream_metadata.name + "already in use"))
+                            }
+
+                            // Make a copy of the metadata. We're going to modify it
+                            var md = Object.assign({}, stream_metadata);
+                            // Can't change the streamID, so delete it
+                            delete md._id;
+
+                            // Returns a promise to update the stream metadata
+                            return coln
+                                .updateOne({_id: {$eq: id_obj}}, {$set: md});
+                        })
+                })
+        };
+
 
         /**
          * Find all streams
@@ -103,7 +163,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 .then(function (db) {
                     return dbtools
                         .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict:false}))
+                            Object.assign(options.streams.options, {strict: false}))
                         .then(function (coln) {
                             return coln
                                 .find(findQuery)
@@ -142,7 +202,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             try {
                 var id_obj = new mongodb.ObjectID(streamID);
             } catch (err) {
-                err.description = "Unable to form ObjectID for platformID of " + platformID;
+                err.description = "Unable to form ObjectID for streamID of " + streamID;
                 return new Promise.reject(err);
             }
 
@@ -150,7 +210,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 .then(function (db) {
                     return dbtools
                         .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict:false}))
+                            Object.assign(options.streams.options, {strict: false}))
                         .then(function (coln) {
                             // First a promise to delete the metadata
                             var p1 = coln.deleteOne({_id: {$eq: id_obj}});
@@ -263,7 +323,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 .then(function (db) {
                     return dbtools
                         .collection(db, options.packets.name(streamID),
-                            Object.assign(options.streams.options, {strict:true}))
+                            Object.assign(options.streams.options, {strict: true}))
                         .then(function (coln) {
                             return dbtools
                                 .calcAggregate(coln, obs_type, dbQuery)
@@ -276,6 +336,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 .then(function (db) {
                     return dbtools
                         .collection(db, options.packets.name(streamID),
+                            // Set strict=true to force error if streamID does not exist
                             Object.assign(options.streams.options, {strict: true}))
                         .then(function (coln) {
                             return coln
@@ -307,7 +368,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 .then(function (db) {
                     return dbtools
                         .collection(db, options.packets.name(streamID),
-                            Object.assign(options.streams.options, {strict:true}))
+                            Object.assign(options.streams.options, {strict: true}))
                         .then(function (coln) {
                             return coln
                                 .deleteOne({_id: {$eq: new Date(timestamp)}})
@@ -317,6 +378,7 @@ var StreamManagerFactory = function (dbPromise, options) {
 
         return {
             createStream    : createStream,
+            updateStream    : updateStream,
             findStreams     : findStreams,
             findStream      : findStream,
             deleteStream    : deleteStream,

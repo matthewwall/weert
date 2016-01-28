@@ -233,7 +233,6 @@ var PlatformRouterFactory = function (platform_manager) {
     });
 
     // Get the latest location
-    // TODO: this should redirect to the appropriate streams route. In fact, all the location requests could
     router.get('/platforms/:platformID/locations/latest', function (req, res) {
         // Get the platformID out of the route path
         var platformID = req.params.platformID;

@@ -109,7 +109,7 @@ frisby.create('A WeeRT stream #1')
             })
             .after(function (error, res, body) {
                 var stream_link2 = res.headers.location;
-                // We've ßcreated two streams. Fetch them.
+                // We've created two streams. Fetch them.
                 frisby.create('GET and validate all created streams')
                     .get(test_url)
                     .expectStatus(200)
@@ -164,3 +164,91 @@ frisby.create('Try to create a stream that has an _id field already defined')
     )
     .expectStatus(400)
     .toss();
+
+
+/*
+ * Tests for PUT
+ */
+frisby
+    .create('Create stream #1 to test update')
+    .post(test_url,
+        {
+            name       : "Updater1",
+            description: "Updater1 description",
+            unit_group : "METRIC"
+        },
+        {json: true}
+    )
+    .expectStatus(201)
+    .after(function (error, res, body) {
+
+        // Form the URL for the platform
+        var stream_link1 = res.headers.location;
+
+        frisby
+            .create('Create stream #2 to test update')
+            .post(test_url,
+                {
+                    name       : "Updater2",
+                    description: "Updater2 description",
+                    unit_group : "METRIC"
+                },
+                {json: true}
+            )
+            .expectStatus(201)
+            .after(function (error, res, body) {
+
+                // Get the 2nd stream's URL:
+                var stream_link2 = res.headers.location;
+
+                frisby
+                    .create('PUT to stream #1')
+                    .put(stream_link1,
+                        {
+                            name       : "Updated1",    // Update name to a new, unique name
+                            description: "Updater1 new description A"
+                        },
+                        {json: true})
+                    .expectStatus(204)
+                    .after(function (error, res, body) {
+                        // Now make sure it was updated
+                        frisby.create("Get the freshly updated stream")
+                            .get(stream_link1)
+                            .expectStatus(200)
+                            .expectHeaderContains('content-type', 'application/json')
+                            .expectJSON('', {
+                                name       : "Updated1",    // name gets updated because it is still unique
+                                description: "Updater1 new description A"
+                            })
+                            .after(function (error, res, body) {
+                                // Try time, include a mismatched _id in the metadata
+                                frisby.create("PUT to the stream but with a mismatched _id")
+                                    .put(stream_link1,
+                                        {
+                                            _id        : "569a8aafd579b3c37a549690",
+                                            description: "Updater1 new description B"
+                                        },
+                                        {json: true})
+                                    .expectStatus(400)
+                                    .toss();
+
+                                // Also, try updating the name to a non-unique name
+                                frisby.create("PUT to with a non-unique name")
+                                    .put(stream_link1,
+                                        {
+                                            name       : "Updater2",   // Use the name of the 2nd stream
+                                            description: "Updater1 new description C"
+                                        },
+                                        {json: true})
+                                    .expectStatus(400)
+                                    .toss();
+                            })
+                            .toss();
+                    })
+                    .toss();
+            }).toss();
+    })
+    .toss();
+
+
+

@@ -82,7 +82,7 @@ var StreamRouterFactory = function (stream_manager) {
     router.get('/streams/:streamID', function (req, res) {
         // Get the streamID out of the route path
         var streamID = req.params.streamID;
-        debug("Request for streamID", streamID);
+        debug("GET for streamID", streamID);
 
         stream_manager
             .findStream(streamID)
@@ -100,6 +100,40 @@ var StreamRouterFactory = function (stream_manager) {
                 error.sendError(err, res);
             });
     });
+
+    // PUT (Update) the metadata for a stream
+    router.put('/streams/:streamID', function (req, res) {
+        if (req.is('json')) {
+            // Get the streamID
+            var streamID = req.params.streamID;
+            debug("PUT to streamID", streamID);
+
+            // Get the platform metadata
+            var metadata = req.body;
+
+            // Ask the StreamManager to update the platform metadata
+            stream_manager
+                .updateStream(streamID, metadata)
+                .then(function (result) {
+                    if (result.result.n) {
+                        // Success
+                        res.sendStatus(204);
+                        // Emit an event
+                        res.app.emit('streams/PUT', metadata);
+                    } else {
+                        // Couldn't find the doc
+                        res.sendStatus(404);
+                    }
+                })
+                .catch(function (err) {
+                    error.sendError(err, res);
+                });
+        } else {
+            // POST was not in JSON format. Send an error msg.
+            res.status(415).json({code: 415, message: "Invalid Content-type", description: req.get('Content-Type')});
+        }
+    });
+
 
     // POST a single packet to a stream
     router.post('/streams/:streamID/packets', function (req, res) {
@@ -188,7 +222,7 @@ var StreamRouterFactory = function (stream_manager) {
                 else {
                     // They asked for the 'latest' packet. Calculate its actual URL,
                     // and include it in the Location response header.
-                    var replaceUrl = req.originalUrl.replace('latest', packet.timestamp);
+                    var replaceUrl   = req.originalUrl.replace('latest', packet.timestamp);
                     var resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '');
                     res.status(200).location(resource_url).json(packet);
                 }
@@ -221,8 +255,15 @@ var StreamRouterFactory = function (stream_manager) {
         stream_manager
             .findPacket(streamID, dbQuery)
             .then(function (packet) {
-                if (packet === null) res.sendStatus(404);
-                else res.json(packet);
+                if (packet === null)
+                    res.sendStatus(404);
+                else {
+                    // Calculate the actual URL of the returned packet
+                    // and include it in the Location response header.
+                    var replaceUrl   = req.originalUrl.replace(req.params.timestamp, packet.timestamp);
+                    var resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '');
+                    res.status(200).location(resource_url).json(packet);
+                }
             })
             .catch(function (err) {
                 debug("Unable to satisfy request for packet. Reason", err);

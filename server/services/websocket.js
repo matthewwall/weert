@@ -19,6 +19,7 @@ var event_list = [
     'platforms/locations/POST',
     'platforms/locations/DELETE',
     'streams/POST',
+    'streams/PUT',
     'streams/packets/POST',
     'streams/packets/DELETE'
 ];

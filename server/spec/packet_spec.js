@@ -242,6 +242,21 @@ var testMultiplePackets = function () {
                             .expectStatus(400)
                             .toss();
 
+                        frisby.create("Search for last packet")
+                            .get(time_link('latest'))
+                            .expectStatus(200)
+                            .expectJSON('', packets[N - 1])
+                            .after(function (error, res, body) {
+                                // Get the URI for the matched packet
+                                var packet_link = res.headers.location;
+                                describe("Test that search for last packet", function () {
+                                    it("contains the packet link", function () {
+                                        expect(res.headers.location).toEqual(time_link(timestamp(N-1)))
+                                    });
+                                })
+                            })
+                            .toss();
+
                         frisby.create("Search for default match of a timestamp, which is exact")
                             .get(time_link(packets[2].timestamp))
                             .expectStatus(200)
@@ -263,6 +278,15 @@ var testMultiplePackets = function () {
                             .get(time_link(packets[2].timestamp - 1) + '?match=lastBefore')
                             .expectStatus(200)
                             .expectJSON('', packets[1])
+                            .after(function (error, res, body) {
+                                // Get the URI for the matched packet
+                                var packet_link = res.headers.location;
+                                describe("Test that search for lastBefore packet", function () {
+                                    it("contains the packet link", function () {
+                                        expect(res.headers.location).toEqual(time_link(timestamp(1)))
+                                    });
+                                })
+                            })
                             .toss();
 
                         frisby.create("Search for firstAfter a timestamp")
