@@ -12,28 +12,6 @@
 
 var Promise = require('bluebird');
 
-// Returns a promise to create a collection. Note that the promise resolves to a MongoClient Promise,
-// so it can be chained with other database functions.
-// Attempting to create an already existing collection is not treated as an error.
-var createCollection = function (connectPromise, coln_name, coln_options) {
-    return new Promise(function (resolve, reject) {
-        connectPromise
-            .then(function (db) {
-                db
-                    .createCollection(coln_name, coln_options)
-                    .then(function () {
-                        resolve(connectPromise)
-                    })
-                    .catch(function (err) {
-                        if (err.message.includes("Currently in strict mode"))
-                            return resolve(connectPromise);
-                        else
-                            return reject(err);
-                    })
-            })
-    });
-};
-
 // Returns a promise to open a collection. For some reason, this is missing in the MongoDB API (only callbacks
 // are supported when opening a collection).
 var collection = function (db, coln_name, coln_options) {
@@ -88,7 +66,6 @@ var calcAggregate = function (collection, obs_type, dbQuery) {
 };
 
 module.exports = {
-    createCollection  : createCollection,
     collection        : collection,
     calcAggregate     : calcAggregate
 };

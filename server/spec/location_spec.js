@@ -135,6 +135,12 @@ var testMultipleLocrecs = function () {
                             .expectStatus(400)
                             .toss();
 
+                        frisby.create("Search for last location")
+                            .get(time_link('latest'))
+                            .expectStatus(200)
+                            .expectJSON('', locrecs[N-1])
+                            .toss();
+
                         frisby.create("Search for default match of a timestamp, which is lastBefore")
                             .get(time_link(locrecs[2].timestamp - 1))
                             .expectStatus(200)

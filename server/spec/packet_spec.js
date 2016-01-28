@@ -120,6 +120,19 @@ var testSinglePacket = function () {
                 .toss()
         })
         .toss();
+
+    frisby
+        .create("Get a single packet from a non-existent stream")
+        .get(test_url + "/56a9962066c7ea36598cd4c3/packets/latest")
+        .expectStatus(404)
+        .toss();
+
+    frisby
+        .create("Retrieve all packets from a non-existent stream")
+        .get(test_url + "/56a9962066c7ea36598cd4c3/packets")
+        .expectStatus(404)
+        .toss();
+
 };
 
 

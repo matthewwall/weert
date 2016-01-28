@@ -14,7 +14,6 @@
 var debug   = require('debug')('weert:server');
 var mongodb = require('mongodb');
 var Promise = require('bluebird');
-var util    = require('util');
 
 var dbtools = require('../dbtools');
 var stream  = require('./stream');
@@ -26,15 +25,11 @@ var errors  = require('../errors');
  */
 var PlatformManagerFactory = function (dbPromise, options, streamManager) {
 
-    // Create a promise to create the platform metadata collection. It will resolve to a MongoClient Promise,
-    // which can be used by the other methods.
-    //var dbPromise = dbtools.createCollection(connectPromise, options.platforms.metadata_name, options.platforms.options);
-
     /**
      * Create a new platform
      * @method createPlatform
      * @param {object} platform_metadata - The platform's metadata
-     * @returns {Promise}
+     * @returns {Promise.resolved|Promise.rejected}
      */
     var createPlatform = function (platform_metadata) {
 
@@ -46,7 +41,8 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .collection(db, options.platforms.metadata_name,
+                        Object.assign(options.platforms.options, {strict: false}))
             })
             .then(function (coln) {
                 var namePromise;
@@ -123,7 +119,8 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .collection(db, options.platforms.metadata_name,
+                        Object.assign(options.platforms.options, {strict: false}))
             })
             .then(function (coln) {
                 var namePromise;
@@ -149,7 +146,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
                         }
 
                         // Make a copy of the metadata. We're going to modify it
-                        var md = util._extend({}, platform_metadata);
+                        var md = Object.assign({}, platform_metadata);
                         // The save method does not overwrite the locations data, , and you can't change
                         // the platformID, so delete them.
                         delete md.location;
@@ -182,7 +179,8 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
             .then(function (db) {
 
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .collection(db, options.platforms.metadata_name,
+                        Object.assign(options.platforms.options, {strict: false}))
                     .then(function (coln) {
                         // Hit the database to get the metadata of the platform
                         return coln
@@ -227,7 +225,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
     var findPlatforms = function (dbQuery) {
 
         // Make a copy of the query. We're going to modify it
-        var findQuery = util._extend({}, dbQuery);
+        var findQuery = Object.assign({}, dbQuery);
         // Remove limit and sort, which have their own functions
         delete findQuery.limit;
         delete findQuery.sort;
@@ -235,12 +233,13 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .collection(db, options.platforms.metadata_name,
+                        Object.assign(options.platforms.options, {strict: false}))
                     .then(function (coln) {
                         return coln
                             .find(findQuery)
-                            .limit(dbQuery.limit)
                             .sort(dbQuery.sort)
+                            .limit(dbQuery.limit)
                             .toArray();
                     });
             })
@@ -257,7 +256,8 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .collection(db, options.platforms.metadata_name,
+                        Object.assign(options.platforms.options, {strict: false}))
                     .then(function (coln) {
                         return coln
                             .find({_id: {$eq: id_obj}})
@@ -280,7 +280,8 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         }
         // Open up the metadata collection to get the streamID of the location stream
         return dbtools
-            .collection(db, options.platforms.metadata_name, options.platforms.options)
+            .collection(db, options.platforms.metadata_name,
+                Object.assign(options.platforms.options, {strict: false}))
             .then(function (coln) {
                 // Hit the database to get the ID of the location stream
                 return coln

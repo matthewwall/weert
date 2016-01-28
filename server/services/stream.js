@@ -14,7 +14,6 @@
 var debug   = require('debug')('weert:server');
 var mongodb = require('mongodb');
 var Promise = require('bluebird');
-var util    = require('util');
 
 var dbtools = require('../dbtools');
 var errors  = require('../errors');
@@ -44,7 +43,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name, options.streams.options)
+                        .collection(db, options.streams.metadata_name,
+                            Object.assign(options.streams.options, {strict:false}))
                         .then(function (coln) {
 
                             var namePromise;
@@ -69,7 +69,8 @@ var StreamManagerFactory = function (dbPromise, options) {
                                                 var final_stream_metadata = result.ops[0];
                                                 // Now create the collection that will hold the actual stream packets
                                                 return db
-                                                    .createCollection(options.packets.name(final_stream_metadata._id), options.packets.options)
+                                                    .createCollection(options.packets.name(final_stream_metadata._id),
+                                                        options.packets.options)
                                                     .then(function () {
                                                         return new Promise.resolve(final_stream_metadata);
                                                     });
@@ -93,7 +94,7 @@ var StreamManagerFactory = function (dbPromise, options) {
          */
         var findStreams = function (dbQuery) {
             // Make a copy of the query. We're going to modify it
-            var findQuery = util._extend({}, dbQuery);
+            var findQuery = Object.assign({}, dbQuery);
             // Remove limit and sort, which have their own functions
             delete findQuery.limit;
             delete findQuery.sort;
@@ -101,7 +102,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name, options.streams.options)
+                        .collection(db, options.streams.metadata_name,
+                            Object.assign(options.streams.options, {strict:false}))
                         .then(function (coln) {
                             return coln
                                 .find(findQuery)
@@ -123,7 +125,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name, options.streams.options)
+                        .collection(db, options.streams.metadata_name,
+                            Object.assign(options.streams.options, {strict: false}))
                         .then(function (coln) {
                             return coln
                                 .find({_id: {$eq: id_obj}})
@@ -146,7 +149,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name, options.streams.options)
+                        .collection(db, options.streams.metadata_name,
+                            Object.assign(options.streams.options, {strict:false}))
                         .then(function (coln) {
                             // First a promise to delete the metadata
                             var p1 = coln.deleteOne({_id: {$eq: id_obj}});
@@ -228,7 +232,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .collection(db, options.packets.name(streamID),
+                            Object.assign(options.streams.options, {strict: true}))
                         .then(function (coln) {
                             return coln
                                 .find({
@@ -257,7 +262,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .collection(db, options.packets.name(streamID),
+                            Object.assign(options.streams.options, {strict:true}))
                         .then(function (coln) {
                             return dbtools
                                 .calcAggregate(coln, obs_type, dbQuery)
@@ -269,7 +275,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .collection(db, options.packets.name(streamID),
+                            Object.assign(options.streams.options, {strict: true}))
                         .then(function (coln) {
                             return coln
                                 .find(dbQuery.query)
@@ -299,7 +306,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .collection(db, options.packets.name(streamID),
+                            Object.assign(options.streams.options, {strict:true}))
                         .then(function (coln) {
                             return coln
                                 .deleteOne({_id: {$eq: new Date(timestamp)}})
