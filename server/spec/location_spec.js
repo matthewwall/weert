@@ -139,6 +139,15 @@ var testMultipleLocrecs = function () {
                             .get(time_link('latest'))
                             .expectStatus(200)
                             .expectJSON('', locrecs[N-1])
+                            .after(function (error, res, body) {
+                                // Get the URI for the matched location
+                                var location_link = res.headers.location;
+                                describe("Test that search for last location", function () {
+                                    it("contains the location link", function () {
+                                        expect(res.headers.location).toEqual(time_link(timestamp(N-1)))
+                                    });
+                                })
+                            })
                             .toss();
 
                         frisby.create("Search for default match of a timestamp, which is lastBefore")
@@ -162,6 +171,15 @@ var testMultipleLocrecs = function () {
                             .get(time_link(locrecs[2].timestamp - 1) + '?match=lastBefore')
                             .expectStatus(200)
                             .expectJSON('', locrecs[1])
+                            .after(function (error, res, body) {
+                                // Get the URI for the matched location
+                                var location_link = res.headers.location;
+                                describe("Test that search for lastBefore location", function () {
+                                    it("contains the location link", function () {
+                                        expect(res.headers.location).toEqual(time_link(timestamp(1)))
+                                    });
+                                })
+                            })
                             .toss();
 
                         frisby.create("Search for firstAfter a timestamp")

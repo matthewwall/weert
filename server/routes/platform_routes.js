@@ -241,8 +241,16 @@ var PlatformRouterFactory = function (platform_manager) {
         platform_manager
             .findLocation(platformID, {query: {}, sort: {_id: -1}})
             .then(function (record) {
-                if (record === null) res.sendStatus(404);
-                else res.json(record);
+                if (record === null) {
+                    res.sendStatus(404);
+                }
+                else {
+                    // They asked for the 'latest' packet. Calculate its actual URL,
+                    // and include it in the Location response header.
+                    var replaceUrl   = req.originalUrl.replace('latest', record.timestamp);
+                    var resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '');
+                    res.status(200).location(resource_url).json(record);
+                }
             })
             .catch(function (err) {
                 debug("Unable to satisfy request for latest location of", platformID, ". Reason", err);
@@ -270,8 +278,16 @@ var PlatformRouterFactory = function (platform_manager) {
         platform_manager
             .findLocation(platformID, dbQuery)
             .then(function (record) {
-                if (record === null) res.sendStatus(404);
-                else res.json(record);
+                if (record === null) {
+                    res.sendStatus(404);
+                }
+                else {
+                    // Calculate the actual URL of the returned packet
+                    // and include it in the Location response header.
+                    var replaceUrl   = req.originalUrl.replace(req.params.timestamp, record.timestamp);
+                    var resource_url = auxtools.locationPath(replaceUrl, req.protocol, req.get('host'), '');
+                    res.status(200).location(resource_url).json(record);
+                }
             })
             .catch(function (err) {
                 debug("Unable to satisfy request for platform time query. Reason", err);

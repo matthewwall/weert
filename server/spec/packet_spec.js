@@ -232,7 +232,7 @@ var testMultiplePackets = function () {
                             .toss();
 
                         frisby.create("Retrieve packets reverse sorted by temperature")
-                            .get(stream_packet_link + '?sort=temperatur&direction=desc')
+                            .get(stream_packet_link + '?sort=temperature&direction=desc')
                             .expectJSONTypes('', Array)
                             .expectJSON('', packets)
                             .toss();
