@@ -9,7 +9,8 @@
  */
 "use strict";
 
-var test_url = require('./test_config').test_root_url + '/platforms';
+var test_url   = require('./test_config').test_root_url + '/platforms';
+var stream_url = require('./test_config').test_root_url + '/streams';
 
 var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
@@ -61,6 +62,7 @@ frisby
         var platform_link1 = res.headers.location;
         // And the URL for its location records
         var platform_locrec_link1 = normalizeUrl(platform_link1 + '/locations');
+
         frisby
             .create('GET and validate the metadata for platform #1')
             .get(platform_link1)
@@ -78,13 +80,28 @@ frisby
                 description: "Yellow, with a black cap",
                 join       : "join_keyword1"
             })
+            .afterJSON(function (pmd) {
+                // pmd holds the returned platform metadata. Use it to fetch the corresponding
+                // location stream, and validate its metadata
+                frisby
+                    .create("GET and validate the location stream for platform #1")
+                    .get(stream_url + "/" + pmd.location)   // Fetch the location stream metadata
+                    .expectStatus(200)
+                    .afterJSON(function (smd) {
+                        expect(smd.name).toEqual("locations/" + pmd._id);
+                        expect(smd.description).toEqual("Location data for platform " + pmd._id);
+                    })
+                    .toss();
+            })
             .toss();
+
         frisby
             .create('Validate the locations collection for platform #1')
             .get(platform_locrec_link1)
             .expectStatus(200)
             .expectJSONTypes('', Array)     // There should not be any locations yet.
             .toss();
+
         frisby
             .create('Create a WeeRT platform #2')
             .post(test_url,
@@ -255,8 +272,6 @@ frisby
 
 // ******************* Tests for updating a platform ****************************
 
-// TODO: Need to test for updating to a non-unique name
-
 frisby
     .create('Create platform with the intention of updating it')
     .post(test_url,
@@ -315,7 +330,7 @@ frisby
                                         "the intention of updating it, but with a mismatched _id")
                                     .put(platform_link1,
                                         {
-                                            _id : "569a8aafd579b3c37a549690",
+                                            _id        : "569a8aafd579b3c37a549690",
                                             description: "Updater1 new description B"
                                         },
                                         {json: true})
@@ -327,7 +342,7 @@ frisby
                                         "the intention of updating it, with a non-unique name")
                                     .put(platform_link1,
                                         {
-                                            name: "Updater2",
+                                            name       : "Updater2",
                                             description: "Updater1 new description C"
                                         },
                                         {json: true})

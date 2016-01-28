@@ -69,7 +69,6 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
                             if (!platform_metadata.location) {
                                 // The platform location stream is undefined. Return a Promise to create one
                                 return streamManager.createStream({
-                                    description: "Locations stream",
                                     unit_group : "METRIC"
                                 });
                             } else {
@@ -78,19 +77,38 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
                             }
                         }
                     })
-                    .then(function (results) {
-                        // If results are defined, it holds the metadata of a new location stream
-                        if (results) {
+                    .then(function (locstream_metadata) {
+                        // If locstream_metadata is defined, it holds the metadata of a new location stream
+                        if (locstream_metadata) {
                             // We've got a freshly allocated stream. Record its ID in the platform metadata
-                            platform_metadata.location = results._id;
+                            platform_metadata.location = locstream_metadata._id;
                         }
 
-                        // Return a promise to insert the metadata
+                        // Return a promise to insert the platform metadata
                         return coln
                             .insertOne(platform_metadata)
                             .then(function (results) {
                                 // We need to massage the promise a bit before returning it
                                 return new Promise.resolve(results.ops[0])
+                            })
+                            .then(function (final_metadata) {
+                                // We have the final metadata.
+                                // If we had to create a location stream, provide an appropriate
+                                // name and description for it, using the newly created platformID
+                                if (locstream_metadata) {
+                                    // Update the stream metadata to hold an appropriate name & description
+                                    return streamManager.updateStream(platform_metadata.location,
+                                        {
+                                            name       : "locations/" + final_metadata._id,
+                                            description: "Location data for platform " + final_metadata._id
+                                        })
+                                        .then(function(){
+                                            // Return a promise with the final stream metadata
+                                            return Promise.resolve(final_metadata);
+                                        })
+                                } else {
+                                    return Promise.resolve(final_metadata);
+                                }
                             });
                     });
             });
