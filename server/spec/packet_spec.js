@@ -11,9 +11,12 @@
 
 var test_url = require('./test_config').test_root_url + '/streams';
 
+
+var async        = require('async');
 var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
-// var async        = require('async');
+var request      = require('request');
+
 // var Client       = require('node-rest-client').Client;
 
 var timestamp = function (i) {
@@ -22,7 +25,7 @@ var timestamp = function (i) {
 };
 
 var temperature = function (i) {
-    return 20 - i;
+    return 45 - i;
 };
 
 var testSinglePacket = function () {
@@ -119,19 +122,29 @@ var testSinglePacket = function () {
         .toss();
 };
 
+
 var testMultiplePackets = function () {
-    var packets = [];
-    for (var i = 0; i < 3; i++) {
-        packets[i] = {
-            timestamp          : timestamp(i),
-            outside_temperature: temperature(i)
-        }
+    // How many packets to use for the test
+    var N = 20;
+
+    var indices         = [];
+    var packets         = [];
+    var reverse_packets = [];
+    for (var i = 0; i < N; i++) {
+        indices[i]                 = i;
+        packets[i]                 = {
+            timestamp  : timestamp(i),
+            temperature: temperature(i)
+        };
+        reverse_packets[N - i - 1] = packets[i];
     }
-    frisby.create('Create a WeeRT stream to hold several packets')
+
+
+    frisby.create('Create a WeeRT stream to test packet retrieval')
         .post(test_url,
             {
-                name       : "Test multiple packet stream",
-                description: "Created to test the insertion of multiple packets into a stream",
+                name       : "Test packet retrieval",
+                description: "Stream created to test the retrieval of multiple packets",
                 unit_group : "METRIC"
             },
             {json: true}
@@ -139,140 +152,122 @@ var testMultiplePackets = function () {
         .expectStatus(201)
         .expectHeaderContains('content-type', 'application/json')
         .after(function (error, res, body) {
+
             // Get the URI for the just created stream resource
-            var stream_link        = res.headers.location;
+            var stream_link = res.headers.location;
+            // Use it to form the URI for the packets resource
             var stream_packet_link = normalizeUrl(stream_link + '/packets');
-            // POST three packets into it
-            frisby.create("POST packet #0")
-                .post(stream_packet_link,
-                    packets[0],
-                    {json: true}
-                )
-                .after(function (error, res, body) {
-                    frisby.create("POST packet #1")
-                        .post(stream_packet_link,
-                            packets[1],
-                            {json: true}
-                        )
-                        .after(function (error, res, body) {
-                            frisby.create("POST packet #2")
-                                .post(stream_packet_link,
-                                    packets[2],
-                                    {json: true}
-                                )
-                                .after(function (error, res, body) {
-                                    frisby.create("Retrieve all packets in default order")
-                                        .get(stream_packet_link)
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', packets)
-                                        .toss();
+            // This function will return the URI for the specific packet at a given timestamp
+            var time_link = function (timestamp) {
+                return normalizeUrl(stream_packet_link + '/' + timestamp);
+            };
 
-                                    frisby.create("Retrieve all packets in reverse order")
-                                        .get(stream_packet_link + '?direction=desc')
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', [packets[2], packets[1], packets[0]])
-                                        .toss();
+            // Now launch the POSTs to create all the packets
+            // Use raw Jasmine for this.
+            describe("Launch and test " + N + " POSTs of packets", function () {
+                var results_finished   = false;
+                var results_successful = false;
 
-                                    frisby.create("Retrieve packets sorted by temperature")
-                                        .get(stream_packet_link + '?sort=outside_temperature&direction=asc')
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', [packets[2], packets[1], packets[0]])
-                                        .toss();
+                it("should launch all POSTS", function () {
 
-                                    frisby.create("Retrieve packets reverse sorted by temperature")
-                                        .get(stream_packet_link + '?sort=outside_temperature&direction=desc')
-                                        .expectJSONTypes('', Array)
-                                        .expectJSON('', packets)
-                                        .toss();
+                    runs(function () {
 
-                                    frisby.create("Test for bad sort direction")
-                                        .get(stream_packet_link + '?direction=foo')
-                                        .expectStatus(400)
-                                        .toss();
+                        // Use the async library to asynchronously launch the N posts
+                        async.each(indices, function (i, callback) {
+                            request({
+                                url   : stream_packet_link,
+                                method: 'POST',
+                                json  : packets[i]
+                            }, function (error, response, body) {
+                                return callback(error);
+                            });
+                        }, function (err) {
+                            // This function is called when finished. Signal that we're finished, and whether
+                            // there were any errors
+                            results_finished   = true;
+                            results_successful = !err;
+                        });
 
-                                    frisby.create("Test to retrieve a specific timestamp")
-                                        .get(stream_packet_link + '/' + packets[1].timestamp)
-                                        .expectStatus(200)
-                                        .expectJSON('', packets[1])
-                                        .toss();
-                                    frisby.create("Test to retrieve the last timestamp")
-                                        .get(stream_packet_link + '/latest')
-                                        .expectStatus(200)
-                                        .expectJSON('', packets[2])
-                                        .toss();
-                                })
-                                .toss();
-                        })
-                        .toss();
-                })
-                .toss();
+                    });
+
+                    // This function will spin until its callback return true. Then the thread of control
+                    // proceeds to the next run statement
+                    waitsFor(function () {
+                        return results_finished;
+                    }, "results to be finished", 2000);
+
+                    // All the async POSTs are done. We can test the results.
+                    runs(function () {
+                        expect(results_successful).toBeTruthy();
+
+                        frisby.create("Retrieve all packets in default order")
+                            .get(stream_packet_link)
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', packets)
+                            .toss();
+
+                        frisby.create("Retrieve all packets in reverse order")
+                            .get(stream_packet_link + '?direction=desc')
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', reverse_packets)
+                            .toss();
+
+                        frisby.create("Retrieve packets sorted by temperature")
+                            .get(stream_packet_link + '?sort=temperature&direction=asc')
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', reverse_packets)
+                            .toss();
+
+                        frisby.create("Retrieve packets reverse sorted by temperature")
+                            .get(stream_packet_link + '?sort=temperatur&direction=desc')
+                            .expectJSONTypes('', Array)
+                            .expectJSON('', packets)
+                            .toss();
+
+                        frisby.create("Test packets using bad sort direction")
+                            .get(stream_packet_link + '?direction=foo')
+                            .expectStatus(400)
+                            .toss();
+
+                        frisby.create("Search for default match of a timestamp, which is exact")
+                            .get(time_link(packets[2].timestamp))
+                            .expectStatus(200)
+                            .expectJSON('', packets[2])
+                            .toss();
+
+                        frisby.create("Search for an explicit exact match")
+                            .get(time_link(packets[2].timestamp) + '?match=exact')
+                            .expectStatus(200)
+                            .expectJSON('', packets[2])
+                            .toss();
+
+                        frisby.create("Search for an exact match of a non-existing timestamp")
+                            .get(time_link(packets[2].timestamp - 1) + '?match=exact')
+                            .expectStatus(404)
+                            .toss();
+
+                        frisby.create("Search for lastBefore a timestamp")
+                            .get(time_link(packets[2].timestamp - 1) + '?match=lastBefore')
+                            .expectStatus(200)
+                            .expectJSON('', packets[1])
+                            .toss();
+
+                        frisby.create("Search for firstAfter a timestamp")
+                            .get(time_link(packets[2].timestamp + 1) + '?match=firstAfter')
+                            .expectStatus(200)
+                            .expectJSON('', packets[3])
+                            .toss();
+
+                        frisby.create("Search for a location using a bad match")
+                            .get(time_link(packets[2].timestamp) + '?match=foo')
+                            .expectStatus(400)
+                            .toss()
+                    });
+                });
+            });
         })
         .toss();
 };
 
 testSinglePacket();
 testMultiplePackets();
-
-/*
- * The following was an attempt to launch 10 POSTs, then check them all. Unfortunately, I could not
- * get Frisby to work inside a "describe" block. So, then I tried the NPM library node-rest-client,
- * but it has a bug that causes it to misinterpret returned JSON data as binary data.  Gave up.
- */
-//describe("Launch " + N + " POSTs", function () {
-//    var results_finished = false;
-//    var results_successful = undefined;
-//    it("Should launch " + N + " POSTS", function () {
-//
-//        // Run a function which will asynchronously launch N POSTs
-//        runs(function () {
-//            async.each(indices, function (i, callback) {
-//
-//                // For reasons that are not clear to me, I can't get Frisby to work within this 'describe'
-//                // block. So, use a simple client code.
-//                var client = new Client();
-//
-//                // set content-type header and data as json in args parameter
-//                var args = {
-//                    data   : {
-//                        timestamp  : timestamp(i),
-//                        temperature: temperature(i)
-//                    },
-//                    headers: {
-//                        "Content-Type": "application/json"
-//                    }
-//                };
-//
-//                client.post(stream_packet_link, args, function (data, response) {
-//                    // If the response code is anything other than 201, then we've failed.
-//                    if (response.statusCode !== 201)
-//                        return callback(response.statusCode);
-//
-//
-//                    // Otherwise, press on by checking to make sure the packet actually got recorded.
-//                    var packet_link = normalizeUrl(stream_packet_link + '/' + args.data.timestamp);
-//                    client.get(packet_link, {}, function(data, response){
-//                        console.log("i=", i, "data=",data);
-//                        var json_response = JSON.stringify(data);
-//                        console.log("JSON=", json_response);
-//                        return callback(null);
-//                    });
-//
-//                });
-//
-//            }, function (err) {
-//                results_finished = true;
-//                results_successful = err;
-//            });
-//        });
-//
-//        // Wait for the flag results_finished to turn true
-//        waitsFor(function(){
-//            return results_finished;
-//        }, "The results to be finished", 2000);
-//
-//        runs(function(){
-//            expect(results_successful).toBeNull();
-//        })
-//
-//    });
-//})

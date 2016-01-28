@@ -105,8 +105,8 @@ var StreamManagerFactory = function (dbPromise, options) {
                         .then(function (coln) {
                             return coln
                                 .find(findQuery)
-                                .limit(dbQuery.limit)
                                 .sort(dbQuery.sort)
+                                .limit(dbQuery.limit)
                                 .toArray();
                         });
                 });
@@ -237,8 +237,8 @@ var StreamManagerFactory = function (dbPromise, options) {
                                         $lte: new Date(stop)
                                     }
                                 })
-                                .limit(limit)
                                 .sort(sort)
+                                .limit(limit)
                                 .toArray();
                         })
                         .then(function (results) {
@@ -273,8 +273,8 @@ var StreamManagerFactory = function (dbPromise, options) {
                         .then(function (coln) {
                             return coln
                                 .find(dbQuery.query)
-                                .limit(1)
                                 .sort(dbQuery.sort)
+                                .limit(1)
                                 .toArray();
                         })
                         .then(function (results) {

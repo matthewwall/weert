@@ -216,7 +216,7 @@ var StreamRouterFactory = function (stream_manager) {
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
-        debug("Request for packet with timestamp", dbQuery.timestamp);
+        debug("Request for packet with timestamp", dbQuery.timestamp, "with match", req.query.match);
 
         stream_manager
             .findPacket(streamID, dbQuery)

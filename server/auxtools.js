@@ -27,17 +27,6 @@ var resourcePath = function (req, name) {
     return locationPath(req.originalUrl, req.protocol, req.get('host'), name);
 };
 
-
-//var resourcePath = function (req, name) {
-//    var base_pathname = url.parse(req.originalUrl).pathname;
-//    var fullpath      = url.format({
-//        protocol: req.protocol,
-//        host    : req.get('host'),
-//        pathname: base_pathname + '/' + name
-//    });
-//    return normalizeUrl(fullpath);
-//};
-//
 var fromError = function (code, err) {
     var e     = {};
     e.message = err.message;
@@ -74,7 +63,10 @@ var getSortSpec = function (sort_option, direction_option) {
 };
 
 var formListQuery = function (query) {
+    // Right now, allowed queries are pretty conservative. Just a sort field and a direction is allowed.
+    // However, more sophisticated queries could be allowed
 
+    // Default query:
     if (query === undefined) {
         return {
             sort : {_id: 1},
