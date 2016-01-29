@@ -133,6 +133,9 @@ def get_mapping():
     # Get an aggregation:
     mapping["GET_streams_streamID_packets_max"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature")
     
+    # Get last packet in the stream
+    mapping["GET_streams_streamID_packets_timestamp_latest"], _ = do_curl(stream_url1 + "/packets/latest")
+
     # Get an exact matching timestamp:
     mapping["GET_streams_streamID_packets_timestamp_exact"], _ = do_curl(packet_url0)
     
@@ -142,6 +145,9 @@ def get_mapping():
     #*********************************** DELETIONS *******************************
 
     # Deletions have to wait until the end, because the thing they are deleting may be in use.
+    
+    # Delete a specific location record:
+    mapping["DELETE_platforms_platformID_locations_timestamp"], _ = do_curl(location_url1, 'DELETE')
     
     # Delete a specific packet:
     mapping["DELETE_streams_streamID_packets_timestamp"], _ = do_curl(packet_url0, 'DELETE')

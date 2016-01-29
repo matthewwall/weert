@@ -184,7 +184,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/platforms/:platformID/locations`            | Get all locations for platform *platformID*, satisfying certain search or aggregation criteria.   | I, D, T |
 | `GET`       | `/api/v1/platforms/:platformID/locations/latest`     | Return the last location packet for platform *platformID*.                                        | I, D, T |
 | `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Return a location packet for platform *platformID* with the given timestamp.                      | I, D, T |
-| `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete a location packet for platfirm *platform*D* with the given timestamp.                      | I,    T |
+| `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete a location packet for platform *platformID* with the given timestamp.                      | I, D, T |
 | `POST`      | `/api/v1/streams`                                    | Create a new stream, returning its URI in the Locations field. Return its metadata.               | I, D, T |
 | `GET`       | `/api/v1/streams`                                    | Return an array of URIs to all the streams.                                                       | I,    T |
 | `GET`       | `/api/v1/streams/:streamID`                          | Get the metadata for stream *streamID*.                                                           | I,    T |
@@ -192,8 +192,8 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `DELETE`    | `/api/v1/streams/:streamID`                          | Delete stream *streamID*                                                                          | I,    T |
 | `POST`      | `/api/v1/streams/:streamID/packets`                  | Post a new packet to stream *streamID*, returning its URI in Locations field.                     | I, D, T |
 | `GET`       | `/api/v1/streams/:streamID/packets`                  | Get all packets from stream *streamID*, satisfying certain search or aggregation criteria.        | I, D, T |
-| `GET`       | `/api/v1/streams/:streamID/packets?agg_type=x&obs_type=y`| Get the aggregate type *x* (*e.g.*, `max`) for observation type *y* from a set of packets.    | I,    T |
-| `GET`       | `/api/v1/streams/:streamID/packets/latest`           | Return the last packet in the stream *streamID*.                                                  | I,    T |
+| `GET`       | `/api/v1/streams/:streamID/packets?agg_type=x&obs_type=y`| Get the aggregate type *x* (*e.g.*, `max`) for observation type *y* from a set of packets.    | I, D, T |
+| `GET`       | `/api/v1/streams/:streamID/packets/latest`           | Return the last packet in the stream *streamID*.                                                  | I, D, T |
 | `GET`       | `/api/v1/streams/:streamID/packets/:timestamp`       | Return a packet from stream *streamID* with the given timestamp.                                  | I, D, T |
 | `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp`       | Delete a packet from stream *streamID* with the given timestamp.                                  | I, D, T |
 
@@ -205,6 +205,9 @@ P = Partial
 
 In the examples that follow, the responses are intended to be self-consistent. That is, the same data was used across
 all examples.
+
+
+
 
 ## Create a new platform
 
@@ -237,6 +240,9 @@ The URI of the new platform will be returned in the `Location` field.
 ```Shell
 $POST_platforms
 ```
+
+
+
 
 
 ## Get platforms
@@ -277,6 +283,10 @@ $GET_platforms_ref
 $GET_platforms_value
 ```
 
+
+
+
+
 ## Get the metadata of a particular platform
 
 ```
@@ -295,6 +305,8 @@ GET /api/v1/platforms/:platformID
 ```Shell
 $GET_platforms_platformID
 ```
+
+
 
 
 
@@ -364,6 +376,9 @@ $DELETE_platforms_badID
 ```
 
 
+
+
+
 ## Post a new location packet
 
 Post a new location for a specific platform
@@ -402,6 +417,10 @@ packet.
 $POST_platforms_platformID_locations
 ```
 
+
+
+
+
 ## Get locations
 
 Return all location packets from the platform with ID `:platformID` that satisfy a search query.
@@ -430,6 +449,9 @@ $GET_platforms_platformID_locations
 ```
 
 
+
+
+
 ## Get last location
 
 Get the last location of a platform
@@ -442,8 +464,7 @@ GET /api/v1/platforms/:platformID/locations/latest
 | *Status* | *Meaning*               |
 |:---------|:------------------------|
 | 200      | Success                 |
-| 400      | Platform does not exist |
-| 404      | Packet does not exist (empty location stream)  |
+| 404      | Packet does not exist, or has an empty location stream  |
 
 If successful, the server will return a response code of `200`, with the URI of the matching timestamp
 in the Location field of the response.
@@ -452,6 +473,7 @@ in the Location field of the response.
 ```Shell
 $GET_platforms_platformID_locations_timestamp_latest
 ```
+
 
 
 
@@ -491,6 +513,38 @@ body.
 ```Shell
 $GET_platforms_platformID_locations_timestamp_exact
 ```
+
+
+
+
+
+## Delete location record
+
+Delete a specific location packet
+
+```
+DELETE /api/v1/platforms/:platformID/locations/:timestamp
+```
+
+**Return status**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 204      | Success               |
+| 404      | The platform or location record does not exist |
+
+If successful, the server will return a response code of `204`, with nothing in the response body.
+If the platform and/or timestamp do not exist in the database, then a response code of `404` is returned.
+
+**Example**
+```Shell
+$DELETE_platforms_platformID_locations_timestamp
+```
+
+
+
+
+
 ## Create a new stream
 
 Create a new stream and return its metadata.
@@ -526,6 +580,10 @@ in the Location response header.
 $POST_streams
 ```
 
+
+
+
+
 ## Post a new packet
 
 Post a new packet to a specific stream.
@@ -560,6 +618,10 @@ newly created resource (packet), the body holding a JSON representation of the p
 ```Shell
 $POST_streams_streamID_packets
 ```
+
+
+
+
 
 ## Get packets
 
@@ -598,6 +660,8 @@ $GET_streams_streamID_packets
 ```Shell
 $GET_streams_streamID_packets_sort
 ```
+
+
 
 
 
@@ -640,6 +704,35 @@ If the observation type *obs_type* is not in the collection, then `null` will be
 ```Shell
 $GET_streams_streamID_packets_max
 ```
+
+
+
+
+
+## Get last packet
+
+Get the last packet emitted by a stream
+
+```
+GET /api/v1/streams/:streamID/packets/latest
+```
+**Return status**
+
+| *Status* | *Meaning*               |
+|:---------|:------------------------|
+| 200      | Success                 |
+| 404      | Stream does not exist or is empty |
+
+If successful, the server will return a response code of `200`, with the URI of the matching timestamp
+in the Location field of the response.
+
+**Example**
+```Shell
+$GET_streams_streamID_packets_timestamp_latest
+```
+
+
+
 
 
 ## Get a specific packet
@@ -690,6 +783,7 @@ $GET_streams_streamID_packets_timestamp_lastBefore
 
 
 
+
 ## Delete a specific packet
 
 Delete a packet from a specific stream with a specific timestamp
@@ -712,6 +806,9 @@ If the stream and/or timestamp do not exist in the database, then a response cod
 ```Shell
 $DELETE_streams_streamID_packets_timestamp
 ```
+
+
+
 
 
 # License & Copyright
