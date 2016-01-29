@@ -10,6 +10,12 @@ curl_cmd = ["curl", "-i", "--silent"]
 
 margin = 85
 
+START_TIME = 1454020559000
+TIME_INTERVAL = 5000
+
+def timestamp(i):
+    return START_TIME + i * TIME_INTERVAL
+
 def do_curl(endpoint, verb='GET', payload=None):
     """Do the curl command and parse the results."""
 
@@ -85,7 +91,7 @@ def get_mapping():
     mapping["GET_platforms_platformID_mod1"], _ = do_curl(platform_url1)
   
     # POST a location record to a specific platform:
-    mapping["POST_platforms_platformID_location"], location_url1 = do_curl(platform_url1 + "/locations",
+    mapping["POST_platforms_platformID_locations"], location_url1 = do_curl(platform_url1 + "/locations",
                                                                            'POST',
                                                                            '{"timestamp" : 1420070450000, "latitude": 45.2, "longitude" : -85.1, "altitude" : 12.9}')
     # Do another (not used):
@@ -94,18 +100,59 @@ def get_mapping():
                    '{"timestamp" : 1420070580000, "latitude": 45.3, "longitude" : -85.0, "altitude" : 12.2}')
 
     # GET all locations (should be two):
-    mapping["GET_platforms_platformID_location"], _ = do_curl(platform_url1 + "/locations", 'GET')
+    mapping["GET_platforms_platformID_locations"], _ = do_curl(platform_url1 + "/locations", 'GET')
     
-    mapping["GET_platforms_platformID_location_timestamp_latest"], _ = do_curl(platform_url1 + "/locations/latest", 'GET')
+    mapping["GET_platforms_platformID_locations_timestamp_latest"], _ = do_curl(platform_url1 + "/locations/latest", 'GET')
     
     # Get location at exact timestamp:
-    mapping["GET_platforms_platformID_location_timestamp_exact"], _ = do_curl(location_url1, 'GET')
+    mapping["GET_platforms_platformID_locations_timestamp_exact"], _ = do_curl(location_url1, 'GET')
+    
+    #*********************************** STREAMS *******************************
+
+    mapping["POST_streams"], stream_url1 = do_curl(weert_url + 'streams',
+                                                   'POST',
+                                                   '{"name": "weather stream 412", "description": "WX station mounted on Bennys Ute", "unit_group": "METRICWX"}')
+    
+    # Post 4 packets:
+    for i in range(4):
+        m, p = do_curl(stream_url1 + "/packets",
+                       'POST',
+                       '{"timestamp": %d, "outside_temperature": %.1f, "inside_humidity":%.0f}' % (timestamp(i), 21.5+0.1*i, 45-i))
+        if i==0:
+            mapping["POST_streams_streamID_packets"], packet_url0 = m, p
+            
+    # And a 3rd
+    
+    # GET all packets
+    mapping["GET_streams_streamID_packets"], _ = do_curl(stream_url1 + "/packets")
+
+    # Do it again, but sort by inside humidity:
+    mapping["GET_streams_streamID_packets_sort"], _ = do_curl(stream_url1 + "/packets?sort=inside_humidity")
+
+
+    # Get an aggregation:
+    mapping["GET_streams_streamID_packets_max"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature")
+    
+    # Get an exact matching timestamp:
+    mapping["GET_streams_streamID_packets_timestamp_exact"], _ = do_curl(packet_url0)
+    
+    # Get the "last before" packet
+    mapping["GET_streams_streamID_packets_timestamp_lastBefore"], _ = do_curl(stream_url1 + "/packets/%d?match=lastBefore" % (timestamp(3)-1000,))
+    
+    #*********************************** DELETIONS *******************************
+
+    # Deletions have to wait until the end, because the thing they are deleting may be in use.
+    
+    # Delete a specific packet:
+    mapping["DELETE_streams_streamID_packets_timestamp"], _ = do_curl(packet_url0, 'DELETE')
     
     # Delete a platform:
     mapping["DELETE_platforms_platformID"], _ = do_curl(platform_url1, 'DELETE')
    
     # Delete a non-existent platform
     mapping["DELETE_platforms_badID"], _ = do_curl(weert_url + 'platforms/564532f58719938114311ea3', 'DELETE')
+
+
      
     return mapping
 

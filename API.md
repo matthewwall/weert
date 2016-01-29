@@ -157,7 +157,7 @@ and the same packet is not included twice.
 The following table gives the pattern of return codes used by WeeRT
 
 | *Status* | *Meaning*                                                                                   |
-|----------|---------------------------------------------------------------------------------------------|
+|:---------|:--------------------------------------------------------------------------------------------|
 | 200      | Successfully completed the request.                                                         |
 | 201      | Successful creation of a new resource, such as a stream, platform, packet, or location. Generally, the new resource is returned in the response body. |
 | 204      | Successful completion of the request, but no content is being returned in the response body.|
@@ -171,33 +171,40 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 
 | *HTTP verb* | *Endpoint*                                           | *Description*                                                                                     | *STATUS* |
 |-------------|------------------------------------------------------|---------------------------------------------------------------------------------------------------|----------|
-| `POST`      | `/api/v1/platforms`                                  | Create a new platform, returning its UR in the Locations field. Return its metadata.              |          |
-| `GET`       | `/api/v1/platforms`                                  | Get an array of platforms, or an array of platform URIs, satisfying certain search criteria.      |          |
-| `GET`       | `/api/v1/platforms/:platformID`                      | Get the metadata for platform *platformID*.                                                       |          |
-| `PUT`       | `/api/v1/platforms/:platformID`                      | Set or update the metadata for platform *platformID*.                                             |          |
-| `DELETE`    | `/api/v1/platforms/:platformID`                      | Delete platform *platformID*.                                                                     |          |
-| `POST`      | `/api/v1/platforms/:platformID/streams`              | Post a new set of streams associated with platform *platformID*                                   |          |
-| `GET`       | `/api/v1/platforms/:platformID/streams`              | Get all sets of streams associated with platform *platformID*, satisfying certain search criteria |          |
-| `GET`       | `/api/v1/platforms/:platformID/streams/:timestamp`   | Get the set of streams associated with *platformID* at the given time                             |          |
-| `DELETE`    | `/api/v1/platforms/:platformID/streams/:timestamp`   | Delete the set of streams associated with *platformID* at the given time                          |          |
-| `POST`      | `/api/v1/platforms/:platformID/locations`            | Post a new location for platform *platformID*, returning its URI in the Locations field.          |          |
-| `GET`       | `/api/v1/platforms/:platformID/locations`            | Get all locations for platform *platformID*, satisfying certain search or aggregation criteria.   |          |
-| `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Return a location packet for platform *platformID* with the given timestamp.                      |          |
-| `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete a location packet for platfirm *platform*D* with the given timestamp.                      |          |
-| `POST`      | `/api/v1/streams`                                    | Create a new stream, returning its URI in the Locations field. Return its metadata.               |         |
-| `GET`       | `/api/v1/streams`                                    | Return an array of URIs to all the streams.                                                       |        |
-| `GET`       | `/api/v1/streams/:streamID`                          | Get the metadata for stream *streamID*.                                                           |          |
-| `PUT`       | `/api/v1/streams/:streamID`                          | Set or update the metadata for stream *streamID*                                                  |          |
-| `DELETE`    | `/api/v1/streams/:streamID`                          | Delete stream *streamID*                                                                          |          |
-| `POST`      | `/api/v1/streams/:streamID/packets`                  | Post a new packet to stream *streamID*, returning its URI in Locations field.                     |          |
-| `GET`       | `/api/v1/streams/:streamID/packets`                  | Get all packets from stream *streamID*, satisfying certain search or aggregation criteria.        |          |
-| `GET`       | `/api/v1/streams/:streamID/packets/:timestamp`       | Return a packet from stream *streamID* with the given timestamp.                                  |          |
-| `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp`       | Delete a packet from stream *streamID* with the given timestamp.                                  |          |
+| `POST`      | `/api/v1/platforms`                                  | Create a new platform, returning its UR in the Locations field. Return its metadata.              | I, D, T |
+| `GET`       | `/api/v1/platforms`                                  | Get an array of platform metadata or platform URIs, satisfying sorts and limits.                  | I, D, T |
+| `GET`       | `/api/v1/platforms/:platformID`                      | Get the metadata for platform *platformID*.                                                       | I, D, T |
+| `PUT`       | `/api/v1/platforms/:platformID`                      | Update the metadata for platform *platformID*.                                                    | I, D, T |
+| `DELETE`    | `/api/v1/platforms/:platformID`                      | Delete platform *platformID*.                                                                     | I, D, T |
+| `POST`      | `/api/v1/platforms/:platformID/streams`              | Post a new set of streams associated with platform *platformID*                                   |         |
+| `GET`       | `/api/v1/platforms/:platformID/streams`              | Get all sets of streams associated with platform *platformID*, satisfying certain search criteria |         |
+| `GET`       | `/api/v1/platforms/:platformID/streams/:timestamp`   | Get the set of streams associated with *platformID* at the given time                             |         |
+| `DELETE`    | `/api/v1/platforms/:platformID/streams/:timestamp`   | Delete the set of streams associated with *platformID* at the given time                          |         |
+| `POST`      | `/api/v1/platforms/:platformID/locations`            | Post a new location for platform *platformID*, returning its URI in the Locations field.          | I, D, T |
+| `GET`       | `/api/v1/platforms/:platformID/locations`            | Get all locations for platform *platformID*, satisfying certain search or aggregation criteria.   | I, D, T |
+| `GET`       | `/api/v1/platforms/:platformID/locations/latest`     | Return the last location packet for platform *platformID*.                                        | I, D, T |
+| `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Return a location packet for platform *platformID* with the given timestamp.                      | I, D, T |
+| `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete a location packet for platfirm *platform*D* with the given timestamp.                      | I,    T |
+| `POST`      | `/api/v1/streams`                                    | Create a new stream, returning its URI in the Locations field. Return its metadata.               | I, D, T |
+| `GET`       | `/api/v1/streams`                                    | Return an array of URIs to all the streams.                                                       | I,    T |
+| `GET`       | `/api/v1/streams/:streamID`                          | Get the metadata for stream *streamID*.                                                           | I,    T |
+| `PUT`       | `/api/v1/streams/:streamID`                          | Set or update the metadata for stream *streamID*                                                  | I,    T |
+| `DELETE`    | `/api/v1/streams/:streamID`                          | Delete stream *streamID*                                                                          | I,    T |
+| `POST`      | `/api/v1/streams/:streamID/packets`                  | Post a new packet to stream *streamID*, returning its URI in Locations field.                     | I, D, T |
+| `GET`       | `/api/v1/streams/:streamID/packets`                  | Get all packets from stream *streamID*, satisfying certain search or aggregation criteria.        | I, D, T |
+| `GET`       | `/api/v1/streams/:streamID/packets?agg_type=x&obs_type=y`| Get the aggregate type *x* (*e.g.*, `max`) for observation type *y* from a set of packets.    | I,    T |
+| `GET`       | `/api/v1/streams/:streamID/packets/latest`           | Return the last packet in the stream *streamID*.                                                  | I,    T |
+| `GET`       | `/api/v1/streams/:streamID/packets/:timestamp`       | Return a packet from stream *streamID* with the given timestamp.                                  | I, D, T |
+| `DELETE`    | `/api/v1/streams/:streamID/packets/:timestamp`       | Delete a packet from stream *streamID* with the given timestamp.                                  | I, D, T |
 
 Status codes:
 I = Implemented
 D = Documented
 T = Tested
+P = Partial
+
+In the examples that follow, the responses are intended to be self-consistent. That is, the same data was used across
+all examples.
 
 ## Create a new platform
 
@@ -207,35 +214,37 @@ Create a new platform and return its metadata
 POST /api/v1/platforms
 ```
 
-*Return status*
+**JSON input**
+
+| *Name* | *Type* | *Description* |
+|:---|:---|:---|
+| `name` | string | Optional. If given, must be unique |
+
+**Return status**
 
 | *Status* | *Meaning*             |
-|----------|-----------------------|
+|:---------|:----------------------|
 | 201      | Success               |
 | 415      | Invalid content type  |
+
+This interface will create the new platform, and create a location stream to hold its location data.
 
 If successful, the server will return the metadata of the new platform.
 The URI of the new platform will be returned in the `Location` field.
 
-*Example*
+**Example**
 
 ```Shell
-$  curl -i --silent -X POST -H Content-type: application/json -d {"name":"Bennys Ute", "description" : "Yellow, with black cap"} http://localhost:3000/api/v1/platforms
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/platforms/56a7dff66b81c80f0f722ff7
-Content-Type: application/json; charset=utf-8
-Content-Length: 131
-ETag: W/"83-ucvMDa8kAWEXsFWEkSC30g"
-Date: Tue, 26 Jan 2016 21:07:02 GMT
-Connection: keep-alive
-
-{
-    "_id": "56a7dff66b81c80f0f722ff7",
+$ curl -i --silent -X POST -H Content-type:application/json -d  \
+>   '{"name":"Bennys Ute", "description" : "Yellow, with black cap"}'  \
+>   http://localhost:3000/api/v1/platforms 
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aaContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-S2Z3dPwd+EjQV8XnXwXgzg"Date: Fri, 29 Jan 2016 01:12:34 GMTConnection: keep-alive{
+    "_id": "56aabc821959dce2233589aa",
     "description": "Yellow, with black cap",
-    "location": "56a7dff66b81c80f0f722ff6",
+    "location": "56aabc821959dce2233589a9",
     "name": "Bennys Ute"
 }
+
 ```
 
 
@@ -248,67 +257,53 @@ or the platform data itself, depending on the `as` parameter.
 GET /api/v1/platforms
 ```
 
-*Parameters*
+**Parameters**
 
 | *Name*   | *Type* | *Value*      | *Description*                                          |
-|----------|--------|--------------|--------------------------------------------------------|
+|:---------|:-------|:-------------|:-------------------------------------------------------|
 | `as`     | string | `links`      | Return results as an array of URIs (default).          |
 | `as`     | string | `values`     | Return results as an array of platform values.         |
 
 
-*Return status*
+**Return status**
 
 | *Status* | *Meaning*             |
-|----------|-----------------------|
+|:---------|:----------------------|
 | 200      | Success               |
 
 If successful, the server will return either an array of URIs to all known platforms, or an array of
 platform values, depending on the value of parameter `as`.
 
-*Example*
+**Example**
 
 ```Shell
-$  curl -i --silent -X GET http://localhost:3000/api/v1/platforms
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 133
-ETag: W/"85-rLOZXg4D7biXYxDcqZesiw"
-Date: Tue, 26 Jan 2016 21:07:02 GMT
-Connection: keep-alive
-
-[
-    "http://localhost:3000/api/v1/platforms/56a7dff66b81c80f0f722ff7",
-    "http://localhost:3000/api/v1/platforms/56a7dff66b81c80f0f722ff9"
+$ curl -i --silent -X GET http://localhost:3000/api/v1/platforms 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 133ETag: W/"85-wIiRItgat4/dFUKvbypL0Q"Date: Fri, 29 Jan 2016 01:12:34 GMTConnection: keep-alive[
+    "http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa",
+    "http://localhost:3000/api/v1/platforms/56aabc821959dce2233589ac"
 ]
+
 ```
 
 *Do the example again, but by value*
 
 ```Shell
-$  curl -i --silent -X GET http://localhost:3000/api/v1/platforms?as=values
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 260
-ETag: W/"104-Fgw+o9IdBpUp6THzjK1PlQ"
-Date: Tue, 26 Jan 2016 21:07:02 GMT
-Connection: keep-alive
-
-[
+$ curl -i --silent -X GET http://localhost:3000/api/v1/platforms?as=values 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 259ETag: W/"103-eEcSBvz1NjyuuhYa9kF8MQ"Date: Fri, 29 Jan 2016 01:12:34 GMTConnection: keep-alive[
     {
-        "_id": "56a7dff66b81c80f0f722ff7",
+        "_id": "56aabc821959dce2233589aa",
         "description": "Yellow, with black cap",
-        "location": "56a7dff66b81c80f0f722ff6",
+        "location": "56aabc821959dce2233589a9",
         "name": "Bennys Ute"
     },
     {
-        "_id": "56a7dff66b81c80f0f722ff9",
+        "_id": "56aabc821959dce2233589ac",
         "description": "Blue Yamaha",
-        "location": "56a7dff66b81c80f0f722ff8",
-        "name": "Willie's scooter"
+        "location": "56aabc821959dce2233589ab",
+        "name": "Willies scooter"
     }
 ]
+
 ```
 
 ## Get the metadata of a particular platform
@@ -319,34 +314,24 @@ GET /api/v1/platforms/:platformID
 
 
 | *Status* | *Meaning*             |
-|----------|-----------------------|
+|:---------|:----------------------|
 | 200      | Success               |
 | 404      | Platform not found    |
 
 
-*Example*
+**Example**
 
 ```Shell
-$ curl -i http://localhost:3000/api/v1/platforms/5643f96b9b7a70494bce9763
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 132
-ETag: W/"84-H140aziFcSOUQAG7vvEEZg"
-Date: Thu, 12 Nov 2015 02:31:28 GMT
-Connection: keep-alive
-
-{
-  "_id":"5643f96b9b7a70494bce9763",
-  "name":"Benny's Ute",
-  "description":"Yellow, with a black cap",
-  "join":"join_keyword1",
-  "streams":[]}
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-WDf8r1RujLKx3QWdMPbUQw"Date: Fri, 29 Jan 2016 01:12:34 GMTConnection: keep-alive{
+    "_id": "56aabc821959dce2233589aa",
+    "description": "Yellow, with black cap",
+    "location": "56aabc821959dce2233589a9",
+    "name": "Bennys Ute"
 }
+
 ```
-
-
-
 
 
 
@@ -358,10 +343,16 @@ Update the metadata of an existing platform
 PUT /api/v1/platforms/:platformID
 ```
 
-*Return status*
+**JSON input**
+
+| *Name* | *Type* | *Description* |
+|:--|:--|:--|
+| `name` | string | Optional. A new name for the platform. If given, it must be unique|
+
+**Return status**
 
 | *Status* | *Meaning*              |
-|----------|------------------------|
+|:---------|:-----------------------|
 | 204      | Success                |
 | 400      | Malformed request      |
 | 404      | Platform not found     |
@@ -369,71 +360,37 @@ PUT /api/v1/platforms/:platformID
 
 If successful, the server will return status code `204`, with nothing in the response body.
 
-*Example*
+**Example**
 
 ```Shell
-# First create a platform:
-$  curl -i -H "Content-type: application/json" -X POST  \
-> -d '{"name":"Bennys Ute", "description" : "Yellow, with black cap"}' \
-> http://localhost:3000/api/v1/platforms
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
-Content-Type: application/json; charset=utf-8
-Content-Length: 106
-ETag: W/"6a-nTY0yTw2XWhpC2BSzqsHvA"
-Date: Sat, 16 Jan 2016 19:46:13 GMT
-Connection: keep-alive
-
-{
-  "_id":"569a9e0505be9995051ee8f8",
-  "name":"Bennys Ute",
-  "description":"Yellow, with black cap",
-  "streams":[]
+# The platform before modifications:
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-WDf8r1RujLKx3QWdMPbUQw"Date: Fri, 29 Jan 2016 01:12:34 GMTConnection: keep-alive{
+    "_id": "56aabc821959dce2233589aa",
+    "description": "Yellow, with black cap",
+    "location": "56aabc821959dce2233589a9",
+    "name": "Bennys Ute"
 }
+
 
 # Now modify the platform, using PUT:
-$ curl -i -H "Content-type: application/json" -X PUT \
-> -d '{"name":"Charlies Ute"}' \
-> http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
-Date: Sat, 16 Jan 2016 19:49:42 GMT
-Connection: keep-alive
+$ curl -i --silent -X PUT -H Content-type:application/json -d  \
+>   '{"description" : "Yellow, with green cap"}'  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa 
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Fri, 29 Jan 2016 01:12:34 GMTConnection: keep-alive
 
 # Now retrieve the platform, verifying the update worked:
-$ curl -i  http://localhost:3000/api/v1/platforms/569a9e0505be9995051ee8f8
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 108
-ETag: W/"6c-ZN4yYmtfB8xRh62KbxblkQ"
-Date: Sat, 16 Jan 2016 19:50:19 GMT
-Connection: keep-alive
-
-{
-  "_id":"569a9e0505be9995051ee8f8",
-  "name":"Charlies Ute",
-  "description":"Yellow, with black cap",
-  "streams":[]
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-Tgr4BDvlwrB2EDT2BKOeGw"Date: Fri, 29 Jan 2016 01:12:34 GMTConnection: keep-alive{
+    "_id": "56aabc821959dce2233589aa",
+    "description": "Yellow, with green cap",
+    "location": "56aabc821959dce2233589a9",
+    "name": "Bennys Ute"
 }
+
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -446,32 +403,24 @@ DELETE /api/v1/platforms/:platformID
 ```
 
 | *Status* | *Meaning*             |
-|----------|-----------------------|
+|:---------|:----------------------|
 | 204      | Success               |
 | 404      | Platform not found    |
 
-*Example of deleting a platform*
+**Example of deleting a platform**
 
 ```Shell
-$ curl -i -X DELETE http://localhost:3000/api/v1/platforms/569855b66c9e3ce76956aeb6
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
-Date: Fri, 15 Jan 2016 02:34:55 GMT
-Connection: keep-alive
+$ curl -i --silent -X DELETE  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa 
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive
 ```
 
-*Example of deleting a non-existent platform*
+**Example of deleting a non-existent platform**
 
 ```Shell
-$ curl -i -X DELETE http://localhost:3000/api/v1/platforms/5643f96b9b7a70494bce9763
-HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: text/plain; charset=utf-8
-Content-Length: 9
-ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"
-Date: Fri, 15 Jan 2016 02:33:12 GMT
-Connection: keep-alive
+$ curl -i --silent -X DELETE  \
+>   http://localhost:3000/api/v1/platforms/564532f58719938114311ea3 
+HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-aliveNot Found
 ```
 
 
@@ -483,10 +432,20 @@ Post a new location for a specific platform
 POST /api/v1/platforms/:platformID/locations
 ```
 
-*Return status*
+**JSON input**
+
+| *Name* | *Type* | *Description* |
+|:--|:--|:--|
+| `timestamp` | Integer | Timestamp in milliseconds since the Unix epoch |
+| `latitude` | Real | Latitude of the platform |
+| `longitude` | Real | Longitude of the platform|
+| `altitude`  | Real | Altitude of the platform in meters. Optional.|
+
+
+**Return status**
 
 | *Status* | *Meaning* |
-|----------|-----------|
+|:---------|:----------|
 | 201      | Success   |
 | 415      | Invalid content type |
 
@@ -498,26 +457,18 @@ If successful, the server will return a response code of `201`, with the respons
 newly created resource (the new location packet). The response body will contain a copy of the newly created location
 packet.
 
-*Example*
+**Example**
 ```Shell
-$ curl -i -H "Content-Type: application/json" -X POST \
-> -d '{"timestamp" : 1420070450000, "latitude":45.5, "longitude":-121.8, "altitude": 417.1}' \
-> http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations/1420070450000
-Content-Type: application/json; charset=utf-8
-Content-Length: 79
-ETag: W/"4f-FaShclzXS+U2s/g4Ns+bzw"
-Date: Fri, 13 Nov 2015 02:08:24 GMT
-Connection: keep-alive
-
-{
-  "timestamp":1420070450000,
-  "latitude":45.5,
-  "longitude":-121.8,
-  "altitude":417.1
+$ curl -i --silent -X POST -H Content-type:application/json -d  \
+>   '{"timestamp" : 1420070450000, "latitude": 45.2, "longitude" : -85.1, "altitude" : 12.9}'  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa/locations 
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa/locations/1420070450000Content-Type: application/json; charset=utf-8Content-Length: 77ETag: W/"4d-GsBGqtXDGgADG2P36K1qvA"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive{
+    "altitude": 12.9,
+    "latitude": 45.2,
+    "longitude": -85.1,
+    "timestamp": 1420070450000
 }
+
 ```
 
 ## Get locations
@@ -528,10 +479,10 @@ Return all location packets from the platform with ID `:platformID` that satisfy
 GET /api/v1/platforms/:platformID/locations
 ```
 
-*Parameters*
+**Parameters**
 
 | *Name*      | *Type*  | *Description*                                                                                                                      |
-|-------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+|:------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
 | `start`     | integer | All timestamps greater than this value will be included in the results. Default: first available packet.                           |
 | `stop`      | integer | All timestamps less than or equal to this value will be included in the results. Default: last available packet.                   |
 | `limit`     | integer | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
@@ -541,38 +492,62 @@ GET /api/v1/platforms/:platformID/locations
 
 Returns a status of `400` if the *platformID* does not exist. Additional details are in the response body.
 
-*Example*
+**Example**
 
 ```Shell
-$ curl -i 'http://localhost:3000/api/v1/platforms/564532f58719938114311ea3/locations?start=1236239520000&stop=1447381877217&limit=3'
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 220
-ETag: W/"dc-MRvLguQdBc0+3vVriiscvA"
-Date: Fri, 13 Nov 2015 02:32:23 GMT
-Connection: keep-alive
-
-[
-  {
-    "latitude":45,
-    "longitude":-122,
-    "timestamp":1420070400000
-  },
-  {
-    "latitude":45.5,
-    "longitude":-121.8,
-    "altitude":417.1,
-    "timestamp":1420070420000
-  },
-  {
-    "latitude":45.5,
-    "longitude":-121.9,
-    "altitude":41.3,
-    "timestamp":1420070450000
-  }
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa/locations 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 155ETag: W/"9b-x3SgGQdY1u7wQcwJQJiNhg"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive[
+    {
+        "altitude": 12.9,
+        "latitude": 45.2,
+        "longitude": -85.1,
+        "timestamp": 1420070450000
+    },
+    {
+        "altitude": 12.2,
+        "latitude": 45.3,
+        "longitude": -85,
+        "timestamp": 1420070580000
+    }
 ]
+
 ```
+
+
+## Get last location
+
+Get the last location of a platform
+
+```
+GET /api/v1/platforms/:platformID/locations/latest
+```
+**Return status**
+
+| *Status* | *Meaning*               |
+|:---------|:------------------------|
+| 200      | Success                 |
+| 400      | Platform does not exist |
+| 404      | Packet does not exist (empty location stream)  |
+
+If successful, the server will return a response code of `200`, with the URI of the matching timestamp
+in the Location field of the response.
+
+**Example**
+```Shell
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa/locations/latest 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa/locations/1420070580000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-U9FuQ91xcGjODneR58AK3g"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive{
+    "altitude": 12.2,
+    "latitude": 45.3,
+    "longitude": -85,
+    "timestamp": 1420070580000
+}
+
+```
+
+
+
 
 ## Get location at a specific time
 
@@ -582,23 +557,21 @@ Get the location of a platform at a specific time
 GET /api/v1/platforms/:platformID/locations/:timestamp
 ```
 
-*Parameters*
+**Parameters**
 
 | *Name*   | *Type* | *Value*      | *Description*                                          |
-|----------|--------|--------------|--------------------------------------------------------|
+|:---------|:-------|:-------------|:-------------------------------------------------------|
 | `match`  | string | `exact`      | Require exact match of timestamp.                      |
 | `match`  | string | `lastBefore` | Use timestamp or closest previous timestamp (default). |
 | `match`  | string | `firstAfter` | Use timestamp or closest later timestamp.              |
-| `match`  | string | `latest`     | Use latest value in database.                          |
 
 If the query `match` is `lastBefore` or `firstAfter`, then an exact match is not necessary.
 Instead, the last location before, or after (respectively), the given `timestamp` is returned.
-If the query `match` is `latest`, then *:timestamp* is ignored.
 
-*Return status*
+**Return status**
 
 | *Status* | *Meaning*               |
-|----------|-------------------------|
+|:---------|:------------------------|
 | 200      | Success                 |
 | 400      | Platform does not exist |
 | 404      | Packet does not exist   |
@@ -606,41 +579,61 @@ If the query `match` is `latest`, then *:timestamp* is ignored.
 If successful, the server will return a response code of `200`, with the location encoded as JSON in the response
 body.
 
-*Example of exact match*
-```Shell
-curl -i http://localhost:3000/api/v1/platforms/56464ff14c472fde02c088ec/locations/1420071000000?match=exact
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 58
-ETag: W/"3a-zKvMB2BYuPgx7nYSa1Zk1w"
-Date: Fri, 13 Nov 2015 21:09:17 GMT
-Connection: keep-alive
+**Example of exact match**
 
-{
-  "latitude":47,
-  "longitude":-120,
-  "timestamp":1420071000000
+```Shell
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa/locations/1420070450000 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56aabc821959dce2233589aa/locations/1420070450000Content-Type: application/json; charset=utf-8Content-Length: 77ETag: W/"4d-GsBGqtXDGgADG2P36K1qvA"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive{
+    "altitude": 12.9,
+    "latitude": 45.2,
+    "longitude": -85.1,
+    "timestamp": 1420070450000
 }
+
+```
+## Create a new stream
+
+Create a new stream and return its metadata.
+
+```
+POST /api/v1/streams
 ```
 
-*Example of last before match*
+**JSON input**
 
+|  **Name** | **Type** | **Description** |
+|:----------|:----------|:------------------|
+| `name`       | string   | Optional. If given, must be unique. |
+| `unit_group` | string | Required. The Standard Unit System used by the stream.|
+
+**Return status**
+
+| *Status* | *Meaning*               |
+|:----------|:-------------------------|
+| 201      | Success                 |
+| 400      | Invalid post (probably a duplicate name) |
+| 415      | Invalid content type    |
+
+If a `name` is given, it must be unique.
+
+The streams API makes no requirements of the `unit_group`, but it is generally one of `US`, `METRIC`, or `METRICWX`.
+
+The metadata for the new stream is returned in the response body. A URI for the new stream is returned
+in the Location response header.
+
+**Example**
 ```Shell
-curl -i http://localhost:3000/api/v1/platforms/56464ff14c472fde02c088ec/locations/1420070999999?match=lastBefore
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 58
-ETag: W/"3a-qKhW0sQQlJjXAowIQJf3hQ"
-Date: Fri, 13 Nov 2015 21:10:52 GMT
-Connection: keep-alive
-
-{
-  "latitude":46,
-  "longitude":-121,
-  "timestamp":1420070700000
+$ curl -i --silent -X POST -H Content-type:application/json -d  \
+>   '{"name": "weather stream 412", "description": "WX station mounted on Bennys Ute", "unit_group": "METRICWX"}'  \
+>   http://localhost:3000/api/v1/streams 
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56aabc831959dce2233589adContent-Type: application/json; charset=utf-8Content-Length: 135ETag: W/"87-1V979zYc9j+XqvDlnzNamw"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive{
+    "_id": "56aabc831959dce2233589ad",
+    "description": "WX station mounted on Bennys Ute",
+    "name": "weather stream 412",
+    "unit_group": "METRICWX"
 }
+
 ```
 
 ## Post a new packet
@@ -650,42 +643,40 @@ Post a new packet to a specific stream.
 ```
 POST /api/v1/streams/:streamID/packets
 ```
+**JSON input**
 
-*Return status*
+| *Name* | *Type* | *Description* |
+|:--|:--|:--|
+| `timestamp` | Integer | Time since the Unix epoch in milliseconds |
+| *observation type* | *any* | The value of the observation type at the timestamp |
+
+
+**Return status**
 
 | *Status* | *Meaning* |
-|----------|-----------|
+|:---------|:----------|
 | 201      | Success   |
 | 415      | Invalid content type |
 
-Post a LOOP packet for the stream with ID *streamID*.
-The packet should be contained as a JSON payload in the body of the POST. The packet
-must contain keyword `timestamp`, holding the unix epoch time in *milliseconds* (JavaScript style).
+Post a LOOP packet for the stream with ID *streamID*. The packet must contain keyword `timestamp`, holding the unix
+epoch time in *milliseconds* (JavaScript style). Any number of observation types can be included in the packet, but no
+more than one of each type. The units used in the packet should be the same specified when the stream was created.
 
-If successful, the server will return a response code of `201`, with the response `location` field set to the URL
-of the newly created resource (packet), the body holding a JSON representation of the posted packet.
+If successful, the server will return a response code of `201`, with the response Location field set to the URL of the
+newly created resource (packet), the body holding a JSON representation of the posted packet.
 
-There is no enforcement of the unit system used in the packet,
-but best practices is to use the weewx `METRICWX` system.
 
-*Example*
+**Example**
 ```Shell
-$ curl -i -H "Content-Type: application/json" -X POST \
-> -d '{"timestamp": 1420070400000,"outside_temperature":"18"}' \
-> http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets
-HTTP/1.1 201 Created
-X-Powered-By: Express
-Location: http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
-Content-Type: application/json; charset=utf-8
-Content-Length: 54
-ETag: W/"36-AZNzWP7/+d3y44m6WZH2SA"
-Date: Wed, 11 Nov 2015 23:08:41 GMT
-Connection: keep-alive
-
-{
-  "timestamp":1420070400000,
-  "outside_temperature":"18"
+$ curl -i --silent -X POST -H Content-type:application/json -d  \
+>   '{"timestamp": 1454020559000, "outside_temperature": 21.5, "inside_humidity":45}'  \
+>   http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets 
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets/1454020559000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-YtX46HaBxyB7mvCzbtb4/Q"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive{
+    "inside_humidity": 45,
+    "outside_temperature": 21.5,
+    "timestamp": 1454020559000
 }
+
 ```
 
 ## Get packets
@@ -696,73 +687,84 @@ Return all packets from the stream with ID `:streamID` that satisfy a search que
 GET /api/v1/streams/:streamID/packets
 ```
 
-*Parameters*
+**Parameters**
 
 | *Name*      | *Type*  | *Description*                                                                                                                      |
-|-------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+|:------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
 | `start`     | integer | All packets greater than this value will be included in the results. Default: first available packet.                              |
 | `stop`      | integer | All packets less than or equal to this value will be included in the results. Default: last available packet.                      |
 | `limit`     | integer | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
 | `sort`      | string  | What to sort results by. Default: `timestamp`.                                                                                     |
 | `direction` | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
 
+**Response code**
 
-Returns a status of `400` if the *streamID* does not exist. Additional details are in the response body.
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 200      | Success               |
+| 400      | Malformed query       |
+| 404      | Stream does not exist |
 
-*Example*
+**Example**
 
 ```Shell
-$ curl -i http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&limit=3
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 419
-ETag: W/"1a3-6mvKcfggWRdHhIiQAJeGng"
-Date: Sat, 07 Nov 2015 18:31:32 GMT
-Connection: keep-alive
-[
-  {
-    "outside_temperature": 19.9,
-    "barometer_pressure": 1002.5,
-    "timestamp": 1446239529521
-  },
-  {
-    "outside_temperature": 19.9,
-    "barometer_pressure": 1002.5,
-    "timestamp": 1446239529522
-  },
-  {
-    "wind_speed": 1.34112,
-    "barometer_pressure": 1012.7526,
-    "day_rain": 4.064,
-    "inside_temperature": 20.222222222222225,
-    "wind_direction": 308,
-    "outside_temperature": 10.055555555555557,
-    "outside_humidity": 93,
-    "dewpoint_temperature": 8.97514568039247,
-    "timestamp": 1446485068000
-  }
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 305ETag: W/"131-wsihoG9kjFKU3Lb35X/0+Q"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive[
+    {
+        "inside_humidity": 45,
+        "outside_temperature": 21.5,
+        "timestamp": 1454020559000
+    },
+    {
+        "inside_humidity": 44,
+        "outside_temperature": 21.6,
+        "timestamp": 1454020564000
+    },
+    {
+        "inside_humidity": 43,
+        "outside_temperature": 21.7,
+        "timestamp": 1454020569000
+    },
+    {
+        "inside_humidity": 42,
+        "outside_temperature": 21.8,
+        "timestamp": 1454020574000
+    }
 ]
+
 ```
 
-*Example of an invalid request*
+**Same example, but sorted by humidity**
 
 ```Shell
-$ curl -i http://localhost:3000/api/v1/streams/foo/packets?start=1446239520000&stop=1549260201000&limit=3
-HTTP/1.1 400 Bad Request
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 145
-ETag: W/"91-/Jzmfk/vLLpujcFb+ql2oQ"
-Date: Sat, 07 Nov 2015 18:36:07 GMT
-Connection: keep-alive
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets?sort=inside_humidity 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 305ETag: W/"131-h5X/7s16s/nJhq3Bvc51sA"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive[
+    {
+        "inside_humidity": 42,
+        "outside_temperature": 21.8,
+        "timestamp": 1454020574000
+    },
+    {
+        "inside_humidity": 43,
+        "outside_temperature": 21.7,
+        "timestamp": 1454020569000
+    },
+    {
+        "inside_humidity": 44,
+        "outside_temperature": 21.6,
+        "timestamp": 1454020564000
+    },
+    {
+        "inside_humidity": 45,
+        "outside_temperature": 21.5,
+        "timestamp": 1454020559000
+    }
+]
 
-{
-  "code": 400,
-  "message": "Unable to satisfy request for packets",
-  "error": "Collection streams_foo_packets does not exist. Currently in strict mode."
-}
 ```
+
 
 
 ## Aggregate packets
@@ -774,16 +776,24 @@ aggregation query.
 GET /api/v1/streams/:streamID/packets
 ```
 
-*Parameters*
+**Parameters**
 
 | *Name*      | *Type*  | *Description*                                                                                                                      |
-|-------------|---------|------------------------------------------------------------------------------------------------------------------------------------|
+|:------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
 | `start`     | integer | All packets greater than this value will be included in the results. If missing, then start with the first available packet.       |
 | `stop`      | integer | All packets less than or equal to this value will be included in the results. If missing, then end with the last available packet. |
-| `aggregate_type` | string | The type of aggregation to be performed. Valid choices include `min`, `max`, `sum`, `avg`, `first` and `last`. Default: `avg`. |
+| `aggregate_type` | string | The type of aggregation to be performed. Valid choices include `min`, `max`, `sum`, `avg`, `first` and `last`.                 |
 | `obs_type`  | string | The observation type over which the aggregation is to be performed. |
 
-Returns a status of `400` if the *streamID* does not exist. Additional details are in the response body.
+**Response code**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 200      | Success               |
+| 400      | Malformed query       |
+| 404      | Stream does not exist |
+
+The abbreviation `agg_type` can be used in place of `aggregate_type`.
 
 Null observation values are ignored.
 
@@ -791,18 +801,12 @@ Result is returned in the response body as a single value, encoded in JSON.
 
 If the observation type *obs_type* is not in the collection, then `null` will be returned.
 
-*Example*
-```Shell
-$ curl -i "http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets?start=1446239520000&stop=1549260201000&aggregate_type=min&obs_type=outside_temperature"
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 17
-ETag: W/"11-mFN9LOMPN/5ME8XyHD9umw"
-Date: Sat, 07 Nov 2015 18:48:08 GMT
-Connection: keep-alive
+**Example**
 
-9.000000000000002
+```Shell
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets?agg_type=max&obs_type=outside_temperature 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 4ETag: W/"4-x6VEfan6Omx4EmWA0OBHkQ"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive21.8
 ```
 
 
@@ -814,60 +818,57 @@ Get a packet from a specific stream with a specific timestamp
 GET /api/v1/streams/:streamID/packets/:timestamp
 ```
 
-*Parameters*
+**Parameters**
 
 | *Name*   | *Type* | *Value*      | *Description*                                          |
-|----------|--------|--------------|--------------------------------------------------------|
+|:---------|:-------|:-------------|:-------------------------------------------------------|
 | `match`  | string | `exact`      | Require exact match of timestamp (default).            |
 | `match`  | string | `lastBefore` | Use timestamp or closest previous timestamp.           |
 | `match`  | string | `firstAfter` | Use timestamp or closest later timestamp.              |
-| `match`  | string | `latest`     | Use latest value in database.                          |
 
 If the query `match` is `lastBefore` or `firstAfter`, then an exact match is not necessary.
 Instead, the last location before, or after (respectively), the given `timestamp` is returned.
-If the query `match` is `latest`, then *:timestamp* is ignored.
 
-*Return status*
+In all cases, the URI of the matching packet is returned in the `Location` field of the response header.
+
+**Return status**
 
 | *Status* | *Meaning*             |
-|----------|-----------------------|
+|:---------|:----------------------|
 | 200      | Success               |
-| 400      | Stream does not exist |
-| 404      | Packet does not exist |
+| 404      | Stream or packet does not exist |
 
-If successful, the server will return a response code of `200`, with the packet encoded as JSON in the response
-body.
+If successful, the server will return a response code of `200`, with the packet encoded as JSON in the response body. If
+the stream and/or timestamp do not exist in the database, then a response code of `404` is returned.
 
-*Example*
+
+**Example of exact match**
 ```Shell
-$ curl -i http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 54
-ETag: W/"36-lLv2IFS6swiAlaeajBy9tA"
-Date: Wed, 11 Nov 2015 23:12:38 GMT
-Connection: keep-alive
-
-{
-  "outside_temperature":"18",
-  "timestamp":1420070400000
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets/1454020559000 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets/1454020559000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-YtX46HaBxyB7mvCzbtb4/Q"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive{
+    "inside_humidity": 45,
+    "outside_temperature": 21.5,
+    "timestamp": 1454020559000
 }
+
 ```
 
-*Example of requesting a non-existent packet*
+**Example of matching `lastBefore`**
+
+Note that the URI of the chosen matching packet is returned in the `Location` field of the response header.
+
 ```Shell
-$ curl -i http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400001
-HTTP/1.1 404 Not Found
-X-Powered-By: Express
-Content-Type: text/plain; charset=utf-8
-Content-Length: 9
-ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"
-Date: Thu, 12 Nov 2015 00:10:38 GMT
-Connection: keep-alive
+$ curl -i --silent -X GET  \
+>   http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets/1454020573000?match=lastBefore 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets/1454020569000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-UjFTISvRUCNmsYDCdNrlZQ"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive{
+    "inside_humidity": 43,
+    "outside_temperature": 21.7,
+    "timestamp": 1454020569000
+}
 
-Not Found
 ```
+
 
 
 
@@ -879,25 +880,21 @@ Delete a packet from a specific stream with a specific timestamp
 DELETE /api/v1/streams/:streamID/packets/:timestamp
 ```
 
-*Return status*
+**Return status**
 
 | *Status* | *Meaning*             |
-|----------|-----------------------|
+|:---------|:----------------------|
 | 204      | Success               |
-| 400      | Stream does not exist |
-| 404      | Packet does not exist |
+| 404      | The stream or packet does not exist |
 
 If successful, the server will return a response code of `204`, with nothing in the response body.
-If the timestamp does not exist in the database, then a response code of `404` is returned.
+If the stream and/or timestamp do not exist in the database, then a response code of `404` is returned.
 
-*Example*
+**Example**
 ```Shell
-$ curl -i -X DELETE http://localhost:3000/api/v1/streams/563e2677c1b794520641abaf/packets/1420070400000
-HTTP/1.1 204 No Content
-X-Powered-By: Express
-ETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
-Date: Wed, 11 Nov 2015 23:19:38 GMT
-Connection: keep-alive
+$ curl -i --silent -X DELETE  \
+>   http://localhost:3000/api/v1/streams/56aabc831959dce2233589ad/packets/1454020559000 
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Fri, 29 Jan 2016 01:12:35 GMTConnection: keep-alive
 ```
 
 
@@ -905,4 +902,5 @@ Connection: keep-alive
 
 Copyright (c) 2016 Tom Keffer <tkeffer@gmail.com>
 
-  See the file LICENSE for your full rights.
+See the file LICENSE for your full rights.
+

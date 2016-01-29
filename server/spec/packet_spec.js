@@ -258,6 +258,14 @@ var testMultiplePackets = function () {
                             })
                             .toss();
 
+                        frisby.create("Get min value of a bogus observation type")
+                            .get(stream_packet_link + '?agg_type=min&obs_type=bogus_temperature')
+                            .expectStatus(200)
+                            .afterJSON(function (json) {
+                                expect(json).toEqual(null);
+                            })
+                            .toss();
+
                         frisby.create("Search for last packet")
                             .get(time_link('latest'))
                             .expectStatus(200)
