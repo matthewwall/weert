@@ -37,6 +37,7 @@ var StreamRouterFactory = function (stream_manager) {
                     res.app.emit('streams/POST', result);
                 })
                 .catch(function (err) {
+                    debug("POST /streams error:", err);
                     error.sendError(err, res);
                 });
         } else {
@@ -54,7 +55,6 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Bad query. Reason", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -62,7 +62,6 @@ var StreamRouterFactory = function (stream_manager) {
         stream_manager
             .findStreams(dbQuery)
             .then(function (streams_array) {
-                debug("# of streams=", streams_array.length);
                 // Form URIs for all the streams that were found which satisfied the query
                 var stream_uris = [];
                 for (var i = 0; i < streams_array.length; i++) {
@@ -72,7 +71,7 @@ var StreamRouterFactory = function (stream_manager) {
                 res.json(stream_uris);
             })
             .catch(function (err) {
-                debug("Unable to find streams. Reason", err);
+                debug("GET /streams error:", err);
                 error.sendError(err, res);
             });
     });
@@ -82,7 +81,6 @@ var StreamRouterFactory = function (stream_manager) {
     router.get('/streams/:streamID', function (req, res) {
         // Get the streamID out of the route path
         var streamID = req.params.streamID;
-        debug("GET for streamID", streamID);
 
         stream_manager
             .findStream(streamID)
@@ -96,7 +94,7 @@ var StreamRouterFactory = function (stream_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy GET metadata request. Reason", err);
+                debug("GET /streams/:streamID error:", err);
                 error.sendError(err, res);
             });
     });
@@ -106,7 +104,6 @@ var StreamRouterFactory = function (stream_manager) {
         if (req.is('json')) {
             // Get the streamID
             var streamID = req.params.streamID;
-            debug("PUT to streamID", streamID);
 
             // Get the platform metadata
             var metadata = req.body;
@@ -126,6 +123,7 @@ var StreamRouterFactory = function (stream_manager) {
                     }
                 })
                 .catch(function (err) {
+                    debug("PUT /streams/:streamID error:", err)
                     error.sendError(err, res);
                 });
         } else {
@@ -153,6 +151,7 @@ var StreamRouterFactory = function (stream_manager) {
                     res.app.emit('streams/packets/POST', {_id: streamID, packet: result});
                 })
                 .catch(function (err) {
+                    debug("POST /streams/:streamID/packets error:", err);
                     error.sendError(err, res);
                 });
         } else {
@@ -172,7 +171,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Bad query for getting packets from stream. Reason", err);
+            debug("GET /streams/:streamID/packets error forming query:", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -183,8 +182,6 @@ var StreamRouterFactory = function (stream_manager) {
         // Is an aggregation being requested?
         if (req.query.aggregate_type) {
             // Yes, an aggregation is being requested.
-            debug("Request for aggregation", req.query.aggregate_type,
-                "with start, stop times of", req.query.start, req.query.stop);
             dbQuery.aggregate_type = req.query.aggregate_type;
             var obs_type           = req.query.obs_type;
             stream_manager
@@ -193,11 +190,10 @@ var StreamRouterFactory = function (stream_manager) {
                     res.json(result);
                 })
                 .catch(function (err) {
-                    debug("Unable to satisfy aggregation request. Reason", err);
+                    debug("GET /streams/:streamID/packets aggregation error:", err);
                     error.sendError(err, res);
                 });
         } else {
-            debug("Request for packets with start, stop times of", req.query.start, req.query.stop);
             stream_manager
                 .findPackets(streamID, dbQuery)
                 .then(function (packet_array) {
@@ -205,7 +201,7 @@ var StreamRouterFactory = function (stream_manager) {
                     res.json(packet_array);
                 })
                 .catch(function (err) {
-                    debug("Unable to satisfy request for packets. Reason", err);
+                    debug("GET /streams/:streamID/packets find error:", err);
                     error.sendError(err, res);
                 });
         }
@@ -216,7 +212,6 @@ var StreamRouterFactory = function (stream_manager) {
     router.get('/streams/:streamID/packets/latest', function (req, res) {
         // Get the streamID and timestamp out of the route path
         var streamID = req.params.streamID;
-        debug("Request for last packet in stream", streamID);
 
         stream_manager
             .findPacket(streamID, {query: {}, sort: {_id: -1}})
@@ -231,7 +226,7 @@ var StreamRouterFactory = function (stream_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request for latest packet in", streamID, ". Reason", err);
+                debug("GET /streams/:streamID/packets/latest error:", err);
                 error.sendError(err, res);
             })
     });
@@ -249,11 +244,10 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Bad query for requesting packet. Reason", err);
+            debug("GET /streams/:streamID/packets/:timestamp error forming query:", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
-        debug("Request for packet with timestamp", dbQuery.timestamp, "with match", req.query.match);
 
         stream_manager
             .findPacket(streamID, dbQuery)
@@ -269,7 +263,7 @@ var StreamRouterFactory = function (stream_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request for packet. Reason", err);
+                debug("GET /streams/:streamID/packets/:timestamp find error", err);
                 error.sendError(err, res);
             })
     });
@@ -284,7 +278,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Bad query for deleting packet. Reason", err);
+            debug("DELETE /streams/:streamID/packets/:timestamp error forming query", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -305,7 +299,7 @@ var StreamRouterFactory = function (stream_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request to delete packet. Reason", err);
+                debug("DELETE /streams/:streamID/packets/:timestamp delete error:", err);
                 error.sendError(err, res);
             })
     });

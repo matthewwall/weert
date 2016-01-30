@@ -120,6 +120,9 @@ var testSinglePacket = function () {
                 .toss()
         })
         .toss();
+};
+
+var testMiscellaneous = function () {
 
     frisby
         .create("Get a single packet from a non-existent stream")
@@ -133,6 +136,17 @@ var testSinglePacket = function () {
         .expectStatus(404)
         .toss();
 
+    frisby
+        .create("POST to a non-existent stream")
+        .post(test_url + "/56accd7718b4e21640adf305/packets",
+            {
+                timestamp          : timestamp(0),
+                outside_temperature: temperature(0)
+            },
+            {json: true}
+        )
+        .expectStatus(404)
+        .toss();
 };
 
 
@@ -331,4 +345,5 @@ var testMultiplePackets = function () {
 };
 
 testSinglePacket();
+testMiscellaneous();
 testMultiplePackets();

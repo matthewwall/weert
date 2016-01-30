@@ -11,7 +11,6 @@
  * @module services/stream
  */
 
-var debug   = require('debug')('weert:server');
 var mongodb = require('mongodb');
 var Promise = require('bluebird');
 
@@ -246,7 +245,8 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.packets.options)
+                        .collection(db, options.packets.name(streamID),
+                            Object.assign(options.packets.options, {strict: true}))
                         .then(function (coln) {
                             return coln
                                 .insertOne(packet)
