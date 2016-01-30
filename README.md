@@ -20,17 +20,13 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 
 2. Install MongoDB and get it running.
 
-3. Download WeeRT into a convenient directory, then cd into it.
+3. Download WeeRT into a convenient directory, then `cd` into it.
 
-4. Install the packages needed by WeeRT, by using npm:
+4. Download and install the packages needed by WeeRT, by using npm:
 
     ```shell
     npm install
     ```
-
-    Contrary to the implications of the word `install`, this does not actually install WeeRT itself.
-    Instead, it downloads all of the packages used by WeeRT and installs them into a subdirectory `node_modules`,
-    where WeeRT can use them.
 
 5. Start WeeRT
 
@@ -46,11 +42,13 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
     DEBUG=weert:* npm start
     ```
 
+This finishes the setup of the WeeRT Node server.
+
 ## To install the WeeRT uploader in WeeWX
 
 
-1. Make sure you are running weewx version 3.3 or later (WeeRT makes use of POST requests, which are
-only supported by v3.3 or later.)
+1. Make sure you are running weewx version 3.3 or later (WeeRT uses POST requests, which are
+supported only by v3.3 or later.)
 
 2. Add the following to `weewx.conf`:
 
@@ -61,7 +59,7 @@ only supported by v3.3 or later.)
             enable = true
             # Set to the URL of your instance of the WeeRT Node server.
             weert_host = http://localhost:3000
-            # Specify a unique name for your stream. If it doesn't exist on the server,
+            # Specify a unique name for your stream. If it does not exist on the server,
             # it will be allocated
 	        stream_name = MySpecialStream
 
@@ -78,17 +76,35 @@ only supported by v3.3 or later.)
 
 4. Run `weewxd`
 
-5. Open up a client at [http://localhost:3000](http://localhost:3000).
+5. Take a look at the weewx log output (file `/var/log/syslog` on many systems), and search for a line that looks
+    something like
+
+    ```
+    Jan 30 09:17:42 myhost weewx[19770]: weert: Server allocated streamID '56acf036450538244d76a6fd' for stream name 'MySpecialStream'
+    ```
+
+    The hexadecimal number `56acf036450538244d76a6fd` is the *streamID* of the stream in the WeeRT database.
+    It must be used to link the posted data to the realtime display. Unfortunately, at this point,
+    this is a manual process. Eventually, the realtime display will be able to find the data by using the stream name.
+
+6.  Edit the file `client/rt/rt.js` to reflect your streamID. When you are done, it will look something like this:
+
+    ```Javascript
+    // The streamID to be monitored should be put here:
+    var streamID = "56acf036450538244d76a6fd";
+    ```
+
+7. Open up a client at [http://localhost:3000/rt.html](http://localhost:3000/rt.html).
 
 ## To run the server test suites
 
-1. Change directory (`cd`) into the WeeRT directory.
-
-2. Install `jasmine-node`
+1. Install `jasmine-node`
 
     ```shell
     sudo npm install -g jasmine-node
     ```
+
+2. Change directory (`cd`) into the WeeRT directory.
 
 3. Start the WeeRT server
 
@@ -96,10 +112,12 @@ only supported by v3.3 or later.)
     npm start
     ```
 
-4. Open up another terminal and run the suites
+4. Open up another terminal, and, again, `cd` into the WeeRT directory.
+
+5. Run the test suites:
 
     ```shell
-    jasmine-node server
+    npm test
     ```
 
 # More information
@@ -112,7 +130,7 @@ See the document [The WeeRT RESTful API](API.md) for information about the WeeRT
 
 # License & Copyright
 
-Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
 
   See the file LICENSE for your full rights.
 

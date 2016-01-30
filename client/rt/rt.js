@@ -6,8 +6,10 @@
 
 //              CLIENT CODE
 "use strict";
-var platform = "p1";
-var streamID = "i1";
+
+// The streamID to be monitored should be put here:
+var streamID = "56ace678dbac4d0349684f22";
+
 // Initial request of data from MongoDB in seconds
 var max_initial_age_secs = 1200;
 // Max retained age in seconds:
