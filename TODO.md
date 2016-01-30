@@ -1,6 +1,8 @@
 # SERVER
 
-Need to test 'lastBefore' match for locations.
+Get the weewx extension working again.
+
+Implement authorization tokens.
 
 The websocket channels may be too broad. Should probably allow clients to subscribe
 to specific streams.

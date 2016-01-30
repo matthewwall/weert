@@ -153,11 +153,8 @@ var StreamManagerFactory = function (dbPromise, options) {
          * @returns {Promise}
          */
         var findStreams = function (dbQuery) {
-            // Make a copy of the query. We're going to modify it
-            var findQuery = Object.assign({}, dbQuery);
-            // Remove limit and sort, which have their own functions
-            delete findQuery.limit;
-            delete findQuery.sort;
+
+            if (dbQuery.query === undefined) dbQuery.query = {}
 
             return dbPromise
                 .then(function (db) {
@@ -166,7 +163,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                             Object.assign(options.streams.options, {strict: false}))
                         .then(function (coln) {
                             return coln
-                                .find(findQuery)
+                                .find(dbQuery.query)
                                 .sort(dbQuery.sort)
                                 .limit(dbQuery.limit)
                                 .toArray();

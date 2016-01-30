@@ -32,10 +32,18 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
     Instead, it downloads all of the packages used by WeeRT and installs them into a subdirectory `node_modules`,
     where WeeRT can use them.
 
-5. Start WeeRT:
+5. Start WeeRT
+
+    You can either start it simply:
 
     ```shell
     npm start
+    ```
+
+    or, to get debug messages, set the `DEBUG` environmental variable to `weert:*` before running:
+
+    ```Shell
+    DEBUG=weert:* npm start
     ```
 
 ## To install the WeeRT uploader in WeeWX
@@ -44,13 +52,7 @@ For experimental purposes. Tested on Node V4.2.2, although other versions should
 1. Make sure you are running weewx version 3.3 or later (WeeRT makes use of POST requests, which are
 only supported by v3.3 or later.)
 
-2. Install pymongo:
-
-    ```shell
-    sudo pip install pymongo
-    ```
-
-3. Add the following to `weewx.conf`:
+2. Add the following to `weewx.conf`:
 
     ```ini
     [StdRestful]
@@ -72,11 +74,11 @@ only supported by v3.3 or later.)
 
     ```
 
-4. Make sure the `weert.py` module is in your `PYTHONPATH`.
+3. Make sure the `weert.py` module is in your `PYTHONPATH`.
 
-5. Run `weewxd`
+4. Run `weewxd`
 
-6. Open up a client at [http://localhost:3000](http://localhost:3000).
+5. Open up a client at [http://localhost:3000](http://localhost:3000).
 
 ## To run the server test suites
 

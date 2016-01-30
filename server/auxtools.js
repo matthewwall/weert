@@ -75,7 +75,11 @@ var formListQuery = function (query) {
     }
 
     var dbQuery = {};
+    if(query.query){
+        dbQuery.query = JSON.parse(query.query);
+    }
 
+    // Mongo requires a special sort syntax. Form it out of the sort and direction parameters:
     dbQuery.sort = getSortSpec(query.sort, query.direction);
 
     dbQuery.limit = query.limit === undefined ? 0 : +query.limit;
@@ -83,6 +87,7 @@ var formListQuery = function (query) {
     if (typeof dbQuery.limit !== 'number' || (dbQuery.limit % 1) !== 0) {
         throw new Error("Invalid value for 'limit': " + query.limit);
     }
+
     return dbQuery;
 };
 

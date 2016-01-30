@@ -7,8 +7,8 @@
     "postinstall": "bower install",
     "prestart": "npm install",
     "start": "node ./server/server",
-    "pretest" : "mongo weert_test --eval 'db.dropDatabase()'",
-    "test" : "jasmine-node server"
+    "pretest": "mongo weert_test --eval 'db.dropDatabase()'",
+    "test": "jasmine-node server"
   },
   "author": "Tom Keffer <tkeffer@gmail.com>",
   "repository": {
