@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+#  Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
 #
 #     See the file LICENSE for your full rights.
 #
@@ -10,6 +10,7 @@ import sys
 import syslog
 import time
 import urlparse
+import urllib
 import urllib2
 import Queue
 
@@ -18,8 +19,8 @@ import weewx.restx
 
 from weewx.restx import StdRESTful, RESTThread
 
-DEFAULT_NODE_URL = "http://localhost:3000"
-WEERT_ENDPOINT_ROOT = "/api/v1/streams/"
+DEFAULT_WEERT_HOST = "http://localhost:3000"
+STREAM_ENDPOINT = "/api/v1/streams/"
 
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.
@@ -30,24 +31,28 @@ class WeeRT(StdRESTful):
         
         super(WeeRT, self).__init__(engine, config_dict)
 
-        _node_dict = weewx.restx.check_enable(config_dict, 'WeeRT', 
-                                              'platform_uuid',
-                                              'stream_uuid')
+        _node_dict = weewx.restx.check_enable(config_dict, 'WeeRT')
 
         if _node_dict is None:
-            return        
+            return
 
-        # Get the manager dictionary:
+        # Need either a streamID or a stream_name to proceed:        
+        if not _node_dict.get('stream_id') and not _node_dict.get('stream_name'):
+            syslog.syslog(syslog.LOG_DEBUG,
+                          "weert: Data will not be posted. Need either stream_id or stream_name.")
+            return
+             
+        # Get the database manager dictionary:
         _manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
                                                                    'wx_binding')
         self.loop_queue = Queue.Queue()
-        self.loop_thread = WeeRTThread(self.loop_queue,  
+        self.loop_thread = WeeRTThread(self.loop_queue,
                                        _manager_dict,
                                        **_node_dict)
         self.loop_thread.start()
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
 
-        syslog.syslog(syslog.LOG_INFO, "wee_node: LOOP packets will be posted.")
+        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted.")
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
@@ -78,17 +83,19 @@ class WeeRTThread(RESTThread):
 
     def __init__(self, queue,
                  manager_dict,
-                 platform_uuid,
-                 stream_uuid,
-                 protocol_name = "WeeRT",
-                 node_url = DEFAULT_NODE_URL,
-                 obs_types = default_obs_types,
+                 stream_id = None,
+                 stream_name = None,
+                 protocol_name="WeeRT",
+                 weert_host=DEFAULT_WEERT_HOST,
+                 obs_types=default_obs_types,
                  max_backlog=sys.maxint, stale=60,
                  log_success=True, log_failure=True,
                  timeout=5, max_tries=1, retry_wait=5):
 
         """
         Initializer for the WeeMetThread class.
+        
+        Either stream_id or stream_name must be supplied.
         
         Required parameters:
 
@@ -97,13 +104,14 @@ class WeeRTThread(RESTThread):
           manager_dict: The database manager dictionary to be used for database
           lookups.
           
-          platform_uuid: The UUID for the platform.
+          stream_id: The WeeRT allocated streamID for the stream. Required unless
+          stream_name is given.
           
-          stream_uuid: The UUID for the stream.
+          stream_name: A unique name for the stream. Required unless stream_id is given.
         
         Optional parameters:
         
-          node_url: The URL for the Node server
+          weert_host: The URL for the WeeRT Node server. E.g., http://localhost:3000
         
           obs_types: A list of observation types to be sent to the Node
           server [optional]
@@ -142,41 +150,60 @@ class WeeRTThread(RESTThread):
                                           max_tries=max_tries,
                                           retry_wait=retry_wait)
 
-        self.platform_uuid = platform_uuid
-        self.stream_uuid = stream_uuid
-        self.node_url = node_url
         self.obs_types = obs_types
-        syslog.syslog(syslog.LOG_NOTICE, "wee_node: publishing to Node server at %s" % self.node_url)
+        
+        # This should be something like http://localhost:3000/api/v1/streams
+        stream_endpoint_url = urlparse.urljoin(weert_host, STREAM_ENDPOINT)
+
+        # See if we have a streamID
+        if stream_id:
+            # Yes. It gets simple. Form the URL for this streamID.
+            streamid_url = stream_endpoint_url + '/' + stream_id
+        else:
+            # No. We must have a stream name. Use it to resolve to a packet endpoint
+            try:
+                streamid_url = resolve_streamURL(stream_endpoint_url, stream_name)
+            except urllib2.URLError, e:
+                syslog.syslog(syslog.LOG_ERR,
+                              "weert: Unable to get stream_name from server")
+                syslog.syslog(syslog.LOG_ERR,
+                              "****   Reason: %s" % e)
+                return
+            if not streamid_url:
+                syslog.syslog(syslog.LOG_INFO, "weert: Unable to resolve stream name %s" % stream_name)
+                return
+        
+        self.packets_url = streamid_url.rstrip(' /') + '/packets'
+
+        syslog.syslog(syslog.LOG_NOTICE, "weert: Publishing to %s" % self.packets_url)
 
     def process_record(self, record, dbmanager):
         """Specialized version of process_record that posts to a node server."""
 
         # Get the full record by querying the database ...
-        _full_record = self.get_record(record, dbmanager)
+        full_record = self.get_record(record, dbmanager)
         # ... convert to Metric if necessary ...
-        _metric_record = weewx.units.to_METRICWX(_full_record)
+        metric_record = weewx.units.to_METRICWX(full_record)
         
         # Instead of sending every observation type, send only those in
         # the list obs_types
-        _abridged = dict((x, _metric_record.get(x)) for x in self.obs_types)
+        abridged = dict((x, metric_record.get(x)) for x in self.obs_types)
         
         # Convert timestamps to JavaScript style:
-        _abridged['timestamp'] = record['dateTime'] * 1000
+        abridged['timestamp'] = record['dateTime'] * 1000
         
-        _mapped = {}
-        for k in _abridged:
-            _new_k = WeeRTThread.map.get(k, k)
-            _mapped[_new_k] = _abridged[k] 
+        mapped = {}
+        for k in abridged:
+            new_k = WeeRTThread.map.get(k, k)
+            mapped[new_k] = abridged[k] 
         
-        _full_url = urlparse.urljoin(self.node_url, WEERT_ENDPOINT_ROOT + self.stream_uuid + '/packets')
-        
-        _req = urllib2.Request(_full_url)
-        _req.add_header('Content-Type', 'application/json')
-        _req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
+        req = urllib2.Request(self.packets_url)
+        req.add_header('Content-Type', 'application/json')
+        req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
 
-        self.post_with_retries(_req, payload=json.dumps(_mapped))
+        self.post_with_retries(req, payload=json.dumps(mapped))
         
-    def check_response(self, response):
+    def checkresponse(self, response):
         """Check the HTTP response code."""
         if response.getcode() == 201:
             # Success. Just return
@@ -186,3 +213,69 @@ class WeeRTThread(RESTThread):
                 if line.startswith('Error'):
                     # Server signals an error. Raise an exception.
                     raise weewx.restx.FailedPost(line)
+
+def resolve_streamURL(stream_endpoint, stream_name):
+    """Given a stream_name, return its URL. If a stream has not been
+    allocated on the server, allocate one, and return that URL.
+    
+    stream_endpoint: The endpoint for WeeRT streams queries. Something
+    like http://localhost:3000/api/v1/streams
+    
+    stream_name: A unique name for the stream
+    """
+     
+    # First see if the stream name is already on the server    
+    stream_url = lookup_streamURL(stream_endpoint, stream_name)
+
+    if stream_url:
+        # It has. Return it.
+        return stream_url
+    
+    # It has not been allocated. Ask the server to allocate one for us. 
+    # Build the request
+    req = urllib2.Request(stream_endpoint)
+    req.add_header('Content-Type', 'application/json')
+    req.add_header("User-Agent", "weewx/%s" % weewx.__version__)
+    
+    # Set up the stream metadata:
+    payload = json.dumps({"name" : stream_name,
+                          "description" :"Stream for weewx",
+                          "unit_group" : "METRICWX"})
+    
+    # Now send it off
+    response = urllib2.urlopen(req, data=payload)
+    if response.code == 201:
+        stream_url = response.info()['location']
+        # Parse the JSON
+        metadata = json.loads(response.read())
+        # The streamID is a plain string
+        stream_id = str(metadata.get("_id", "N/A"))
+        # Record the _id in the log:
+        syslog.syslog(syslog.LOG_INFO, 
+                      "weert: Server allocated streamID '%s' for stream name '%s'" % (stream_id, stream_name))
+        return stream_url
+
+    
+    
+def lookup_streamURL(stream_endpoint, stream_name):
+    """Given a stream_name, ask the server what its URL is.
+    Return None if not found.
+    
+    stream_endpoint: The endpoint for WeeRT streams queries. Something
+    like http://localhost:3000/api/v1/streams
+    
+    stream_name: A unique name for the stream
+    """
+     
+    # Query to look for a "name" field that matches the stream name
+    query = {"name":{"$eq": stream_name}}
+    # Encode it with the proper escapes
+    param = urllib.urlencode({'query':json.dumps(query)})
+    # Form the full URL
+    full_url = urlparse.urljoin(stream_endpoint, '?%s' % param)
+
+    # Hit the server
+    response = urllib2.urlopen(full_url)
+    result = response.read()
+    urlarray = json.loads(result)
+    return str(urlarray[0]) if urlarray else None

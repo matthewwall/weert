@@ -192,6 +192,10 @@ def main():
     template = string.Template(buff)
     md = template.safe_substitute(mapping)
     
+    print "[//]: # (This Markdown file was generated from a template)"
+    print "[//]: # (|         DO NOT EDIT!           |)"
+    print "[//]: # (Edit the file API.md.tmpl instead)"
+    
     print md
 if __name__=="__main__" :
     main()

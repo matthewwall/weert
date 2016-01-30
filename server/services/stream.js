@@ -257,9 +257,6 @@ var StreamManagerFactory = function (dbPromise, options) {
                                     return Promise.resolve(final_packet);
                                 })
                         })
-                        .catch(function () {
-                            return new Promise.reject(new errors.NoSuchIDError("No such stream " + streamID));
-                        })
                 })
         };
 

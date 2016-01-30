@@ -2,6 +2,12 @@
 
 Get the weewx extension working again.
 
+Posting to an unallocated stream should be rejected. Test for this.
+
+Test for duplicate key error.
+
+Add the ability to return streams by value (as well as URI).
+
 Implement authorization tokens.
 
 The websocket channels may be too broad. Should probably allow clients to subscribe

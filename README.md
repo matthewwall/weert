@@ -59,11 +59,11 @@ only supported by v3.3 or later.)
         ...
         [[WeeRT]]
             enable = true
-            # Set to the URL of your instance of Node.
-            node_url = http://localhost:3000
-            # Set to the platform and stream IDs
-	        platform_uuid = p1
-	        stream_uuid = s1
+            # Set to the URL of your instance of the WeeRT Node server.
+            weert_host = http://localhost:3000
+            # Specify a unique name for your stream. If it doesn't exist on the server,
+            # it will be allocated
+	        stream_name = MySpecialStream
 
     ...
 
