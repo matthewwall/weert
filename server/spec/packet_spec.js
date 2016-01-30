@@ -29,7 +29,8 @@ var temperature = function (i) {
 };
 
 var testSinglePacket = function () {
-    frisby.create('Create a WeeRT stream to hold a single packet')
+    frisby
+        .create('Create a WeeRT stream to hold a single packet')
         .post(test_url,
             {
                 name       : "Test packet stream 1",
@@ -47,7 +48,8 @@ var testSinglePacket = function () {
             var stream_packet_link = normalizeUrl(stream_link + '/packets');
 
             // POST a single packet
-            frisby.create("POST a single packet")
+            frisby
+                .create("POST a single packet")
                 .post(stream_packet_link,
                     {
                         timestamp          : timestamp(0),
@@ -97,7 +99,8 @@ var testSinglePacket = function () {
                 })
                 .toss();
 
-            frisby.create("Post a packet with no timestamp")
+            frisby
+                .create("Post a packet with no timestamp")
                 .post(stream_packet_link,
                     {
                         outside_temperature: temperature(0)
@@ -107,7 +110,8 @@ var testSinglePacket = function () {
                 .expectStatus(400)
                 .toss();
 
-            frisby.create("Post a packet with an _id field")
+            frisby
+                .create("Post a packet with an _id field")
                 .post(stream_packet_link,
                     {
                         timestamp          : timestamp(0),
@@ -117,7 +121,33 @@ var testSinglePacket = function () {
                     {json: true}
                 )
                 .expectStatus(400)
-                .toss()
+                .toss();
+
+            // Test for error when posting duplicate timestamps
+            frisby
+                .create("Post first packet to test for posting a duplicate timestamp")
+                .post(stream_packet_link,
+                    {
+                        timestamp          : 1454171255560,
+                        outside_temperature: 20
+                    },
+                    {json: true}
+                )
+                .expectStatus(201)
+                .after(function (error, res, body) {
+                    frisby
+                        .create("Post 2nd packet to test for posting a duplicate timestamp")
+                        .post(stream_packet_link,
+                            {
+                                timestamp          : 1454171255560,
+                                outside_temperature: 20
+                            },
+                            {json: true}
+                        )
+                        .expectStatus(409)
+                        .toss();
+                })
+                .toss();
         })
         .toss();
 };
