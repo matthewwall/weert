@@ -664,6 +664,8 @@ GET /api/v1/streams/:streamID/packets
 | `limit`     | integer | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
 | `sort`      | string  | What to sort results by. Default: `timestamp`.                                                                                     |
 | `direction` | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
+| `query`     | string  | An arbitrary [MongoDB query](https://docs.mongodb.org/manual/tutorial/query-documents/) that restricts the returned packets.       |
+
 
 **Response code**
 
@@ -685,6 +687,24 @@ $GET_streams_streamID_packets
 $GET_streams_streamID_packets_sort
 ```
 
+**Same example, but with query**
+
+In this case, we only include those packets with outside temperature greater than or equal to 44.
+This can be expressed with the MongoDB query:
+
+```Javascript
+{"outside_humidity" : {"$gte" : 44}}
+```
+
+This results in a query parameter, which once encoded, looks like
+
+```
+?query=%7B%22outside_humidity%22%3A%20%7B%22%24gte%22%3A%2044%7D%7D
+```
+
+```Shell
+$GET_streams_streamID_packets_query
+```
 
 
 

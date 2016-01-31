@@ -130,13 +130,15 @@ def get_mapping():
     # Do it again, but sort by outside humidity:
     mapping["GET_streams_streamID_packets_sort"], _ = do_curl(stream_url1 + "/packets?sort=outside_humidity")
 
+    # Do it again, but limit to those with outside humidity >= 44
+    query_obj = {"outside_humidity" : {"$gte" : 44}}
+    query = urllib.quote(json.dumps(query_obj))
+    mapping["GET_streams_streamID_packets_query"], _ = do_curl(stream_url1 + "/packets?query=" + query)
 
     # Get an aggregation:
     mapping["GET_streams_streamID_packets_max"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature")
     
-    # Get an aggregation, restricted to certain humidities
-    query_obj = {"outside_humidity" : {"$gte" : 44}}
-    query = urllib.quote(json.dumps(query_obj))
+    # Get an aggregation, restricted to outside humidity >= 44
     mapping["GET_streams_streamID_packets_max_query"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature&query=" + query)
     
 

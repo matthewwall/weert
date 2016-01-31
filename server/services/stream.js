@@ -149,6 +149,7 @@ var StreamManagerFactory = function (dbPromise, options) {
          * @param {object} dbQuery - Hash of query options
          * @param {object} [dbQuery.sort={_id:1} - Mongo sort option.
          * @param {number} [dbQuery.limit] - The number of packets to return. If missing, return them all.
+         * @param {object} [dbQuery.query] - A MongoDB query object that will be used to further limit the matched streams
          * @returns {Promise}
          */
         var findStreams = function (dbQuery) {
@@ -267,14 +268,15 @@ var StreamManagerFactory = function (dbPromise, options) {
 
 
         /**
-         * Find all packets satifying a query
+         * Find all packets satisfying a query
          * @method findPackets
          * @param {number} streamID - The ID of the stream with the packets to query
          * @param {object} dbQuery - Hash of query options
          * @param {number} [dbQuery.start] - Timestamps greater than this value
          * @param {number} [dbQuery.stop] - Timestamps less than or equal to this value
          * @param {object} [dbQuery.sort={_id:1} - Mongo sort option.
-         * @param {number} [dbQuery.limit] - The number of packets to return. If missing, return them all.
+         * @param {number} [dbQuery.limit=0] - The number of packets to return. If missing, return them all.
+         * @param {object} [dbQuery.query] - An arbitrary MongoDB query that will restrict the packets used.
          * @returns {Promise}
          */
         var findPackets = function (streamID, dbQuery) {
@@ -320,7 +322,6 @@ var StreamManagerFactory = function (dbPromise, options) {
                 });
         };
 
-        // TODO: Need to add more sophisticated queries to aggregatePackets
         var aggregatePackets = function (streamID, obs_type, dbQuery) {
             return dbPromise
                 .then(function (db) {
