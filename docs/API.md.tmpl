@@ -203,6 +203,30 @@ D = Documented
 T = Tested
 P = Partial
 
+#### Queries
+Many of the GET operators take an optional `query` parameter to restrict the returned results. The value of the query
+should be a [MongoDB query expression](https://docs.mongodb.org/manual/tutorial/query-documents/). For example, a query
+that restricts to temperatures greater than or equal to 20, and less than 25, would look like:
+
+```Javascript
+q = {outside_temperature: {$gte: 20, $lt: 25}}
+```
+To be included as a query parameter, this must first be converted to JSON, then escape encoded. The resultant URL
+parameter string could be created like this:
+
+```Javascript
+q = {outside_temperature: {$gte: 20, $lt: 25}}
+query = '&query=' + encodeURIComponent(JSON.stringify(q));
+```
+
+with results
+```
+'&query=%7B%22outside_temperature%22%3A%7B%22%24gte%22%3A20%2C%22%24lt%22%3A25%7D%7D'
+```
+
+This string is then tacked on to the end of the url.
+
+#### Examples
 In the examples that follow, the responses are intended to be self-consistent. That is, the same data was used across
 all examples.
 

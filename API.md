@@ -206,6 +206,30 @@ D = Documented
 T = Tested
 P = Partial
 
+#### Queries
+Many of the GET operators take an optional `query` parameter to restrict the returned results. The value of the query
+should be a [MongoDB query expression](https://docs.mongodb.org/manual/tutorial/query-documents/). For example, a query
+that restricts to temperatures greater than or equal to 20, and less than 25, would look like:
+
+```Javascript
+q = {outside_temperature: {$gte: 20, $lt: 25}}
+```
+To be included as a query parameter, this must first be converted to JSON, then escape encoded. The resultant URL
+parameter string could be created like this:
+
+```Javascript
+q = {outside_temperature: {$gte: 20, $lt: 25}}
+query = '&query=' + encodeURIComponent(JSON.stringify(q));
+```
+
+with results
+```
+'&query=%7B%22outside_temperature%22%3A%7B%22%24gte%22%3A20%2C%22%24lt%22%3A25%7D%7D'
+```
+
+This string is then tacked on to the end of the url.
+
+#### Examples
 In the examples that follow, the responses are intended to be self-consistent. That is, the same data was used across
 all examples.
 
@@ -244,10 +268,10 @@ The URI of the new platform will be returned in the `Location` field.
 $ curl -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"name":"Bennys Ute", "description" : "Yellow, with black cap"}'  \
 >   http://localhost:3000/api/v1/platforms 
-HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0Content-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-yLLB8MqlWkDvIfpF1adQTg"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
-    "_id": "56ac1b1bc9cbba9317d70fe0",
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0cContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-Gw9+JV+UmNdmMznV3QA+Wg"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
+    "_id": "56ae1e0c3d77252702d46d0c",
     "description": "Yellow, with black cap",
-    "location": "56ac1b1bc9cbba9317d70fdf",
+    "location": "56ae1e0b3d77252702d46d0b",
     "name": "Bennys Ute"
 }
 
@@ -287,9 +311,9 @@ platform values, depending on the value of parameter `as`.
 
 ```Shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/platforms 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 133ETag: W/"85-3Qu4oqtfRyL4OPgKyLhy3g"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive[
-    "http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0",
-    "http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe2"
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 133ETag: W/"85-hkFIraMCRzIotrgkEfj+2Q"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive[
+    "http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c",
+    "http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0e"
 ]
 
 ```
@@ -298,17 +322,17 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
 
 ```Shell
 $ curl -i --silent -X GET http://localhost:3000/api/v1/platforms?as=values 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 259ETag: W/"103-FPkhLB9/GmKakQ97UN3TpQ"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive[
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 259ETag: W/"103-LCOUV5aSTOCS9znXuun0xg"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive[
     {
-        "_id": "56ac1b1bc9cbba9317d70fe0",
+        "_id": "56ae1e0c3d77252702d46d0c",
         "description": "Yellow, with black cap",
-        "location": "56ac1b1bc9cbba9317d70fdf",
+        "location": "56ae1e0b3d77252702d46d0b",
         "name": "Bennys Ute"
     },
     {
-        "_id": "56ac1b1bc9cbba9317d70fe2",
+        "_id": "56ae1e0c3d77252702d46d0e",
         "description": "Blue Yamaha",
-        "location": "56ac1b1bc9cbba9317d70fe1",
+        "location": "56ae1e0c3d77252702d46d0d",
         "name": "Willies scooter"
     }
 ]
@@ -336,11 +360,11 @@ GET /api/v1/platforms/:platformID
 
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-3/iVbyvdpPuiEpVaaguWaw"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
-    "_id": "56ac1b1bc9cbba9317d70fe0",
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-TBxa51TewA5RBTFgLtB33Q"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
+    "_id": "56ae1e0c3d77252702d46d0c",
     "description": "Yellow, with black cap",
-    "location": "56ac1b1bc9cbba9317d70fdf",
+    "location": "56ae1e0b3d77252702d46d0b",
     "name": "Bennys Ute"
 }
 
@@ -380,11 +404,11 @@ If successful, the server will return status code `204`, with nothing in the res
 ```Shell
 # The platform before modifications:
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-3/iVbyvdpPuiEpVaaguWaw"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
-    "_id": "56ac1b1bc9cbba9317d70fe0",
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-TBxa51TewA5RBTFgLtB33Q"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
+    "_id": "56ae1e0c3d77252702d46d0c",
     "description": "Yellow, with black cap",
-    "location": "56ac1b1bc9cbba9317d70fdf",
+    "location": "56ae1e0b3d77252702d46d0b",
     "name": "Bennys Ute"
 }
 
@@ -392,16 +416,16 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
 # Now modify the platform, using PUT:
 $ curl -i --silent -X PUT -H Content-type:application/json -d  \
 >   '{"description" : "Yellow, with green cap"}'  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c 
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive
 
 # Now retrieve the platform, verifying the update worked:
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-CiTzSoBcZgIb30gc1EVU8w"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
-    "_id": "56ac1b1bc9cbba9317d70fe0",
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 131ETag: W/"83-t41IhiUxOLnjfdJ5sL+r7A"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
+    "_id": "56ae1e0c3d77252702d46d0c",
     "description": "Yellow, with green cap",
-    "location": "56ac1b1bc9cbba9317d70fdf",
+    "location": "56ae1e0b3d77252702d46d0b",
     "name": "Bennys Ute"
 }
 
@@ -426,8 +450,8 @@ DELETE /api/v1/platforms/:platformID
 
 ```Shell
 $ curl -i --silent -X DELETE  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sat, 30 Jan 2016 02:08:28 GMTConnection: keep-alive
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c 
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive
 ```
 
 **Example of deleting a non-existent platform**
@@ -435,7 +459,7 @@ HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"
 ```Shell
 $ curl -i --silent -X DELETE  \
 >   http://localhost:3000/api/v1/platforms/564532f58719938114311ea3 
-HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"Date: Sat, 30 Jan 2016 02:08:28 GMTConnection: keep-aliveNot Found
+HTTP/1.1 404 Not FoundX-Powered-By: ExpressContent-Type: text/plain; charset=utf-8Content-Length: 9ETag: W/"9-nR6tc+Z4+i9RpwqTOwvwFw"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-aliveNot Found
 ```
 
 
@@ -479,8 +503,8 @@ packet.
 ```Shell
 $ curl -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"timestamp" : 1420070450000, "latitude": 45.2, "longitude" : -85.1, "altitude" : 12.9}'  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations 
-HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations/1420070450000Content-Type: application/json; charset=utf-8Content-Length: 77ETag: W/"4d-GsBGqtXDGgADG2P36K1qvA"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations 
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations/1420070450000Content-Type: application/json; charset=utf-8Content-Length: 77ETag: W/"4d-GsBGqtXDGgADG2P36K1qvA"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
     "altitude": 12.9,
     "latitude": 45.2,
     "longitude": -85.1,
@@ -518,8 +542,8 @@ Returns a status of `400` if the *platformID* does not exist. Additional details
 
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 155ETag: W/"9b-x3SgGQdY1u7wQcwJQJiNhg"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive[
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 155ETag: W/"9b-x3SgGQdY1u7wQcwJQJiNhg"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive[
     {
         "altitude": 12.9,
         "latitude": 45.2,
@@ -560,8 +584,8 @@ in the Location field of the response.
 **Example**
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations/latest 
-HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations/1420070580000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-U9FuQ91xcGjODneR58AK3g"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations/latest 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations/1420070580000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-U9FuQ91xcGjODneR58AK3g"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
     "altitude": 12.2,
     "latitude": 45.3,
     "longitude": -85,
@@ -608,8 +632,8 @@ body.
 
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations/1420070450000 
-HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations/1420070450000Content-Type: application/json; charset=utf-8Content-Length: 77ETag: W/"4d-GsBGqtXDGgADG2P36K1qvA"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations/1420070450000 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations/1420070450000Content-Type: application/json; charset=utf-8Content-Length: 77ETag: W/"4d-GsBGqtXDGgADG2P36K1qvA"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
     "altitude": 12.9,
     "latitude": 45.2,
     "longitude": -85.1,
@@ -643,8 +667,8 @@ If the platform and/or timestamp do not exist in the database, then a response c
 **Example**
 ```Shell
 $ curl -i --silent -X DELETE  \
->   http://localhost:3000/api/v1/platforms/56ac1b1bc9cbba9317d70fe0/locations/1420070450000 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sat, 30 Jan 2016 02:08:28 GMTConnection: keep-alive
+>   http://localhost:3000/api/v1/platforms/56ae1e0c3d77252702d46d0c/locations/1420070450000 
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive
 ```
 
 
@@ -686,8 +710,8 @@ in the Location response header.
 $ curl -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"name": "weather stream 412", "description": "WX station mounted on Bennys Ute", "unit_group": "METRICWX"}'  \
 >   http://localhost:3000/api/v1/streams 
-HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3Content-Type: application/json; charset=utf-8Content-Length: 135ETag: W/"87-yapMRt+rlhK4CDPHFf1BvA"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
-    "_id": "56ac1b1bc9cbba9317d70fe3",
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0fContent-Type: application/json; charset=utf-8Content-Length: 135ETag: W/"87-guJkVVlMDCEekZWDb3cSMQ"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
+    "_id": "56ae1e0c3d77252702d46d0f",
     "description": "WX station mounted on Bennys Ute",
     "name": "weather stream 412",
     "unit_group": "METRICWX"
@@ -733,8 +757,8 @@ newly created resource (packet), the body holding a JSON representation of the p
 ```Shell
 $ curl -i --silent -X POST -H Content-type:application/json -d  \
 >   '{"timestamp": 1454020559000, "outside_temperature": 21.5, "inside_humidity":45}'  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets 
-HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/1454020559000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-YtX46HaBxyB7mvCzbtb4/Q"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets 
+HTTP/1.1 201 CreatedX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/1454020559000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-YtX46HaBxyB7mvCzbtb4/Q"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
     "inside_humidity": 45,
     "outside_temperature": 21.5,
     "timestamp": 1454020559000
@@ -776,8 +800,8 @@ GET /api/v1/streams/:streamID/packets
 
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 305ETag: W/"131-wsihoG9kjFKU3Lb35X/0+Q"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive[
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 305ETag: W/"131-wsihoG9kjFKU3Lb35X/0+Q"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive[
     {
         "inside_humidity": 45,
         "outside_temperature": 21.5,
@@ -806,8 +830,8 @@ HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=ut
 
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets?sort=inside_humidity 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 305ETag: W/"131-h5X/7s16s/nJhq3Bvc51sA"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive[
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets?sort=inside_humidity 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 305ETag: W/"131-h5X/7s16s/nJhq3Bvc51sA"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive[
     {
         "inside_humidity": 42,
         "outside_temperature": 21.8,
@@ -874,8 +898,8 @@ If the observation type *obs_type* is not in the collection, then `null` will be
 
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets?agg_type=max&obs_type=outside_temperature 
-HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 4ETag: W/"4-x6VEfan6Omx4EmWA0OBHkQ"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive21.8
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets?agg_type=max&obs_type=outside_temperature 
+HTTP/1.1 200 OKX-Powered-By: ExpressContent-Type: application/json; charset=utf-8Content-Length: 4ETag: W/"4-x6VEfan6Omx4EmWA0OBHkQ"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive21.8
 ```
 
 
@@ -902,8 +926,8 @@ in the Location field of the response.
 **Example**
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/latest 
-HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/1454020574000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-zeSzE2SsVSqfiCd/sZL+oA"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/latest 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/1454020574000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-zeSzE2SsVSqfiCd/sZL+oA"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
     "inside_humidity": 42,
     "outside_temperature": 21.8,
     "timestamp": 1454020574000
@@ -950,8 +974,8 @@ the stream and/or timestamp do not exist in the database, then a response code o
 **Example of exact match**
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/1454020559000 
-HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/1454020559000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-YtX46HaBxyB7mvCzbtb4/Q"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/1454020559000 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/1454020559000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-YtX46HaBxyB7mvCzbtb4/Q"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
     "inside_humidity": 45,
     "outside_temperature": 21.5,
     "timestamp": 1454020559000
@@ -965,8 +989,8 @@ Note that the URI of the chosen matching packet is returned in the `Location` fi
 
 ```Shell
 $ curl -i --silent -X GET  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/1454020573000?match=lastBefore 
-HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/1454020569000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-UjFTISvRUCNmsYDCdNrlZQ"Date: Sat, 30 Jan 2016 02:08:27 GMTConnection: keep-alive{
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/1454020573000?match=lastBefore 
+HTTP/1.1 200 OKX-Powered-By: ExpressLocation: http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/1454020569000Content-Type: application/json; charset=utf-8Content-Length: 75ETag: W/"4b-UjFTISvRUCNmsYDCdNrlZQ"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive{
     "inside_humidity": 43,
     "outside_temperature": 21.7,
     "timestamp": 1454020569000
@@ -999,8 +1023,8 @@ If the stream and/or timestamp do not exist in the database, then a response cod
 **Example**
 ```Shell
 $ curl -i --silent -X DELETE  \
->   http://localhost:3000/api/v1/streams/56ac1b1bc9cbba9317d70fe3/packets/1454020559000 
-HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sat, 30 Jan 2016 02:08:28 GMTConnection: keep-alive
+>   http://localhost:3000/api/v1/streams/56ae1e0c3d77252702d46d0f/packets/1454020559000 
+HTTP/1.1 204 No ContentX-Powered-By: ExpressETag: W/"a-oQDOV50e1MN2H/N8GYi+8w"Date: Sun, 31 Jan 2016 14:45:32 GMTConnection: keep-alive
 ```
 
 
