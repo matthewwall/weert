@@ -1,10 +1,10 @@
 # SERVER
 
-Get the weewx extension working again.
+The query operators should be accepted for all GETs.
 
-Posting to an unallocated stream should be rejected. Test for this.
+Accept ?name=val parameter in lieu of ?query=.
 
-Test for duplicate key error.
+The key 'name' should be indexed.
 
 Add the ability to return streams by value (as well as URI).
 

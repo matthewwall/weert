@@ -17,8 +17,6 @@ var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
 var request      = require('request');
 
-// var Client       = require('node-rest-client').Client;
-
 var timestamp = function (i) {
     // Base time is 1-Jan-2015 0000 UTC:
     return 1420070400000 + i * 300000;
@@ -259,24 +257,28 @@ var testMultiplePackets = function () {
 
                         frisby.create("Retrieve all packets in default order")
                             .get(stream_packet_link)
+                            .expectStatus(200)
                             .expectJSONTypes('', Array)
                             .expectJSON('', packets)
                             .toss();
 
                         frisby.create("Retrieve all packets in reverse order")
                             .get(stream_packet_link + '?direction=desc')
+                            .expectStatus(200)
                             .expectJSONTypes('', Array)
                             .expectJSON('', reverse_packets)
                             .toss();
 
                         frisby.create("Retrieve packets sorted by temperature")
                             .get(stream_packet_link + '?sort=outside_temperature&direction=asc')
+                            .expectStatus(200)
                             .expectJSONTypes('', Array)
                             .expectJSON('', reverse_packets)
                             .toss();
 
                         frisby.create("Retrieve packets reverse sorted by temperature")
                             .get(stream_packet_link + '?sort=outside_temperature&direction=desc')
+                            .expectStatus(200)
                             .expectJSONTypes('', Array)
                             .expectJSON('', packets)
                             .toss();

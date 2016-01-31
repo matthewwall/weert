@@ -63,8 +63,6 @@ var getSortSpec = function (sort_option, direction_option) {
 };
 
 var formListQuery = function (query) {
-    // Right now, allowed queries are pretty conservative. Just a sort field and a direction is allowed.
-    // However, more sophisticated queries could be allowed
 
     // Default query:
     if (query === undefined) {
@@ -75,8 +73,10 @@ var formListQuery = function (query) {
     }
 
     var dbQuery = {};
-    if(query.query){
+    if (query.query) {
         dbQuery.query = JSON.parse(query.query);
+    } else if (query.name) {
+        dbQuery.query = {name: {"$eq": query.name}}
     }
 
     // Mongo requires a special sort syntax. Form it out of the sort and direction parameters:
