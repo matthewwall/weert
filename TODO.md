@@ -1,8 +1,10 @@
 # SERVER
 
 The query operators should be accepted for all GETs.
+Document this
 
 Accept ?name=val parameter in lieu of ?query=.
+Document this
 
 The key 'name' should be indexed.
 

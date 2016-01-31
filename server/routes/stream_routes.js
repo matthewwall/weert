@@ -55,6 +55,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
         catch (err) {
             err.description = req.query;
+            debug("GET /streams error forming query:", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -163,8 +164,6 @@ var StreamRouterFactory = function (stream_manager) {
     // GET all packets or an aggregation from a stream, which
     // satisfies a search query.
     router.get('/streams/:streamID/packets', function (req, res) {
-        // Get the streamID out of the route path
-        var streamID = req.params.streamID;
         var dbQuery;
         try {
             dbQuery = auxtools.formSpanQuery(req.query);
@@ -175,6 +174,9 @@ var StreamRouterFactory = function (stream_manager) {
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
+
+        // Get the streamID out of the route path
+        var streamID = req.params.streamID;
 
         // Accept either 'aggregate_type' or 'agg_type'. Former takes precedence.
         req.query.aggregate_type = req.query.aggregate_type || req.query.agg_type;

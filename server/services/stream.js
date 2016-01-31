@@ -153,7 +153,13 @@ var StreamManagerFactory = function (dbPromise, options) {
          */
         var findStreams = function (dbQuery) {
 
-            if (dbQuery.query === undefined) dbQuery.query = {}
+            var query = dbQuery.query;
+            var sort  = dbQuery.sort;
+            var limit = dbQuery.limit;
+            if (query === undefined) query = {};
+            if (sort === undefined) sort = {_id: 1};
+            if (limit === undefined) limit = 0;
+            console.log("query=", query);
 
             return dbPromise
                 .then(function (db) {
@@ -162,9 +168,9 @@ var StreamManagerFactory = function (dbPromise, options) {
                             Object.assign(options.streams.options, {strict: false}))
                         .then(function (coln) {
                             return coln
-                                .find(dbQuery.query)
-                                .sort(dbQuery.sort)
-                                .limit(dbQuery.limit)
+                                .find(query)
+                                .sort(sort)
+                                .limit(limit)
                                 .toArray();
                         });
                 });
@@ -273,15 +279,23 @@ var StreamManagerFactory = function (dbPromise, options) {
          * @returns {Promise}
          */
         var findPackets = function (streamID, dbQuery) {
-            // TODO: This could be relaxed a bit to allow other query predicates
+
+            var query = dbQuery.query;
             var start = dbQuery.start;
             var stop  = dbQuery.stop;
-            var limit = dbQuery.limit;
             var sort  = dbQuery.sort;
+            var limit = dbQuery.limit;
+
+            if (query === undefined) query = {};
             if (start === undefined) start = 0;
             if (stop === undefined) stop = new Date();
-            if (limit === undefined) limit = 0;
             if (sort === undefined) sort = {_id: 1};
+            if (limit === undefined) limit = 0;
+            // Add the date criteria
+            query._id = {
+                $gt : new Date(start),
+                $lte: new Date(stop)
+            };
 
             return dbPromise
                 .then(function (db) {
@@ -290,12 +304,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                             Object.assign(options.streams.options, {strict: true}))
                         .then(function (coln) {
                             return coln
-                                .find({
-                                    _id: {
-                                        $gt : new Date(start),
-                                        $lte: new Date(stop)
-                                    }
-                                })
+                                .find(query)
                                 .sort(sort)
                                 .limit(limit)
                                 .toArray();
@@ -312,6 +321,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                 });
         };
 
+        // TODO: Need to add more sophisticated queries to aggregatePackets
         var aggregatePackets = function (streamID, obs_type, dbQuery) {
             return dbPromise
                 .then(function (db) {

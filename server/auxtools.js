@@ -91,6 +91,7 @@ var formListQuery = function (query) {
     return dbQuery;
 };
 
+// A span query is a list query plus time constraints
 var formSpanQuery = function (query) {
     var dbQuery   = formListQuery(query);
     dbQuery.start = query.start === undefined ? 0 : +query.start;
