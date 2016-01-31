@@ -700,12 +700,13 @@ GET /api/v1/streams/:streamID/packets
 
 **Parameters**
 
-| *Name*      | *Type*  | *Description*                                                                                                                      |
-|:------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
-| `start`     | integer | All packets greater than this value will be included in the results. If missing, then start with the first available packet.       |
-| `stop`      | integer | All packets less than or equal to this value will be included in the results. If missing, then end with the last available packet. |
-| `aggregate_type` | string | The type of aggregation to be performed. Valid choices include `min`, `max`, `sum`, `avg`, `first` and `last`.                 |
-| `obs_type`  | string | The observation type over which the aggregation is to be performed. |
+| *Name*           | *Type*  | *Description*                                                                                                                                   |
+|:-----------------|:--------|:------------------------------------------------------------------------------------------------------------------------------------------------|
+| `start`          | integer | All packets greater than this value will be included in the results. If missing, then start with the first available packet.                    |
+| `stop`           | integer | All packets less than or equal to this value will be included in the results. If missing, then end with the last available packet.              |
+| `aggregate_type` | string  | The type of aggregation to be performed. Valid choices include `min`, `max`, `sum`, `avg`, `first` and `last`.                                  |
+| `obs_type`       | string  | The observation type over which the aggregation is to be performed.                                                                             |
+| `query`          | string  | An arbitrary [MongoDB query](https://docs.mongodb.org/manual/tutorial/query-documents/) that restricts the packets included in the aggregation. |
 
 **Response code**
 
@@ -729,7 +730,24 @@ If the observation type *obs_type* is not in the collection, then `null` will be
 $GET_streams_streamID_packets_max
 ```
 
+**Example with query**
 
+In this example, we again look for the max outside temperature, but only for those packets with an outside
+humidity greater than or equal to 44. This can be expressed with the MongoDB query:
+
+```Javascript
+{"outside_humidity" : {"$gte" : 44}}
+```
+
+This results in a query parameter, which once encoded, looks like
+
+```
+&query=%7B%22outside_humidity%22%3A%20%7B%22%24gte%22%3A%2044%7D%7D
+```
+
+```Shell
+$GET_streams_streamID_packets_max_query
+```
 
 
 

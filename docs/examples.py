@@ -3,6 +3,7 @@ from subprocess import Popen, PIPE
 import shlex
 import json
 import time
+import urllib
 
 weert_url = "http://localhost:3000/api/v1/"
 
@@ -117,7 +118,7 @@ def get_mapping():
     for i in range(4):
         m, p = do_curl(stream_url1 + "/packets",
                        'POST',
-                       '{"timestamp": %d, "outside_temperature": %.1f, "inside_humidity":%.0f}' % (timestamp(i), 21.5+0.1*i, 45-i))
+                       '{"timestamp": %d, "outside_temperature": %.1f, "outside_humidity":%.0f}' % (timestamp(i), 21.5+0.1*i, 45-i))
         if i==0:
             mapping["POST_streams_streamID_packets"], packet_url0 = m, p
             
@@ -126,12 +127,19 @@ def get_mapping():
     # GET all packets
     mapping["GET_streams_streamID_packets"], _ = do_curl(stream_url1 + "/packets")
 
-    # Do it again, but sort by inside humidity:
-    mapping["GET_streams_streamID_packets_sort"], _ = do_curl(stream_url1 + "/packets?sort=inside_humidity")
+    # Do it again, but sort by outside humidity:
+    mapping["GET_streams_streamID_packets_sort"], _ = do_curl(stream_url1 + "/packets?sort=outside_humidity")
 
 
     # Get an aggregation:
     mapping["GET_streams_streamID_packets_max"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature")
+    
+    # Get an aggregation, restricted to certain humidities
+    query_obj = {"outside_humidity" : {"$gte" : 44}}
+    query = urllib.quote(json.dumps(query_obj))
+    mapping["GET_streams_streamID_packets_max_query"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature&query=" + query)
+    
+
     
     # Get last packet in the stream
     mapping["GET_streams_streamID_packets_timestamp_latest"], _ = do_curl(stream_url1 + "/packets/latest")
