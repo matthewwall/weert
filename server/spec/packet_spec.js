@@ -23,7 +23,7 @@ var timestamp = function (i) {
 };
 
 var temperature = function (i) {
-    return 45 - i;
+    return 40 - i;
 };
 
 var testSinglePacket = function () {
@@ -309,6 +309,19 @@ var testMultiplePackets = function () {
                             .expectStatus(200)
                             .afterJSON(function (json) {
                                 expect(json).toEqual(null);
+                            })
+                            .toss();
+
+                        // Test adding an arbitrary query to the aggregation. In this case, look for the min
+                        // temperature in the records restricted to those with temperature >= the temperature
+                        // in the N-3 record. Because temperatures are descending with time, this should be
+                        // the temperature of the N-3 record
+                        var query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$gte: temperature(N-3)}}));
+                        frisby.create("Get aggregate with query")
+                            .get(stream_packet_link + '?agg_type=min&obs_type=outside_temperature' + query)
+                            .expectStatus(200)
+                            .afterJSON(function (json) {
+                                expect(json).toEqual(temperature(N - 3));
                             })
                             .toss();
 

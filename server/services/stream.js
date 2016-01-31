@@ -159,7 +159,6 @@ var StreamManagerFactory = function (dbPromise, options) {
             if (query === undefined) query = {};
             if (sort === undefined) sort = {_id: 1};
             if (limit === undefined) limit = 0;
-            console.log("query=", query);
 
             return dbPromise
                 .then(function (db) {
@@ -291,7 +290,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             if (stop === undefined) stop = new Date();
             if (sort === undefined) sort = {_id: 1};
             if (limit === undefined) limit = 0;
-            // Add the date criteria
+            // Add the date criteria to any query
             query._id = {
                 $gt : new Date(start),
                 $lte: new Date(stop)

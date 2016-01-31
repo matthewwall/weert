@@ -24,42 +24,48 @@ var collection = function (db, coln_name, coln_options) {
 };
 
 
-var calcAggregate = function (collection, obs_type, dbQuery) {
+var calcAggregate = function (coln, obs_type, dbQuery) {
 
     if (dbQuery.aggregate_type === undefined)
         throw new Error("Attribute aggregate_type required for aggregation");
 
+    var query = dbQuery.query;
     var start = dbQuery.start;
     var stop  = dbQuery.stop;
+    if (query === undefined) query = {};
     if (start === undefined) start = 0;
     if (stop === undefined) stop = new Date();
 
     var agg_operator       = "$" + dbQuery.aggregate_type;
     var agg_expr           = {};
-    agg_expr[agg_operator] = "$" + obs_type;
-    var match_expr         = {
-        $match: {
-            _id: {
-                $gt : new Date(start),
-                $lte: new Date(stop)
-            }
-        }
-    };
+    agg_expr[agg_operator] = "$" + obs_type;    // Something like {$max: $outside_temperature}
 
-    match_expr["$match"][obs_type] = {$ne: null};
+    // Build the match expression. We need to merge the restrictions, such as date restrictions,
+    // with any queries the user may have supplied.
+    // Start with the query. Make a copy of it
+    var qmatch = Object.assign({}, query);
 
-    return collection
-        .aggregate(
-            [
-                match_expr,
-                {
-                    $group: {
-                        _id      : null,
-                        agg_value: agg_expr
-                    }
+    // If no query on the observation type has been assigned, add an empty query
+    if (qmatch[obs_type] === undefined) qmatch[obs_type] = {};
+    // Now make sure the observation type is non-null
+    qmatch[obs_type]["$ne"] = null;
+    // If no query on the _id has been assigned, add an empty query
+    if (qmatch["_id"] === undefined) qmatch["_id"] = {};
+    // Now make sure the _id is between the given dates
+    qmatch["_id"] = {$gt: new Date(start), $lte: new Date(stop)};
+
+    return coln
+        .aggregate([
+            {
+                $match: qmatch
+            },
+            {
+                $group: {
+                    _id      : null,
+                    agg_value: agg_expr
                 }
-            ],
-            {})
+            }
+        ])
         .toArray()
         .then(function (result) {
             var val = result[0] === undefined ? null : result[0].agg_value;
