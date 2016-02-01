@@ -19,8 +19,6 @@ var auxtools = require('../auxtools');
 var error    = require('./error');
 var errors   = require('../errors');
 
-// TODO: Better debug messages.
-
 var PlatformRouterFactory = function (platform_manager) {
 
     var router = express.Router();
@@ -41,6 +39,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     res.app.emit('platforms/POST', result);
                 })
                 .catch(function (err) {
+                    debug("POST /platforms Unable to create platform:", err);
                     error.sendError(err, res);
                 });
         } else {
@@ -57,7 +56,7 @@ var PlatformRouterFactory = function (platform_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to find platforms. Reason", err);
+            debug("GET /platforms. Unable to form query:", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
@@ -65,7 +64,6 @@ var PlatformRouterFactory = function (platform_manager) {
         platform_manager
             .findPlatforms(dbQuery)
             .then(function (platforms_array) {
-                debug("# of platforms=", platforms_array.length);
                 var as = req.query.as || 'links';
                 switch (as.toLowerCase()) {
                     case 'values':
@@ -77,7 +75,7 @@ var PlatformRouterFactory = function (platform_manager) {
                         }
                         return res.json(platform_uris);
                     default:
-                        debug("Unknown value for 'as':", as);
+                        debug("GET /platforms. Unknown value for 'as':", as);
                         return res.status(400).json({
                             code       : 400,
                             message    : "Invalid query value for 'as'",
@@ -86,7 +84,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to find platforms. Reason", err);
+                debug("GET /platforms Unable to find platforms:", err);
                 error.sendError(err, res);
             });
     });
@@ -95,7 +93,6 @@ var PlatformRouterFactory = function (platform_manager) {
     router.get('/platforms/:platformID', function (req, res) {
         // Get the platformID out of the route path
         var platformID = req.params.platformID;
-        debug("Request for platformID", platformID);
 
         platform_manager
             .findPlatform(platformID)
@@ -109,7 +106,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request. Reason", err);
+                debug("GET /platforms/:platformID. Unable to satisfy request:", err);
                 error.sendError(err, res);
             });
     });
@@ -121,7 +118,6 @@ var PlatformRouterFactory = function (platform_manager) {
 
             // Get the platformID out of the route path
             var platformID = req.params.platformID;
-            debug("Request to update metadata for platformID", platformID);
 
             // Get the platform metadata
             var metadata = req.body;
@@ -141,6 +137,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     }
                 })
                 .catch(function (err) {
+                    debug("PUT /platforms/:platformID: Unable to update platform:", err);
                     error.sendError(err, res);
                 });
         } else {
@@ -154,7 +151,6 @@ var PlatformRouterFactory = function (platform_manager) {
     router.delete('/platforms/:platformID', function (req, res) {
         // Get the platformID out of the router path
         var platformID = req.params.platformID;
-        debug("Request to delete platform", platformID);
 
         platform_manager
             .deletePlatform(platformID)
@@ -170,7 +166,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request to delete platform. Reason", err);
+                debug("DELETE /platforms/:platformID: Unable to delete platform:", err);
                 error.sendError(err, res);
             });
     });
@@ -195,6 +191,7 @@ var PlatformRouterFactory = function (platform_manager) {
                     res.app.emit('platforms/locations/POST', {_id: platformID, location: locrec});
                 })
                 .catch(function (err) {
+                    debug("POST /platforms/:platformID/locations. Unable to post location:", err);
                     error.sendError(err, res);
                 });
         } else {
@@ -212,12 +209,11 @@ var PlatformRouterFactory = function (platform_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Unable to find locations. Reason", err);
+            debug("GET /platforms/:platformID/locations Unable to form query:", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
 
-        debug("Request for location records with start, stop times of", req.query.start, req.query.stop);
         platform_manager
             .findLocations(platformID, dbQuery)
             .then(function (locrec_array) {
@@ -228,7 +224,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 if (err.name === "NoSuchIDError") {
                     res.sendStatus(404);
                 } else {
-                    debug("Unable to satisfy request for location records. Reason", err);
+                    debug("GET /platforms/:platformID/locations. Unable to satisfy request:", err);
                     error.sendError(err, res);
                 }
             });
@@ -238,7 +234,6 @@ var PlatformRouterFactory = function (platform_manager) {
     router.get('/platforms/:platformID/locations/latest', function (req, res) {
         // Get the platformID out of the route path
         var platformID = req.params.platformID;
-        debug("Request for latest location of ", platformID);
 
         platform_manager
             .findLocation(platformID, {query: {}, sort: {_id: -1}})
@@ -255,7 +250,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request for latest location of", platformID, ". Reason", err);
+                debug("GET /platforms/:platformID/locations/latest. Unable to satisfy request:", err);
                 error.sendError(err, res);
             });
     });
@@ -271,11 +266,10 @@ var PlatformRouterFactory = function (platform_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Bad query when finding location record. Reason", err);
+            debug("/platforms/:platformID/locations/:timestamp. Unable to form query:", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
-        debug("Request for location at timestamp", dbQuery.timestamp);
 
         platform_manager
             .findLocation(platformID, dbQuery)
@@ -292,7 +286,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request for platform time query. Reason", err);
+                debug("/platforms/:platformID/locations/:timestamp. Unable to satisfy request:", err);
                 error.sendError(err, res);
             });
     });
@@ -307,11 +301,10 @@ var PlatformRouterFactory = function (platform_manager) {
         }
         catch (err) {
             err.description = req.query;
-            debug("Bad query when deleting location record. Reason", err);
+            debug("/platforms/:platformID/locations/:timestamp. Unable to form query:", err);
             res.status(400).json(auxtools.fromError(400, err));
             return;
         }
-        debug("Request to delete location record at timestamp", dbQuery.timestamp);
 
         platform_manager
             .deleteLocation(platformID, dbQuery)
@@ -327,7 +320,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 }
             })
             .catch(function (err) {
-                debug("Unable to satisfy request to delete location record. Reason", err);
+                debug("/platforms/:platformID/locations/:timestamp Unable to satisfy request:", err);
                 error.sendError(err, res);
             })
     });
