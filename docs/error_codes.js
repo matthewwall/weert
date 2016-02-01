@@ -35,7 +35,7 @@ MongoClient
                 bar
                     .deleteOne({_id: {$eq: id_obj}}, {})
                     .then(function (result) {
-                        console.log("delete result for good delete=", result.result)
+                        console.log("delete result for good delete=", result.result);
                         // Prints:
                         //delete result for good delete= { ok: 1, n: 1 }
                     })

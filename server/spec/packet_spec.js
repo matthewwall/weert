@@ -39,7 +39,7 @@ var testSinglePacket = function () {
         )
         .expectStatus(201)
         .expectHeaderContains('content-type', 'application/json')
-        .after(function (error, res, body) {
+        .after(function (error, res) {
             // Successfully created a stream. Now let's try posting into it. First, get the link to the new stream.
             var stream_link = res.headers.location;
             // This is where to POST new packets:
@@ -62,7 +62,7 @@ var testSinglePacket = function () {
                         timestamp          : timestamp(0),
                         outside_temperature: temperature(0)
                     })
-                .after(function (error, res, body) {
+                .after(function () {
                     // We've POSTed a packet. Now try to retrieve it:
                     var packet_link = normalizeUrl(stream_packet_link + '/' + timestamp(0));
                     frisby.create("GET a single packet")
@@ -74,12 +74,12 @@ var testSinglePacket = function () {
                                 timestamp          : timestamp(0),
                                 outside_temperature: temperature(0)
                             })
-                        .after(function (error, res, body) {
+                        .after(function () {
                             // We've retrieved it. Now delete it.
                             frisby.create("DELETE a single packet")
                                 .delete(packet_link)
                                 .expectStatus(204)
-                                .after(function (error, res, body) {
+                                .after(function () {
                                     // Now make sure it is really deleted.
                                     frisby.create("Get a non-existent packet")
                                         .get(packet_link)
@@ -132,7 +132,7 @@ var testSinglePacket = function () {
                     {json: true}
                 )
                 .expectStatus(201)
-                .after(function (error, res, body) {
+                .after(function () {
                     frisby
                         .create("Post 2nd packet to test for posting a duplicate timestamp")
                         .post(stream_packet_link,
@@ -179,8 +179,10 @@ var testMiscellaneous = function () {
 
 
 var testMultiplePackets = function () {
-    // How many packets to use for the test
+    // How many packets to use for the test.
+    // Must be > 5 for the tests to work.
     var N = 20;
+    var query;
 
     var indices         = [];
     var packets         = [];
@@ -206,7 +208,7 @@ var testMultiplePackets = function () {
         )
         .expectStatus(201)
         .expectHeaderContains('content-type', 'application/json')
-        .after(function (error, res, body) {
+        .after(function (error, res) {
 
             // Get the URI for the just created stream resource
             var stream_link = res.headers.location;
@@ -233,7 +235,7 @@ var testMultiplePackets = function () {
                                 url   : stream_packet_link,
                                 method: 'POST',
                                 json  : packets[i]
-                            }, function (error, response, body) {
+                            }, function (error) {
                                 return callback(error);
                             });
                         }, function (err) {
@@ -312,11 +314,23 @@ var testMultiplePackets = function () {
                             })
                             .toss();
 
+                        // Test a query. Select only packets where temperature <= the temperature in record 5. Because
+                        // temperatures descend with time, this will exclude the first 5 records.
+                        // So, there should be N-5 left.
+                        query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$lte: temperature(5)}}));
+                        frisby.create("Get packets by value with query")
+                            .get(stream_packet_link + '?as=values&' + query)
+                            .expectStatus(200)
+                            .afterJSON(function (json) {
+                                expect(json).toEqual(packets.slice(5));     // Exclude first 5 records
+                            })
+                            .toss();
+
                         // Test adding an arbitrary query to the aggregation. In this case, look for the min
                         // temperature in the records restricted to those with temperature >= the temperature
                         // in the N-3 record. Because temperatures are descending with time, this should be
                         // the temperature of the N-3 record
-                        var query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$gte: temperature(N-3)}}));
+                        query = '&query=' + encodeURIComponent(JSON.stringify({outside_temperature: {$gte: temperature(N-3)}}));
                         frisby.create("Get aggregate with query")
                             .get(stream_packet_link + '?agg_type=min&obs_type=outside_temperature' + query)
                             .expectStatus(200)
@@ -329,9 +343,7 @@ var testMultiplePackets = function () {
                             .get(time_link('latest'))
                             .expectStatus(200)
                             .expectJSON('', packets[N - 1])
-                            .after(function (error, res, body) {
-                                // Get the URI for the matched packet
-                                var packet_link = res.headers.location;
+                            .after(function (error, res) {
                                 describe("Test that search for last packet", function () {
                                     it("contains the packet link", function () {
                                         expect(res.headers.location).toEqual(time_link(timestamp(N - 1)))
@@ -361,9 +373,7 @@ var testMultiplePackets = function () {
                             .get(time_link(packets[2].timestamp - 1) + '?match=lastBefore')
                             .expectStatus(200)
                             .expectJSON('', packets[1])
-                            .after(function (error, res, body) {
-                                // Get the URI for the matched packet
-                                var packet_link = res.headers.location;
+                            .after(function (error, res) {
                                 describe("Test that search for lastBefore packet", function () {
                                     it("contains the packet link", function () {
                                         expect(res.headers.location).toEqual(time_link(timestamp(1)))

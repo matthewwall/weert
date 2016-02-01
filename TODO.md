@@ -8,8 +8,6 @@ Document this
 
 The key 'name' should be indexed.
 
-Add the ability to return streams by value (as well as URI).
-
 Implement authorization tokens.
 
 The websocket channels may be too broad. Should probably allow clients to subscribe

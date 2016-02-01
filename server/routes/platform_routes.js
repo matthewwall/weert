@@ -51,6 +51,7 @@ var PlatformRouterFactory = function (platform_manager) {
     // Return an array of URIs or metadata for platforms that satisfy a query.
     router.get('/platforms', function (req, res) {
         var dbQuery;
+        // A bad sort direction or limit can cause an exception to be raised:
         try {
             dbQuery = auxtools.formListQuery(req.query);
         }
@@ -184,7 +185,7 @@ var PlatformRouterFactory = function (platform_manager) {
                 .insertOneLocation(platformID, locrec)
                 .then(function (result) {
                     // All went well. Get the URI of the new location record
-                    var resource_url = auxtools.resourcePath(req, locrec.timestamp);
+                    var resource_url = auxtools.resourcePath(req, result._id);
                     // Send it back in the location header
                     res.status(201).location(resource_url).json(locrec);
                     // Emit an event
@@ -217,7 +218,6 @@ var PlatformRouterFactory = function (platform_manager) {
         platform_manager
             .findLocations(platformID, dbQuery)
             .then(function (locrec_array) {
-                debug("# of locrecs=", locrec_array.length);
                 res.json(locrec_array);
             })
             .catch(function (err) {

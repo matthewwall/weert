@@ -17,7 +17,7 @@ var normalizeUrl = require('normalize-url');
 var request      = require('request');
 
 // How many records to test
-var N = 5;
+var N = 20;
 
 var timestamp = function (i) {
     // Base time is 1-Jan-2015 0000 UTC. Five minute increments.
@@ -57,7 +57,7 @@ var testMultipleLocrecs = function () {
         )
         .expectStatus(201)
         .expectHeaderContains('content-type', 'application/json')
-        .after(function (error, res, body) {
+        .after(function (error, res) {
 
             // Get the URI for the just created platform resource
             var platform_link        = res.headers.location;
@@ -84,7 +84,7 @@ var testMultipleLocrecs = function () {
                                 url   : platform_locrec_link,
                                 method: 'POST',
                                 json  : locrecs[i]
-                            }, function (error, response, body) {
+                            }, function (error) {
                                 return callback(error);
                             });
                         }, function (err) {
@@ -139,9 +139,7 @@ var testMultipleLocrecs = function () {
                             .get(time_link('latest'))
                             .expectStatus(200)
                             .expectJSON('', locrecs[N-1])
-                            .after(function (error, res, body) {
-                                // Get the URI for the matched location
-                                var location_link = res.headers.location;
+                            .after(function (error, res) {
                                 describe("Test that search for last location", function () {
                                     it("contains the location link", function () {
                                         expect(res.headers.location).toEqual(time_link(timestamp(N-1)))
@@ -171,9 +169,7 @@ var testMultipleLocrecs = function () {
                             .get(time_link(locrecs[2].timestamp - 1) + '?match=lastBefore')
                             .expectStatus(200)
                             .expectJSON('', locrecs[1])
-                            .after(function (error, res, body) {
-                                // Get the URI for the matched location
-                                var location_link = res.headers.location;
+                            .after(function (error, res) {
                                 describe("Test that search for lastBefore location", function () {
                                     it("contains the location link", function () {
                                         expect(res.headers.location).toEqual(time_link(timestamp(1)))

@@ -160,7 +160,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
 
                         if (platforms.length) {
                             // Unfortunately, the name is already taken. Signal the error
-                            return new Promise.reject(new errors.DuplicateNameError("Name" + platform_metadata.name + "already in use"))
+                            return new Promise.reject(new errors.DuplicateNameError("Name " + platform_metadata.name + " already in use"))
                         }
 
                         // Make a copy of the metadata. We're going to modify it

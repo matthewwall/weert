@@ -46,7 +46,7 @@ var StreamRouterFactory = function (stream_manager) {
         }
     });
 
-    // Return an array of URIs to streams that satisfy a query.
+    // Return an array of URIs or metadata for streams that satisfy a query.
     router.get('/streams', function (req, res) {
         var dbQuery;
         // A bad sort direction or limit can cause an exception to be raised:
@@ -135,7 +135,7 @@ var StreamRouterFactory = function (stream_manager) {
                     }
                 })
                 .catch(function (err) {
-                    debug("PUT /streams/:streamID error:", err)
+                    debug("PUT /streams/:streamID error:", err);
                     error.sendError(err, res);
                 });
         } else {
@@ -207,6 +207,7 @@ var StreamRouterFactory = function (stream_manager) {
                     error.sendError(err, res);
                 });
         } else {
+            // An aggregation is not being request. Return the matched packets.
             stream_manager
                 .findPackets(streamID, dbQuery)
                 .then(function (packet_array) {
