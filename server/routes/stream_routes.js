@@ -63,13 +63,24 @@ var StreamRouterFactory = function (stream_manager) {
         stream_manager
             .findStreams(dbQuery)
             .then(function (streams_array) {
-                // Form URIs for all the streams that were found which satisfied the query
-                var stream_uris = [];
-                for (var i = 0; i < streams_array.length; i++) {
-                    stream_uris[i] = auxtools.resourcePath(req, streams_array[i]._id);
+                // See how the caller wants the results returned.
+                var as = req.query.as || 'links';
+                switch (as.toLowerCase()) {
+                    case 'values':
+                        return res.json(streams_array);
+                    case 'links':
+                        var stream_uris = [];
+                        for (var i = 0; i < streams_array.length; i++) {
+                            stream_uris[i] = auxtools.resourcePath(req, streams_array[i]._id);
+                        }
+                        return res.json(stream_uris);
+                    default:
+                        return res.status(400).json({
+                            code       : 400,
+                            message    : "Invalid query value for 'as'",
+                            description: req.query.as
+                        });
                 }
-                // Return the array
-                res.json(stream_uris);
             })
             .catch(function (err) {
                 debug("GET /streams error:", err);

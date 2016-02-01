@@ -19,6 +19,8 @@ var auxtools = require('../auxtools');
 var error    = require('./error');
 var errors   = require('../errors');
 
+// TODO: Better debug messages.
+
 var PlatformRouterFactory = function (platform_manager) {
 
     var router = express.Router();
@@ -64,7 +66,7 @@ var PlatformRouterFactory = function (platform_manager) {
             .findPlatforms(dbQuery)
             .then(function (platforms_array) {
                 debug("# of platforms=", platforms_array.length);
-                var as = req.query.as ? req.query.as : 'links';
+                var as = req.query.as || 'links';
                 switch (as.toLowerCase()) {
                     case 'values':
                         return res.json(platforms_array);

@@ -66,6 +66,62 @@ def get_mapping():
 
     mapping = {}
 
+    #*********************************** STREAMS *******************************
+
+    # Create a stream
+    mapping["POST_streams"], stream_url1 = do_curl(weert_url + 'streams',
+                                                   'POST',
+                                                   '{"name": "weather stream 412", "description": "WX station mounted on Bennys Ute", "unit_group": "METRICWX"}')
+
+    # Create a 2nd stream    
+    _,_ = do_curl(weert_url + 'streams',
+                  'POST',
+                  '{"name": "vehicle 412 status", "description": "Oil monitor", "unit_group": "METRIC"}')
+    
+    # Get all streams by reference
+    mapping["GET_streams_ref"], _ = do_curl(weert_url + 'streams', 'GET')
+    
+    # Get all streams by value
+    mapping["GET_streams_value"], _ = do_curl(weert_url + 'streams?as=values', 'GET')
+    
+    # Post 4 packets to the first stream
+    for i in range(4):
+        m, p = do_curl(stream_url1 + "/packets",
+                       'POST',
+                       '{"timestamp": %d, "outside_temperature": %.1f, "outside_humidity":%.0f}' % (timestamp(i), 21.5+0.1*i, 45-i))
+        if i==0:
+            mapping["POST_streams_streamID_packets"], packet_url0 = m, p
+            
+    # GET all packets
+    mapping["GET_streams_streamID_packets"], _ = do_curl(stream_url1 + "/packets")
+
+    # Do it again, but sort by outside humidity:
+    mapping["GET_streams_streamID_packets_sort"], _ = do_curl(stream_url1 + "/packets?sort=outside_humidity")
+
+    # Do it again, but limit to those with outside humidity >= 44
+    query_obj = {"outside_humidity" : {"$gte" : 44}}
+    query = urllib.quote(json.dumps(query_obj))
+    mapping["GET_streams_streamID_packets_query"], _ = do_curl(stream_url1 + "/packets?query=" + query)
+
+    # Get an aggregation:
+    mapping["GET_streams_streamID_packets_max"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature")
+    
+    # Get an aggregation, restricted to outside humidity >= 44
+    mapping["GET_streams_streamID_packets_max_query"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature&query=" + query)
+    
+
+    
+    # Get last packet in the stream
+    mapping["GET_streams_streamID_packets_timestamp_latest"], _ = do_curl(stream_url1 + "/packets/latest")
+
+    # Get an exact matching timestamp:
+    mapping["GET_streams_streamID_packets_timestamp_exact"], _ = do_curl(packet_url0)
+    
+    # Get the "last before" packet
+    mapping["GET_streams_streamID_packets_timestamp_lastBefore"], _ = do_curl(stream_url1 + "/packets/%d?match=lastBefore" % (timestamp(3)-1000,))
+    
+    
+    #*********************************** PLATFORMS *******************************
     # Create a platform:
     mapping["POST_platforms"], platform_url1 = do_curl(weert_url + 'platforms', 
                                                        'POST', """{"name":"Bennys Ute", "description" : "Yellow, with black cap"}"""  )
@@ -108,50 +164,7 @@ def get_mapping():
     # Get location at exact timestamp:
     mapping["GET_platforms_platformID_locations_timestamp_exact"], _ = do_curl(location_url1, 'GET')
     
-    #*********************************** STREAMS *******************************
 
-    mapping["POST_streams"], stream_url1 = do_curl(weert_url + 'streams',
-                                                   'POST',
-                                                   '{"name": "weather stream 412", "description": "WX station mounted on Bennys Ute", "unit_group": "METRICWX"}')
-    
-    # Post 4 packets:
-    for i in range(4):
-        m, p = do_curl(stream_url1 + "/packets",
-                       'POST',
-                       '{"timestamp": %d, "outside_temperature": %.1f, "outside_humidity":%.0f}' % (timestamp(i), 21.5+0.1*i, 45-i))
-        if i==0:
-            mapping["POST_streams_streamID_packets"], packet_url0 = m, p
-            
-    # And a 3rd
-    
-    # GET all packets
-    mapping["GET_streams_streamID_packets"], _ = do_curl(stream_url1 + "/packets")
-
-    # Do it again, but sort by outside humidity:
-    mapping["GET_streams_streamID_packets_sort"], _ = do_curl(stream_url1 + "/packets?sort=outside_humidity")
-
-    # Do it again, but limit to those with outside humidity >= 44
-    query_obj = {"outside_humidity" : {"$gte" : 44}}
-    query = urllib.quote(json.dumps(query_obj))
-    mapping["GET_streams_streamID_packets_query"], _ = do_curl(stream_url1 + "/packets?query=" + query)
-
-    # Get an aggregation:
-    mapping["GET_streams_streamID_packets_max"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature")
-    
-    # Get an aggregation, restricted to outside humidity >= 44
-    mapping["GET_streams_streamID_packets_max_query"], _ = do_curl(stream_url1 + "/packets?agg_type=max&obs_type=outside_temperature&query=" + query)
-    
-
-    
-    # Get last packet in the stream
-    mapping["GET_streams_streamID_packets_timestamp_latest"], _ = do_curl(stream_url1 + "/packets/latest")
-
-    # Get an exact matching timestamp:
-    mapping["GET_streams_streamID_packets_timestamp_exact"], _ = do_curl(packet_url0)
-    
-    # Get the "last before" packet
-    mapping["GET_streams_streamID_packets_timestamp_lastBefore"], _ = do_curl(stream_url1 + "/packets/%d?match=lastBefore" % (timestamp(3)-1000,))
-    
     #*********************************** DELETIONS *******************************
 
     # Deletions have to wait until the end, because the thing they are deleting may be in use.

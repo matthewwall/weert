@@ -325,28 +325,28 @@ describe("Launch and test " + N + " POSTs of metadata", function () {
             // We need to filter out all streams that were created by the other tests
             var qgroup = '&query=' + encodeURIComponent(JSON.stringify({test_group: {$eq: "POST_many"}}));
 
-            frisby.create("Retrieve all streams sorted by name")
+            frisby.create("Retrieve all stream URIs sorted by name")
                 .get(test_url + '?sort=name&direction=asc' + qgroup)
                 .expectStatus(200)
                 .expectJSONTypes('', Array)
                 .expectJSON('', urls)
                 .toss();
 
-            frisby.create("Retrieve all streams sorted by name in reverse order")
+            frisby.create("Retrieve all stream URIs sorted by name in reverse order")
                 .get(test_url + '?sort=name&direction=desc' + qgroup)
                 .expectStatus(200)
                 .expectJSONTypes('', Array)
                 .expectJSON('', reverse_urls)
                 .toss();
 
-            frisby.create("Retrieve streams sorted by description")
+            frisby.create("Retrieve all stream URIs sorted by description")
                 .get(test_url + '?sort=description&direction=asc' + qgroup)
                 .expectStatus(200)
                 .expectJSONTypes('', Array)
                 .expectJSON('', reverse_urls)
                 .toss();
 
-            frisby.create("Retrieve urls reverse sorted by description")
+            frisby.create("Retrieve all stream URIs reverse sorted by description")
                 .get(test_url + '?sort=description&direction=desc' + qgroup)
                 .expectStatus(200)
                 .expectJSONTypes('', Array)
@@ -356,6 +356,13 @@ describe("Launch and test " + N + " POSTs of metadata", function () {
             frisby.create("Test urls using bad sort direction")
                 .get(test_url + '?direction=foo')
                 .expectStatus(400)
+                .toss();
+
+            frisby.create("Retrieve all stream metadata, sorted by name")
+                .get(test_url + '?sort=name&direction=asc&as=values' + qgroup)
+                .expectStatus(200)
+                .expectJSONTypes('', Array)
+                .expectJSON('', metadata)
                 .toss();
 
             // First try the most general query

@@ -186,7 +186,7 @@ Unless otherwise noted, data is returned in the response body, formatted as JSON
 | `GET`       | `/api/v1/platforms/:platformID/locations/:timestamp` | Return a location packet for platform *platformID* with the given timestamp.                      | I, D, T |
 | `DELETE`    | `/api/v1/platforms/:platformID/locations/:timestamp` | Delete a location packet for platform *platformID* with the given timestamp.                      | I, D, T |
 | `POST`      | `/api/v1/streams`                                    | Create a new stream, returning its URI in the Locations field. Return its metadata.               | I, D, T |
-| `GET`       | `/api/v1/streams`                                    | Return an array of URIs to all the streams.                                                       | I,    T |
+| `GET`       | `/api/v1/streams`                                    | Return an array of URIs to all the streams.                                                       | I, D, T |
 | `GET`       | `/api/v1/streams/:streamID`                          | Get the metadata for stream *streamID*.                                                           | I,    T |
 | `PUT`       | `/api/v1/streams/:streamID`                          | Set or update the metadata for stream *streamID*                                                  | I,    T |
 | `DELETE`    | `/api/v1/streams/:streamID`                          | Delete stream *streamID*                                                                          | I,    T |
@@ -602,6 +602,54 @@ in the Location response header.
 **Example**
 ```Shell
 $POST_streams
+```
+
+
+
+
+
+## Get streams
+
+Query the database for information about streams. Return either an array of URIs to the streams,
+or the stream metadata, depending on the `as` parameter.
+
+```
+GET /api/v1/streams
+```
+
+**Parameters**
+
+| *Name*      | *Type*       | *Value*  | *Description*                                                                                                                |
+|:------------|:-------------|:---------|:-----------------------------------------------------------------------------------------------------------------------------|
+| `query`     | query object | *expr*   | An arbitrary [MongoDB query](https://docs.mongodb.org/manual/tutorial/query-documents/) that restricts the returned streams. |
+| `as`        | string       | `links`  | Return results as an array of URIs (default).                                                                                |
+| `as`        | string       | `values` | Return results as an array of metadata.                                                                                      |
+| `sort`      | string       | *key*    | The field to sort by.                                                                                                        |
+| `direction` | string       | `asc`    | Sort by ascending value                                                                                                      |
+| `direction` | string       | `desc`   | Sort by descending value                                                                                                     |
+
+
+**Return status**
+
+| *Status* | *Meaning*             |
+|:---------|:----------------------|
+| 200      | Success               |
+
+If successful, the server will return either an array of URIs to the streams satisfying the query, or an array
+of metadata.
+
+**Example**
+
+```Shell
+$GET_streams_ref
+```
+
+**Do the example again, but by value**
+
+The previous example returned the URIs of the selected streams. In this example, we return the metadata instead.
+
+```Shell
+$GET_streams_value
 ```
 
 
