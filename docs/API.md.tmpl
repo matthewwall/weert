@@ -280,10 +280,11 @@ GET /api/v1/platforms
 
 **Parameters**
 
-| *Name*   | *Type* | *Value*      | *Description*                                          |
-|:---------|:-------|:-------------|:-------------------------------------------------------|
-| `as`     | string | `links`      | Return results as an array of URIs (default).          |
-| `as`     | string | `values`     | Return results as an array of platform values.         |
+| *Name*   | *Type* | *Value*      | *Description*                                                |
+|:---------|:-------------|:-------------|:-------------------------------------------------------|
+| `query`  | query object | *expr*       | An arbitrary [MongoDB query](https://docs.mongodb.org/manual/tutorial/query-documents/) that restricts the returned platforms. |
+| `as`     | string       | `links`      | Return results as an array of URIs (default).          |
+| `as`     | string       | `values`     | Return results as an array of platform values.         |
 
 
 **Return status**
@@ -455,13 +456,15 @@ GET /api/v1/platforms/:platformID/locations
 
 **Parameters**
 
-| *Name*      | *Type*  | *Description*                                                                                                                      |
-|:------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
-| `start`     | integer | All timestamps greater than this value will be included in the results. Default: first available packet.                           |
-| `stop`      | integer | All timestamps less than or equal to this value will be included in the results. Default: last available packet.                   |
-| `limit`     | integer | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
-| `sort`      | string  | What to sort results by. Default: `timestamp`.                                                                                     |
-| `direction` | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
+| *Name*      | *Type*  | *Value* | *Description*                                                                                                                      |
+|:------------|:--------|:--------|:---------------------------------------------------------------------------------------------------------------------------|
+| `query`     | query object | *any* | An arbitrary [MongoDB query](https://docs.mongodb.org/manual/tutorial/query-documents/) that restricts the returned locations. |
+| `start`     | integer | | All timestamps greater than this value will be included in the results. Default: first available packet.                           |
+| `stop`      | integer | | All timestamps less than or equal to this value will be included in the results. Default: last available packet.                   |
+| `limit`     | integer | | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
+| `sort`      | string  | *Any obs_type* | What to sort results by. Default: `timestamp`.                                                                                     |
+| `direction` | string  | `asc` | Sort in ascending order|
+| `direction` | string  | `desc` | Sort in descending order|
 
 
 Returns a status of `400` if the *platformID* does not exist. Additional details are in the response body.
@@ -707,12 +710,12 @@ GET /api/v1/streams/:streamID/packets
 
 | *Name*      | *Type*  | *Description*                                                                                                                      |
 |:------------|:--------|:-----------------------------------------------------------------------------------------------------------------------------------|
+| `query`     | string  | An arbitrary [MongoDB query](https://docs.mongodb.org/manual/tutorial/query-documents/) that restricts the returned packets.       |
 | `start`     | integer | All packets greater than this value will be included in the results. Default: first available packet.                              |
 | `stop`      | integer | All packets less than or equal to this value will be included in the results. Default: last available packet.                      |
 | `limit`     | integer | Limit the number of returned packets to this value. Default: 0 (no limit).                                                         |
 | `sort`      | string  | What to sort results by. Default: `timestamp`.                                                                                     |
 | `direction` | string  | The direction of the sort. Can be either `asc` or `desc`. Default: `asc`.                                                          |
-| `query`     | string  | An arbitrary [MongoDB query](https://docs.mongodb.org/manual/tutorial/query-documents/) that restricts the returned packets.       |
 
 
 **Response code**

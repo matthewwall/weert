@@ -1,11 +1,5 @@
 # SERVER
 
-The query operators should be accepted for all GETs.
-Document them all
-
-Accept ?name=val parameter in lieu of ?query=.
-Document this
-
 The key 'name' should be indexed.
 
 Implement authorization tokens.
