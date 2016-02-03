@@ -250,7 +250,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .cropen_collection(db, options.packets.name(streamID), options.packets)
+                        .collection(db, options.packets.name(streamID), options.packets.options)
                         .then(function (coln) {
                             return coln
                                 .insertOne(packet)
@@ -299,7 +299,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .cropen_collection(db, options.packets.name(streamID), options.streams)
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .find(query)
@@ -323,7 +323,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .cropen_collection(db, options.packets.name(streamID), options.streams)
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             // This wil return a promise to calculate the aggregate:
                             return dbtools
@@ -336,7 +336,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .cropen_collection(db, options.packets.name(streamID), options.streams)
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .find(dbQuery.query)
@@ -366,7 +366,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .cropen_collection(db, options.packets.name(streamID), options.streams)
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .deleteOne({_id: {$eq: new Date(timestamp)}})
