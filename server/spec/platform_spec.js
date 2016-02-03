@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Tom Keffer <tkeffer@gmail.com>
+ * Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
  *
  *  See the file LICENSE for your full rights.
  */
@@ -14,7 +14,7 @@ var stream_url = require('./test_config').test_root_url + '/streams';
 
 var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
-var mongodb = require('mongodb');
+var mongodb      = require('mongodb');
 
 // First try to create a platform, but with a missing Content-Type
 frisby
@@ -46,7 +46,7 @@ frisby
     .expectStatus(201)
     .expectHeaderContains('content-type', 'application/json')
     .expectJSONTypes('', {
-        _id        : String,
+        _id        : mongodb.ObjectID,
         name       : String,
         description: String,
         join       : String,
@@ -70,7 +70,7 @@ frisby
             .expectStatus(200)
             .expectHeaderContains('content-type', 'application/json')
             .expectJSONTypes('', {
-                _id        : String,
+                _id        : mongodb.ObjectID,
                 name       : String,
                 description: String,
                 join       : String,
@@ -116,7 +116,7 @@ frisby
             .expectStatus(201)
             .expectHeaderContains('content-type', 'application/json')
             .expectJSONTypes('', {
-                _id        : String,
+                _id        : mongodb.ObjectID,
                 name       : String,
                 description: String,
                 join       : String,
@@ -228,6 +228,7 @@ frisby
     .toss();
 
 // ******************* Tests for deleting a platform ****************************
+
 frisby
     .create('Create a platform with the intention of deleting it')
     .post(test_url,
@@ -266,12 +267,18 @@ frisby
     .toss();
 
 frisby
-    .create("Delete a platform with a malformed ID")
+    .create("DELETE a platform with a malformed ID")
     .delete(test_url + "/569854a26c9badbadbadbad")
     .expectStatus(400)
     .toss();
 
-// ******************* Tests for updating a platform ****************************
+frisby
+    .create("DELETE a non-existent platform")
+    .delete(test_url + "/569854a26c90000000000000")
+    .expectStatus(404)
+    .toss();
+
+// ******************* Tests for updating (PUT) a platform ****************************
 
 frisby
     .create('Create platform with the intention of updating it')
@@ -316,17 +323,17 @@ frisby
                             .expectStatus(200)
                             .expectHeaderContains('content-type', 'application/json')
                             .expectJSONTypes('', {
-                                _id        : String,
+                                _id        : mongodb.ObjectID,
                                 name       : String,
                                 description: String,
-                                location   : String
+                                location   : mongodb.ObjectID
                             })
                             .expectJSON('', {
                                 name       : "PlatformUpdated1",    // name gets updated because it is still unique
                                 description: "PlatformUpdater1 new description A"
                             })
                             .after(function (error, res, body) {
-                                // Try time, include a mismatched _id in the metadata
+                                // This time, include a mismatched _id in the metadata
                                 frisby.create("PUT to the platform that was created with " +
                                         "the intention of updating it, but with a mismatched _id")
                                     .put(platform_link1,
@@ -357,16 +364,54 @@ frisby
     })
     .toss();
 
+// While you can't change the name to one that's already in the database,
+// there is one exception: to the same name. This sequence tests that
 frisby
-    .create("PUT to a platform with a malformed ID")
-    .delete(test_url + "/569854a26c9badbadbadbad")
-    .expectStatus(400)
+    .create('Create a platform')
+    .post(test_url,
+        {
+            name       : "PlatformUpdaterA1",
+            description: "PlatformUpdaterA1 description"
+        },
+        {json: true}
+    )
+    .expectStatus(201)
+    .after(function (error, res, body) {
+        // Having created a platform, update it
+        // Form the URL for the platform
+        var platform_link1 = res.headers.location;
+        frisby
+            .create("PUT to my name")
+            .put(platform_link1,
+                {
+                    name     : "PlatformUpdaterA1",             // Use the same name...
+                    new_field: "PlatformUpdaterA1 new field"    // ... but add a new field
+                },
+                {json: true})
+            .expectStatus(204)
+            .after(function () {
+                // Now validate the PUT
+                frisby
+                    .create("Validate the PUT to my name")
+                    .get(platform_link1)
+                    .expectStatus(200)
+                    .expectJSON('', {
+                        name       : "PlatformUpdaterA1",
+                        description: "PlatformUpdaterA1 description",
+                        new_field  : "PlatformUpdaterA1 new field"
+                    })
+                    .toss();
+            })
+            .toss();
+    })
     .toss();
 
 frisby
-    .create("PUT to a non-existent platform")
-    .delete(test_url + "/569854a26c90000000000000")
+    .create("PUT to a non-existent platformID")
+    .put(test_url + '/5680aaba377084a10b8d6521',
+        {
+            new_field: "A new field"
+        },
+        {json: true})
     .expectStatus(404)
     .toss();
-
-// TODO: Try to PUT to a non-existent platformID
