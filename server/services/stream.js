@@ -124,8 +124,12 @@ var StreamManagerFactory = function (dbPromise, options) {
                         .then(function (streams) {
 
                             if (streams.length) {
-                                // Unfortunately, the name is already taken. Signal the error
-                                return new Promise.reject(new errors.DuplicateNameError("Name " + stream_metadata.name + " already in use"))
+                                // We found a match for the name. But, perhaps it is the same stream?
+                                if (String(streams[0]._id) !== streamID) {
+                                    // Unfortunately, it's a different stream, so the name is already taken.
+                                    // Signal the error
+                                    return new Promise.reject(new errors.DuplicateNameError("Name " + stream_metadata.name + " already in use"))
+                                }
                             }
 
                             // Make a copy of the metadata. We're going to modify it

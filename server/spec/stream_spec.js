@@ -256,10 +256,63 @@ frisby
     })
     .toss();
 
+// While you can't change the name to one that's already in the database,
+// there is one exception: to the same name. This sequence tests that
+frisby
+    .create('Create a stream')
+    .post(test_url,
+        {
+            name       : "StreamUpdaterA1",
+            description: "StreamUpdaterA1 description",
+            unit_group : "METRIC"
+        },
+        {json: true}
+    )
+    .expectStatus(201)
+    .after(function (error, res, body) {
+        // Having created a stream, update it
+        // Form the URL for the stream
+        var stream_link1 = res.headers.location;
+        frisby
+            .create("PUT to my name")
+            .put(stream_link1,
+                {
+                    name     : "StreamUpdaterA1",             // Use the same name...
+                    new_field: "StreamUpdaterA1 new field"    // ... but add a new field
+                },
+                {json: true})
+            .expectStatus(204)
+            .after(function () {
+                // Now validate the PUT
+                frisby
+                    .create("Validate the PUT to my name")
+                    .get(stream_link1)
+                    .expectStatus(200)
+                    .expectJSON('', {
+                        name       : "StreamUpdaterA1",
+                        description: "StreamUpdaterA1 description",
+                        new_field  : "StreamUpdaterA1 new field"
+                    })
+                    .toss();
+            })
+            .toss();
+    })
+    .toss();
+
+frisby
+    .create("PUT to a non-existent streamID")
+    .put(test_url + '/5680aaba377084a10b8d6521',
+        {
+            new_field: "A new field"
+        },
+        {json: true})
+    .expectStatus(404)
+    .toss();
+
 
 /*************** Tests for creating and searching for stream metadata *****************/
 
-// How many streams to use for the test
+    // How many streams to use for the test
 var N = 10;
 
 var indices  = [];

@@ -150,7 +150,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
 
                         if (platforms.length) {
                             // We found a match for the name. But, perhaps it is the same platform?
-                            if (platforms[0]._id != platformID) {
+                            if (String(platforms[0]._id) !== platformID) {
                                 // Unfortunately, it's a different platform, so the name is already taken.
                                 // Signal the error
                                 return new Promise.reject(new errors.DuplicateNameError("Name " + platform_metadata.name + " already in use"))
