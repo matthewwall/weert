@@ -166,7 +166,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name, options.streams.options)
+                        .cropen_collection(db, options.streams.metadata_name, options.streams)
                         .then(function (coln) {
                             return coln
                                 .find(query)
@@ -188,7 +188,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name, options.streams.options)
+                        .cropen_collection(db, options.streams.metadata_name, options.streams)
                         .then(function (coln) {
                             return coln
                                 .find({_id: {$eq: id_obj}})
@@ -211,7 +211,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name, options.streams.options)
+                        .cropen_collection(db, options.streams.metadata_name, options.streams)
                         .then(function (coln) {
                             // First a promise to delete the metadata
                             var p1 = coln.deleteOne({_id: {$eq: id_obj}});
@@ -250,7 +250,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.packets.options)
+                        .cropen_collection(db, options.packets.name(streamID), options.packets)
                         .then(function (coln) {
                             return coln
                                 .insertOne(packet)
@@ -299,7 +299,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .cropen_collection(db, options.packets.name(streamID), options.streams)
                         .then(function (coln) {
                             return coln
                                 .find(query)
@@ -323,7 +323,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .cropen_collection(db, options.packets.name(streamID), options.streams)
                         .then(function (coln) {
                             // This wil return a promise to calculate the aggregate:
                             return dbtools
@@ -336,7 +336,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .cropen_collection(db, options.packets.name(streamID), options.streams)
                         .then(function (coln) {
                             return coln
                                 .find(dbQuery.query)
@@ -366,7 +366,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID), options.streams.options)
+                        .cropen_collection(db, options.packets.name(streamID), options.streams)
                         .then(function (coln) {
                             return coln
                                 .deleteOne({_id: {$eq: new Date(timestamp)}})

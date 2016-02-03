@@ -176,7 +176,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
      * Delete a specific platform
      * @method insertOneLocation
      * @param {number} platformID - The ID of the platform to delete
-     * @returns {bluebird|exports|module.exports}
+     * @returns {Promise.resolved|Promise.rejected}
      */
     var deletePlatform = function (platformID) {
         // A bad _id will cause an exception. Be prepared to catch it
@@ -191,7 +191,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
             .then(function (db) {
 
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .cropen_collection(db, options.platforms.metadata_name, options.platforms)
                     .then(function (coln) {
                         // Hit the database to get the metadata of the platform
                         return coln
@@ -244,7 +244,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .cropen_collection(db, options.platforms.metadata_name, options.platforms)
                     .then(function (coln) {
                         return coln
                             .find(findQuery)
@@ -266,7 +266,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name, options.platforms.options)
+                    .cropen_collection(db, options.platforms.metadata_name, options.platforms)
                     .then(function (coln) {
                         return coln
                             .find({_id: {$eq: id_obj}})
@@ -289,7 +289,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         }
         // Open up the metadata collection to get the streamID of the location stream
         return dbtools
-            .collection(db, options.platforms.metadata_name, options.platforms.options)
+            .cropen_collection(db, options.platforms.metadata_name, options.platforms)
             .then(function (coln) {
                 // Hit the database to get the ID of the location stream
                 return coln
@@ -329,7 +329,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
     };
 
     /**
-     * Find all locrecs satifying a query
+     * Find all locrecs satisfying a query
      * @method findPackets
      * @param {number} platformID - The ID of the platform with the locrecs to query
      * @param {object} dbQuery - Hash of query options
