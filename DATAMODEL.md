@@ -7,15 +7,16 @@ The time, in milliseconds, since the unix epoch. This is the same definition tha
 
 ### Observation
 A discrete, individual datum, such as temperature or pressure. It is known by a name, such as `outside_temperature`.
-The part after the underscore `temperature` is the Unit Group.
+The part after the underscore `temperature` is the Unit Group. For this reason, if the observation name is multi-word,
+it should use camelCase. That is, use `heatCompressor_temperature`, not `heat_compressor_temperature`.
 
 ### Unit Group
 A collection of similar observation types, which share a unit in common. For example, the group `temperature` would be
 shared between `inside_temperature`, `outside_temperature`, `dewpoint_temperature`. All would use the same unit.
 (Perhaps, `degree_C`.)
 
-### Standard Unit System
-This is a system of units, identified by a unique name, such as `METRICWX`. Within a Standard Unit System,
+### Unit System
+This is a system of units, identified by a unique name, such as `METRICWX`. Within a Unit System,
 the type of unit used by each Unit Group is specified.
 
 ### Packet
@@ -192,13 +193,13 @@ Example:
 
 ## Unit model
 
-### Collection `standard_unit_systems`
+### Collection `unit_systems`
 
-Each Standard Unit System is described by a document in the collection `standard_unit_systems`:
+Each Unit System is described by a document in the collection `unit_systems`:
 
 | *Field*  | *Type*               | *Description*                                                   |
 |----------|----------------------|-----------------------------------------------------------------|
-| `_id`    | `string`             | The Standard Unit System being described                        |
+| `_id`    | `string`             | The Unit System being described                        |
 | `groups` | array of `UnitSpecs` | An array holding the unit groups recognized by the unit system. |
 
 The structure `UnitSpecs` is described by
