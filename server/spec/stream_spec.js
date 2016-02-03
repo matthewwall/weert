@@ -178,8 +178,8 @@ frisby
     .create('Create stream #1 to test update')
     .post(test_url,
         {
-            name       : "Updater1",
-            description: "Updater1 description",
+            name       : "StreamUpdater1",
+            description: "StreamUpdater1 description",
             unit_group : "METRIC"
         },
         {json: true}
@@ -194,8 +194,8 @@ frisby
             .create('Create stream #2 to test update')
             .post(test_url,
                 {
-                    name       : "Updater2",
-                    description: "Updater2 description",
+                    name       : "StreamUpdater2",
+                    description: "StreamUpdater2 description",
                     unit_group : "METRIC"
                 },
                 {json: true}
@@ -210,8 +210,8 @@ frisby
                     .create('PUT to stream #1')
                     .put(stream_link1,
                         {
-                            name       : "Updated1",    // Update name to a new, unique name
-                            description: "Updater1 new description A"
+                            name       : "StreamUpdated1",    // Update name to a new, unique name
+                            description: "StreamUpdater1 new description A"
                         },
                         {json: true})
                     .expectStatus(204)
@@ -222,8 +222,8 @@ frisby
                             .expectStatus(200)
                             .expectHeaderContains('content-type', 'application/json')
                             .expectJSON('', {
-                                name       : "Updated1",    // name gets updated because it is still unique
-                                description: "Updater1 new description A"
+                                name       : "StreamUpdated1",    // name gets updated because it is still unique
+                                description: "StreamUpdater1 new description A"
                             })
                             .after(function (error, res, body) {
                                 // Try time, include a mismatched _id in the metadata
@@ -231,7 +231,7 @@ frisby
                                     .put(stream_link1,
                                         {
                                             _id        : "569a8aafd579b3c37a549690",
-                                            description: "Updater1 new description B"
+                                            description: "StreamUpdater1 new description B"
                                         },
                                         {json: true})
                                     .expectStatus(400)
@@ -241,8 +241,8 @@ frisby
                                 frisby.create("PUT to with a non-unique name")
                                     .put(stream_link1,
                                         {
-                                            name       : "Updater2",   // Use the name of the 2nd stream
-                                            description: "Updater1 new description C"
+                                            name       : "StreamUpdater2",   // Use the name of the 2nd stream
+                                            description: "StreamUpdater1 new description C"
                                         },
                                         {json: true})
                                     .expectStatus(400)

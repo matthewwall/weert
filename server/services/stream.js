@@ -29,7 +29,7 @@ var StreamManagerFactory = function (dbPromise, options) {
          * Create a new stream
          * @method createStream
          * @param {object} stream_metadata - The stream's metadata
-         * @returns {Promise}
+         * @returns {Promise.rejected|Promise.resolved}
          */
         var createStream = function (stream_metadata) {
             // Make sure the _id field has not been already defined. MongoDB will do this.
@@ -42,8 +42,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict: false}))
+                        .cropen_collection(db, options.streams.metadata_name, options.streams)
                         .then(function (coln) {
 
                             var namePromise;
@@ -104,8 +103,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict: false}))
+                        .collection(db, options.streams.metadata_name, options.streams.options)
                 })
                 .then(function (coln) {
                     var namePromise;
@@ -138,8 +136,8 @@ var StreamManagerFactory = function (dbPromise, options) {
                             // Returns a promise to update the stream metadata
                             return coln
                                 .updateOne({_id: {$eq: id_obj}}, {$set: md});
-                        })
-                })
+                        });
+                });
         };
 
 
@@ -164,8 +162,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict: false}))
+                        .collection(db, options.streams.metadata_name, options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .find(query)
@@ -187,8 +184,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict: false}))
+                        .collection(db, options.streams.metadata_name, options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .find({_id: {$eq: id_obj}})
@@ -211,8 +207,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.streams.metadata_name,
-                            Object.assign(options.streams.options, {strict: false}))
+                        .collection(db, options.streams.metadata_name, options.streams.options)
                         .then(function (coln) {
                             // First a promise to delete the metadata
                             var p1 = coln.deleteOne({_id: {$eq: id_obj}});
@@ -251,8 +246,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID),
-                            Object.assign(options.packets.options, {strict: true}))
+                        .collection(db, options.packets.name(streamID), options.packets.options)
                         .then(function (coln) {
                             return coln
                                 .insertOne(packet)
@@ -261,9 +255,9 @@ var StreamManagerFactory = function (dbPromise, options) {
                                     final_packet.timestamp = final_packet._id.getTime();
                                     delete final_packet._id;
                                     return Promise.resolve(final_packet);
-                                })
-                        })
-                })
+                                });
+                        });
+                });
         };
 
 
@@ -301,8 +295,7 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID),
-                            Object.assign(options.streams.options, {strict: true}))
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .find(query)
@@ -318,7 +311,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                                 delete results[i]._id;
                             }
                             return new Promise.resolve(results);
-                        })
+                        });
                 });
         };
 
@@ -326,23 +319,20 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID),
-                            Object.assign(options.streams.options, {strict: true}))
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             // This wil return a promise to calculate the aggregate:
                             return dbtools
                                 .calcAggregate(coln, obs_type, dbQuery)
                         });
-                })
+                });
         };
 
         var findPacket = function (streamID, dbQuery) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID),
-                            // Set strict=true to force error if streamID does not exist
-                            Object.assign(options.streams.options, {strict: true}))
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .find(dbQuery.query)
@@ -363,7 +353,7 @@ var StreamManagerFactory = function (dbPromise, options) {
                                 delete record._id;
                                 return new Promise.resolve(record);
                             }
-                        })
+                        });
                 });
         };
 
@@ -372,13 +362,12 @@ var StreamManagerFactory = function (dbPromise, options) {
             return dbPromise
                 .then(function (db) {
                     return dbtools
-                        .collection(db, options.packets.name(streamID),
-                            Object.assign(options.streams.options, {strict: true}))
+                        .collection(db, options.packets.name(streamID), options.streams.options)
                         .then(function (coln) {
                             return coln
                                 .deleteOne({_id: {$eq: new Date(timestamp)}})
                         });
-                })
+                });
         };
 
         return {

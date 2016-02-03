@@ -41,14 +41,13 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name,
-                        Object.assign(options.platforms.options, {strict: false}))
+                    .cropen_collection(db, options.platforms.metadata_name, options.platforms)
             })
             .then(function (coln) {
                 var namePromise;
                 // Platform names must be unique. If a name was given, check the database to see if already exists.
                 if (platform_metadata.name) {
-                    // A name was given. Return a promise for all the platforms potentially matching the name
+                    // A name was given. Return a promise for an array of platforms with the same name
                     namePromise = coln
                         .find({name: {$eq: platform_metadata.name}})
                         .toArray();
@@ -62,60 +61,52 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
                     .then(function (platforms) {
                         if (platforms.length) {
                             // Name already exists. Error.
-                            return new Promise.reject(new errors.DuplicateNameError("Platform name already exists"))
+                            return new Promise.reject(new errors.DuplicateNameError("Platform name " +
+                                platform_metadata.name + " already exists"));
                         } else {
-                            // Name was either not given, or it's unique, so we're OK.
-                            // See if a stream to hold the locations has been given.
-                            if (!platform_metadata.location) {
-                                // The platform location stream is undefined. Return a Promise to create one
-                                return streamManager.createStream({
-                                    unit_group : "METRIC"
+                            // Name does not exist. Proceed.
+                            // Return a promise to insert the platform metadata
+                            return coln
+                                .insertOne(platform_metadata)
+                                .then(function (results) {
+                                    // We need to massage the promise a bit before returning it
+                                    return new Promise.resolve(results.ops[0])
+                                })
+                                .then(function (alloc_metadata) {
+                                    // We have the metadata for the freshly created platform, which holds the allocated _id.
+                                    // If the initial platform metadata did not include a stream to hold the platform
+                                    // location, we will have to allocate one, and use the _id to give it a unique
+                                    // name
+                                    if (platform_metadata.location) {
+                                        // The location stream already exists. We're done.
+                                        return Promise.resolve(alloc_metadata);
+                                    } else {
+                                        // There is no platform location stream. Return a Promise to create one.
+                                        // We'll then have to patch the platform metadata with the _id of
+                                        // the allocated stream.
+                                        return streamManager.createStream({
+                                                name       : "locations/" + alloc_metadata._id,
+                                                description: "Location data for platform " + alloc_metadata._id,
+                                                unit_group : "METRIC"
+                                            })
+                                            .then(function (locstream_metadata) {
+                                                alloc_metadata.location = locstream_metadata._id;
+                                                // Patch the platform metadata with the _id of the allocated stream
+                                                return updatePlatform(alloc_metadata._id,
+                                                    {location: locstream_metadata._id}, true)
+                                            })
+                                            .then(function () {
+                                                return Promise.resolve(alloc_metadata);
+                                            });
+                                    }
                                 });
-                            } else {
-                                // The location stream already exists. Return a fulfilled promise of 'undefined'.
-                                return new Promise.resolve(undefined);
-                            }
                         }
-                    })
-                    .then(function (locstream_metadata) {
-                        // If locstream_metadata is defined, it holds the metadata of a new location stream
-                        if (locstream_metadata) {
-                            // We've got a freshly allocated stream. Record its ID in the platform metadata
-                            platform_metadata.location = locstream_metadata._id;
-                        }
-
-                        // Return a promise to insert the platform metadata
-                        return coln
-                            .insertOne(platform_metadata)
-                            .then(function (results) {
-                                // We need to massage the promise a bit before returning it
-                                return new Promise.resolve(results.ops[0])
-                            })
-                            .then(function (final_metadata) {
-                                // We have the final metadata.
-                                // If we had to create a location stream, provide an appropriate
-                                // name and description for it, using the newly created platformID
-                                if (locstream_metadata) {
-                                    // Update the stream metadata to hold an appropriate name & description
-                                    return streamManager.updateStream(platform_metadata.location,
-                                        {
-                                            name       : "locations/" + final_metadata._id,
-                                            description: "Location data for platform " + final_metadata._id
-                                        })
-                                        .then(function(){
-                                            // Return a promise with the final stream metadata
-                                            return Promise.resolve(final_metadata);
-                                        })
-                                } else {
-                                    return Promise.resolve(final_metadata);
-                                }
-                            });
                     });
             });
     };
 
 
-    var updatePlatform = function (platformID, platform_metadata) {
+    var updatePlatform = function (platformID, platform_metadata, allow_location) {
 
         // If the platformID was included in the metadata, make sure it matches
         // the one in the URL:
@@ -137,8 +128,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name,
-                        Object.assign(options.platforms.options, {strict: false}))
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
             })
             .then(function (coln) {
                 var namePromise;
@@ -159,15 +149,19 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
                     .then(function (platforms) {
 
                         if (platforms.length) {
-                            // Unfortunately, the name is already taken. Signal the error
-                            return new Promise.reject(new errors.DuplicateNameError("Name " + platform_metadata.name + " already in use"))
+                            // We found a match for the name. But, perhaps it is the same platform?
+                            if (platforms[0]._id != platformID) {
+                                // Unfortunately, it's a different platform, so the name is already taken.
+                                // Signal the error
+                                return new Promise.reject(new errors.DuplicateNameError("Name " + platform_metadata.name + " already in use"))
+                            }
                         }
 
                         // Make a copy of the metadata. We're going to modify it
                         var md = Object.assign({}, platform_metadata);
-                        // The save method does not overwrite the locations data, , and you can't change
-                        // the platformID, so delete them.
-                        delete md.location;
+                        // In general, we do not allow the platform location stream to be changed.
+                        if (!allow_location) delete md.location;
+                        // You can't change the platform's ID.
                         delete md._id;
 
                         // Returns a promise to update the platform metadata
@@ -197,8 +191,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
             .then(function (db) {
 
                 return dbtools
-                    .collection(db, options.platforms.metadata_name,
-                        Object.assign(options.platforms.options, {strict: false}))
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
                     .then(function (coln) {
                         // Hit the database to get the metadata of the platform
                         return coln
@@ -251,8 +244,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name,
-                        Object.assign(options.platforms.options, {strict: false}))
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
                     .then(function (coln) {
                         return coln
                             .find(findQuery)
@@ -274,8 +266,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         return dbPromise
             .then(function (db) {
                 return dbtools
-                    .collection(db, options.platforms.metadata_name,
-                        Object.assign(options.platforms.options, {strict: false}))
+                    .collection(db, options.platforms.metadata_name, options.platforms.options)
                     .then(function (coln) {
                         return coln
                             .find({_id: {$eq: id_obj}})
@@ -298,8 +289,7 @@ var PlatformManagerFactory = function (dbPromise, options, streamManager) {
         }
         // Open up the metadata collection to get the streamID of the location stream
         return dbtools
-            .collection(db, options.platforms.metadata_name,
-                Object.assign(options.platforms.options, {strict: false}))
+            .collection(db, options.platforms.metadata_name, options.platforms.options)
             .then(function (coln) {
                 // Hit the database to get the ID of the location stream
                 return coln

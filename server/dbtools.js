@@ -12,15 +12,43 @@
 
 var Promise = require('bluebird');
 
-// Returns a promise to open a collection. For some reason, this is missing in the MongoDB API (only callbacks
-// are supported when opening a collection).
+// Returns a promise to open a collection. For some reason, this is missing in the MongoDB Node API (only callbacks are
+// supported when opening a collection).
+// An error will be raised if the collection does not exist.
 var collection = function (db, coln_name, coln_options) {
     return new Promise(function (resolve, reject) {
-        db.collection(coln_name, coln_options, function (err, coln) {
+        // Always open in "strict" mode. This will cause an error if the collection does not exist.
+        db.collection(coln_name, Object.assign(coln_options, {strict: true}), function (err, coln) {
             if (err) return reject(err);
             resolve(coln);
         });
     });
+};
+
+// Returns a promise to either open a collection, or if it does not exist, create it.
+var cropen_collection = function (db, coln_name, cropen_options) {
+    // First try to open the collection
+    return collection(db, coln_name, cropen_options.options)
+        .catch(function (err) {
+            // We had an error, probably because it didn't exist. Try creating the collection.
+            return db
+                .createCollection(coln_name, cropen_options.options)
+        })
+        .then(function (coln) {
+            // We've created the collection. Is an index requested?
+            if (cropen_options.index) {
+                // Yes. Create the index.
+                return coln
+                    .createIndex(cropen_options.index.keys, cropen_options.index.options)
+                    .then(function () {
+                        // We can now resolve the promise with the created & indexed collection.
+                        return new Promise.resolve(coln);
+                    });
+            } else {
+                // No index needed. Resolve the promise with the created collection.
+                return new Promise.resolve(coln);
+            }
+        });
 };
 
 
@@ -74,6 +102,7 @@ var calcAggregate = function (coln, obs_type, dbQuery) {
 };
 
 module.exports = {
-    collection   : collection,
-    calcAggregate: calcAggregate
+    collection       : collection,
+    cropen_collection: cropen_collection,
+    calcAggregate    : calcAggregate
 };

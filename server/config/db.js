@@ -15,7 +15,11 @@ module.exports = {
     streams: {
         metadata_name: 'streams_metadata',
         options      : {
-            strict: false
+            // Place any collection specific options here, such as requiring a capped collection
+        },
+        index        : {
+            keys   : {name: 1},
+            options: {unique: 1}
         }
     },
 
@@ -23,7 +27,11 @@ module.exports = {
     platforms: {
         metadata_name: 'platforms_metadata',
         options      : {
-            strict: false
+            // Place any collection specific options here, such as requiring a capped collection
+        },
+        index        : {
+            keys   : {name: 1},
+            options: {unique: 1}
         }
     },
 
@@ -32,17 +40,12 @@ module.exports = {
         name   : function (streamID) {
             return "streams_" + streamID + "_packets"
         },
-        options:{
-            strict: false
+        options: {
+            // Place any packet collection specific options here, such as requiring a capped collection.
+            // For example, here is how you would specify a 3600 element capped collection:
+            //    capped: true
+            //    size  : 1000000,
+            //    max   : 3600
         }
-        // This is an alternative, which will cap the size of the packet collection.
-        // However, documents cannot be arbitrarily removed.
-        //options: {
-        //    strict: false,
-        //    capped: true,
-        //    size  : 1000000,
-        //    max   : 3600
-        //}
     }
-
 };

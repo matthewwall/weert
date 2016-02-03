@@ -14,6 +14,7 @@ var stream_url = require('./test_config').test_root_url + '/streams';
 
 var frisby       = require('frisby');
 var normalizeUrl = require('normalize-url');
+var mongodb = require('mongodb');
 
 // First try to create a platform, but with a missing Content-Type
 frisby
@@ -49,7 +50,7 @@ frisby
         name       : String,
         description: String,
         join       : String,
-        location   : String
+        location   : mongodb.ObjectID
     })
     .expectJSON('', {
         name       : "A WeeRT platform #1",
@@ -73,7 +74,7 @@ frisby
                 name       : String,
                 description: String,
                 join       : String,
-                location   : String
+                location   : mongodb.ObjectID
             })
             .expectJSON('', {
                 name       : "A WeeRT platform #1",
@@ -106,7 +107,7 @@ frisby
             .create('Create a WeeRT platform #2')
             .post(test_url,
                 {
-                    name       : "Create a WeeRT platform #2",
+                    name       : "A WeeRT platform #2",
                     description: "Green, with no cap",
                     join       : "join_keyword2"
                 },
@@ -119,10 +120,10 @@ frisby
                 name       : String,
                 description: String,
                 join       : String,
-                location   : String
+                location   : mongodb.ObjectID
             })
             .expectJSON('', {
-                name       : "Create a WeeRT platform #2",
+                name       : "A WeeRT platform #2",
                 description: "Green, with no cap",
                 join       : "join_keyword2"
             })
@@ -177,8 +178,8 @@ frisby
                             return -1;
                         };
                         expect(idx_name("A WeeRT platform #1")).not.toBe(-1);
-                        expect(idx_name("Create a WeeRT platform #2")).not.toBe(-1);
-                        expect(idx_name("A WeeRT platform #1")).toBeLessThan(idx_name("Create a WeeRT platform #2"));
+                        expect(idx_name("A WeeRT platform #2")).not.toBe(-1);
+                        expect(idx_name("A WeeRT platform #1")).toBeLessThan(idx_name("A WeeRT platform #2"));
                     })
                     .toss();
 
@@ -276,8 +277,8 @@ frisby
     .create('Create platform with the intention of updating it')
     .post(test_url,
         {
-            name       : "Updater1",
-            description: "Updater1 description"
+            name       : "PlatformUpdater1",
+            description: "PlatformUpdater1 description"
         },
         {json: true}
     )
@@ -291,8 +292,8 @@ frisby
             .create('Create a 2nd platform to test update')
             .post(test_url,
                 {
-                    name       : "Updater2",
-                    description: "Updater2 description"
+                    name       : "PlatformUpdater2",
+                    description: "PlatformUpdater2 description"
                 },
                 {json: true}
             )
@@ -303,8 +304,8 @@ frisby
                     .create('PUT to the platform that was created with the intention of updating it')
                     .put(platform_link1,
                         {
-                            name       : "Updated1",
-                            description: "Updater1 new description A"
+                            name       : "PlatformUpdated1",
+                            description: "PlatformUpdater1 new description A"
                         },
                         {json: true})
                     .expectStatus(204)
@@ -321,8 +322,8 @@ frisby
                                 location   : String
                             })
                             .expectJSON('', {
-                                name       : "Updated1",    // name gets updated because it is still unique
-                                description: "Updater1 new description A"
+                                name       : "PlatformUpdated1",    // name gets updated because it is still unique
+                                description: "PlatformUpdater1 new description A"
                             })
                             .after(function (error, res, body) {
                                 // Try time, include a mismatched _id in the metadata
@@ -331,7 +332,7 @@ frisby
                                     .put(platform_link1,
                                         {
                                             _id        : "569a8aafd579b3c37a549690",
-                                            description: "Updater1 new description B"
+                                            description: "PlatformUpdater1 new description B"
                                         },
                                         {json: true})
                                     .expectStatus(400)
@@ -342,8 +343,8 @@ frisby
                                         "the intention of updating it, with a non-unique name")
                                     .put(platform_link1,
                                         {
-                                            name       : "Updater2",
-                                            description: "Updater1 new description C"
+                                            name       : "PlatformUpdater2",
+                                            description: "PlatformUpdater1 new description C"
                                         },
                                         {json: true})
                                     .expectStatus(400)
