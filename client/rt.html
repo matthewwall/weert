@@ -5,9 +5,9 @@
     <meta content="en-us" http-equiv="Content-Language"/>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
 
-    <link href="/stylesheets/mesowx.css" rel="stylesheet"/>
-    <link href="/stylesheets/weewx.css" rel="stylesheet"/>
-    <link href='/stylesheets/style.css' rel='stylesheet'/>
+    <link href="stylesheets/mesowx.css" rel="stylesheet"/>
+    <link href="stylesheets/weewx.css" rel="stylesheet"/>
+    <link href='stylesheets/style.css' rel='stylesheet'/>
 
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js' type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.js"
@@ -26,7 +26,7 @@
 <script id="wx-console-template" type="text/x-handlebars-template">
     <h2>Current conditions</h2>
 
-    <div id="wx-console" class="wx-console console-vertical" id="wx-console-vertical">
+    <div id="wx-console" class="wx-console console-vertical">
         <div class="outTemp-group reading-group">
             <span class="outTemp-value reading-value">{{formatNumber outside_temperature 1}}</span><span
                 class="outTemp-unit unit-label">°C</span>
@@ -51,7 +51,7 @@
             <span class="desc">wind</span>
         </div>
         <div class="out-hum-group reading-group">
-            <span class="outHumidity-value reading-value">{{outside_humidity}}</span><span
+            <span class="outHumidity-value reading-value">{{formatNumber outside_humidity 1}}</span><span
                 class="outHumidity-unit unit-label">%</span>
             <span class="desc">humidity</span>
         </div>

@@ -214,6 +214,15 @@ class WeeRTThread(RESTThread):
                     # Server signals an error. Raise an exception.
                     raise weewx.restx.FailedPost(line)
 
+#===============================================================================
+#                             UTILITIES
+#===============================================================================
+
+#
+# The following two functions should probably be moved to a separate WeeRT
+# utilities package.
+#
+
 def resolve_streamURL(stream_endpoint, stream_name):
     """Given a stream_name, return its URL. If a stream has not been
     allocated on the server, allocate one, and return that URL.

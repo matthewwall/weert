@@ -104,17 +104,19 @@ supported only by v3.3 or later.)
     sudo npm install -g jasmine-node
     ```
 
-2. Change directory (`cd`) into the WeeRT directory.
+2. Start up MongoDB.
 
-3. Start the WeeRT server
+3. Change directory (`cd`) into the WeeRT directory.
+
+4. Start the WeeRT server
 
     ```shell
     npm start
     ```
 
-4. Open up another terminal, and, again, `cd` into the WeeRT directory.
+5. Open up another terminal, and, again, `cd` into the WeeRT directory.
 
-5. Run the test suites:
+6. Run the test suites:
 
     ```shell
     npm test

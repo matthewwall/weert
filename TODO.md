@@ -1,18 +1,18 @@
 # SERVER
 
-The key 'name' should be indexed.
+- Implement authorization tokens.
 
-Implement authorization tokens.
+- Implement the relationship between platforms and streams.
 
-The websocket channels may be too broad. Should probably allow clients to subscribe
+- The websocket channels may be too broad. Should probably allow clients to subscribe
 to specific streams.
 
-Aggregate results into hourly and daily summaries.
+- Aggregate LOOP packets into archive data and save in the database.
+
 
 # PROVISIONING CLIENT
 
-Should make better use of endpoint URI. For example, navigating to `platforms/:platformID` should take one to a page
-with details on platform `platformID`.
+
 
 # Real-time CLIENT
 
