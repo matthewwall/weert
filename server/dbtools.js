@@ -10,6 +10,7 @@
 
 "use strict";
 
+var debug   = require('debug')('weert:server');
 var Promise = require('bluebird');
 
 // Returns a promise to open a collection. For some reason, this is missing in the MongoDB Node API (only callbacks are
@@ -48,7 +49,16 @@ var cropen_collection = function (db, coln_name, cropen_options) {
                 // No index needed. Resolve the promise with the created collection.
                 return new Promise.resolve(coln);
             }
-        });
+        })
+        .catch(function (err) {
+            // Possible race condition where some other client created the collection. Check if that's the case
+            if (err.message.includes('already exists')) {
+                debug("cropen_collection race condition on", coln_name, err.message);
+                return collection(db, coln_name, cropen_options.options)
+            } else {
+                return Promise.reject(err);
+            }
+        })
 };
 
 
