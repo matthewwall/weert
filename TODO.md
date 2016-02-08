@@ -1,6 +1,6 @@
 # SERVER
 
-- Implement authorization tokens.
+- Implement authorization tokens. Use `express-jwt` and `jsonwebtoken`
 
 - Implement the relationship between platforms and streams.
 

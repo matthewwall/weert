@@ -8,7 +8,7 @@
 "use strict";
 
 // The streamID to be monitored should be put here:
-var streamID = "56ace678dbac4d0349684f22";
+var streamID = "56b253a8ef9751605f639aa9";
 
 // Initial request of data from MongoDB in seconds
 var max_initial_age_secs = 1200;

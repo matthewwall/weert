@@ -28,15 +28,17 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Serve all static files from the "client" subdirectory:
 app.use(express.static(path.join(__dirname, '../client')));
 
-// Set up the routes and the WeeRT database
-var stream_routes   = require('./routes/stream_routes');
-var platform_routes = require('./routes/platform_routes');
-
+// Set up the WeeRT database
 var dbConfig        = require('./config/db');
 var dbPromise       = require('./services/database')(dbConfig);
 var streamManager   = require('./services/stream')(dbPromise, dbConfig);
 var platformManager = require('./services/platform')(dbPromise, dbConfig, streamManager);
 
+// Set up the routes
+var auth_routes     = require('./routes/auth_routes');
+var stream_routes   = require('./routes/stream_routes');
+var platform_routes = require('./routes/platform_routes');
+app.use('/api/v1', auth_routes());
 app.use('/api/v1', stream_routes(streamManager));
 app.use('/api/v1', platform_routes(platformManager));
 

@@ -10,7 +10,10 @@
     "pretest": "mongo weert_test --eval 'db.dropDatabase()'",
     "test": "jasmine-node server"
   },
-  "author": "Tom Keffer <tkeffer@gmail.com>",
+  "author": {
+    "name": "Tom Keffer",
+    "email": "tkeffer@gmail.com"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/npm/tkeffer/weert"
@@ -20,6 +23,7 @@
     "body-parser": "^1.13.2",
     "debug": "^2.2.0",
     "express": "^4.13.3",
+    "express-jwt": "^3.3.0",
     "hbs": "^4.0.0",
     "jsonwebtoken": "^5.5.4",
     "mongodb": "^2.0.40",

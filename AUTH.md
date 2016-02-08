@@ -69,16 +69,16 @@ Authorization is based on a resource, a verb, and an identify. This is done thro
 function with signature
 
 ```
-  function(endpoint, verb, usergroup)
+  function(usergroup, verb, endpoint)
 ```
 
 where
 
 | Parameter   | Type    | Description                                                                      |
 |:------------|:--------|----------------------------------------------------------------------------------|
-| `endpoint`  | String  | The URL, stripped of the host and mount point. Something like `platforms/56b26b7b8a46c1c7695d41d1`. |
-| `verb`      | String  | The HTTP action to be undertaken (`POST`, `GET`, *etc.*)                         |
 | `usergroup` | String  | The user group the requester belongs to.                                         |
+| `verb`      | String  | The HTTP action to be undertaken (`POST`, `GET`, *etc.*)                         |
+| `endpoint`  | String  | The URL, stripped of the host and mount point. Something like `platforms/56b26b7b8a46c1c7695d41d1`. |
 
 If access is to be allowed, the function should return a Promise that resolves to a truthy value, otherwise
 to a falsy value. If the authorization request is malformed, for example because it uses a non-existent verb, then
