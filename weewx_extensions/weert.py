@@ -16,6 +16,18 @@ import weewx.restx
 
 from weewx.restx import StdRESTful, RESTThread
 
+def logmsg(level, msg):
+    syslog.syslog(level, 'weert: %s' % msg)
+
+def logdbg(msg):
+    logmsg(syslog.LOG_DEBUG, msg)
+
+def loginf(msg):
+    logmsg(syslog.LOG_INFO, msg)
+
+def logerr(msg):
+    logmsg(syslog.LOG_ERR, msg)
+
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.
     
@@ -27,14 +39,11 @@ class WeeRT(StdRESTful):
 
         _node_dict = weewx.restx.check_enable(config_dict, 'WeeRT')
 
-        if _node_dict is None:
-            return
-
         # Need either a streamID or a stream_name to proceed:        
-        if (not _node_dict.get('stream_id') and
-            not _node_dict.get('stream_name')):
-            syslog.syslog(syslog.LOG_DEBUG, "weert: Data will not be posted."
-                          " Need either stream_id or stream_name.")
+        if (_node_dict is None or
+            (not _node_dict.get('stream_id') and
+             not _node_dict.get('stream_name')):
+            loginf("Data will not be posted: no stream_id or stream_name")
             return
              
         # Get the database manager dictionary:
@@ -44,10 +53,12 @@ class WeeRT(StdRESTful):
         self.loop_thread = WeeRTThread(self.loop_queue,
                                        _manager_dict,
                                        **_node_dict)
+        if self.loop_thread.packets_url is None:
+            loginf("Data will not be posted: cannot resolve URL")
+            return
         self.loop_thread.start()
         self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-
-        syslog.syslog(syslog.LOG_INFO, "weert: LOOP packets will be posted.")
+        loginf("LOOP packets will be posted.")
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
@@ -118,8 +129,8 @@ class WeeRTThread(RESTThread):
                                           timeout=timeout,
                                           max_tries=max_tries,
                                           retry_wait=retry_wait)
-
         self.obs_types = obs_types
+        self.packets_url = None
         
         # This should be something like http://localhost:3000/api/v1/streams
         stream_endpoint_url = urlparse.urljoin(
@@ -130,26 +141,18 @@ class WeeRTThread(RESTThread):
             # Yes. It gets simple. Form the URL for this streamID.
             streamid_url = stream_endpoint_url + '/' + stream_id
         else:
-            # No. We must have a stream name. Use it to resolve to a packet
-            # endpoint
+            # No. Use the stream name to resolve to a packet endpoint
             try:
                 streamid_url = resolve_streamURL(stream_endpoint_url, stream_name)
             except urllib2.URLError, e:
-                syslog.syslog(syslog.LOG_ERR,
-                              "weert: Unable to get stream_name from server")
-                syslog.syslog(syslog.LOG_ERR,
-                              "****   Reason: %s" % e)
+                logerr("Unable to get stream_name from server: %s" % e)
                 return
             if not streamid_url:
-                syslog.syslog(syslog.LOG_INFO,
-                              "weert: Unable to resolve stream name %s" %
-                              stream_name)
+                logerr("Unable to resolve stream name %s" % stream_name)
                 return
         
         self.packets_url = streamid_url.rstrip(' /') + '/packets'
-
-        syslog.syslog(syslog.LOG_NOTICE,
-                      "weert: Publishing to %s" % self.packets_url)
+        loginf("Publishing to %s" % self.packets_url)
 
     def process_record(self, record, dbmanager):
         """Specialized version of process_record that posts to a node server"""
@@ -166,7 +169,7 @@ class WeeRTThread(RESTThread):
         # Convert timestamps to JavaScript style:
         abridged['timestamp'] = record['dateTime'] * 1000
         
-        mapped = {}
+        mapped = dict()
         for k in abridged:
             new_k = WeeRTThread.map.get(k, k)
             mapped[new_k] = abridged[k] 
@@ -232,8 +235,8 @@ def resolve_streamURL(stream_endpoint, stream_name):
         # The streamID is a plain string
         stream_id = str(metadata.get("_id", "N/A"))
         # Record the _id in the log:
-        syslog.syslog(syslog.LOG_INFO, 
-                      "weert: Server allocated streamID '%s' for stream name '%s'" % (stream_id, stream_name))
+        loginf("Server allocated streamID '%s' for stream name '%s'" %
+               (stream_id, stream_name))
         return stream_url
 
     
