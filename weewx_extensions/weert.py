@@ -1,8 +1,5 @@
-#
-#  Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
-#
-#     See the file LICENSE for your full rights.
-#
+# weewx extension that sends data to weert
+# Copyright (c) 2015-2016 Tom Keffer <tkeffer@gmail.com>
 
 import json
 import os.path
@@ -19,9 +16,6 @@ import weewx.restx
 
 from weewx.restx import StdRESTful, RESTThread
 
-DEFAULT_WEERT_HOST = "http://localhost:3000"
-STREAM_ENDPOINT = "/api/v1/streams/"
-
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.
     
@@ -37,14 +31,15 @@ class WeeRT(StdRESTful):
             return
 
         # Need either a streamID or a stream_name to proceed:        
-        if not _node_dict.get('stream_id') and not _node_dict.get('stream_name'):
-            syslog.syslog(syslog.LOG_DEBUG,
-                          "weert: Data will not be posted. Need either stream_id or stream_name.")
+        if (not _node_dict.get('stream_id') and
+            not _node_dict.get('stream_name')):
+            syslog.syslog(syslog.LOG_DEBUG, "weert: Data will not be posted."
+                          " Need either stream_id or stream_name.")
             return
              
         # Get the database manager dictionary:
-        _manager_dict = weewx.manager.get_manager_dict_from_config(config_dict,
-                                                                   'wx_binding')
+        _manager_dict = weewx.manager.get_manager_dict_from_config(
+            config_dict, 'wx_binding')
         self.loop_queue = Queue.Queue()
         self.loop_thread = WeeRTThread(self.loop_queue,
                                        _manager_dict,
@@ -60,7 +55,9 @@ class WeeRT(StdRESTful):
 
 class WeeRTThread(RESTThread):
     """Concrete class for threads posting to a Node server"""
-    
+
+    DEFAULT_SERVER_URL = "http://localhost:3000"
+    STREAM_ENDPOINT = "/api/v1/streams/"
 
     default_obs_types = ['outTemp',
                          'dewpoint',
@@ -71,7 +68,7 @@ class WeeRTThread(RESTThread):
                          'windDir',
                          'dayRain']
     
-    # Maps from weewx names, to the names used in WeeRT:
+    # Mapping from weewx names, to the names used in WeeRT:
     map = {'outTemp'    : 'outside_temperature',
            'dewpoint'   : 'dewpoint_temperature',
            'inTemp'     : 'inside_temperature',
@@ -83,60 +80,32 @@ class WeeRTThread(RESTThread):
 
     def __init__(self, queue,
                  manager_dict,
+                 protocol_name="WeeRT",
                  stream_id = None,
                  stream_name = None,
-                 protocol_name="WeeRT",
-                 weert_host=DEFAULT_WEERT_HOST,
+                 server_url=DEFAULT_SERVER_URL,
                  obs_types=default_obs_types,
                  max_backlog=sys.maxint, stale=60,
                  log_success=True, log_failure=True,
                  timeout=5, max_tries=1, retry_wait=5):
-
         """
         Initializer for the WeeMetThread class.
         
         Either stream_id or stream_name must be supplied.
         
-        Required parameters:
-
-          queue: An instance of Queue.Queue where the packets will appear.
+        Parameters specific to this class:
           
-          manager_dict: The database manager dictionary to be used for database
-          lookups.
+          stream_id: A streamID provided by a WeeRT server.
+          Required unless stream_name is given.
           
-          stream_id: The WeeRT allocated streamID for the stream. Required unless
-          stream_name is given.
-          
-          stream_name: A unique name for the stream. Required unless stream_id is given.
+          stream_name: A unique name for the stream.
+          Required unless stream_id is given.
         
-        Optional parameters:
-        
-          weert_host: The URL for the WeeRT Node server. E.g., http://localhost:3000
+          server_url: The URL for the WeeRT Node server.
+          E.g., http://localhost:3000
         
           obs_types: A list of observation types to be sent to the Node
           server [optional]
-        
-          max_backlog: How many records are allowed to accumulate in the queue
-          before the queue is trimmed.
-          Default is sys.maxint (essentially, allow any number).
-          
-          stale: How old a record can be and still considered useful.
-          Default is 60 (a minute).
-          
-          log_success: If True, log a successful post in the system log.
-          Default is True.
-          
-          log_failure: If True, log an unsuccessful post in the system log.
-          Default is True.
-          
-          max_tries: How many times to try the post before giving up.
-          Default is 1
-          
-          timeout: How long to wait for the server to respond before giving up.
-          Default is 5 seconds.        
-
-          retry_wait: How long to wait between retries when failures.
-          Default is 5 seconds.
         """        
         # Initialize my superclass
         super(WeeRTThread, self).__init__(queue,
@@ -153,14 +122,16 @@ class WeeRTThread(RESTThread):
         self.obs_types = obs_types
         
         # This should be something like http://localhost:3000/api/v1/streams
-        stream_endpoint_url = urlparse.urljoin(weert_host, STREAM_ENDPOINT)
+        stream_endpoint_url = urlparse.urljoin(
+            server_url, WeeRTThread.STREAM_ENDPOINT)
 
         # See if we have a streamID
         if stream_id:
             # Yes. It gets simple. Form the URL for this streamID.
             streamid_url = stream_endpoint_url + '/' + stream_id
         else:
-            # No. We must have a stream name. Use it to resolve to a packet endpoint
+            # No. We must have a stream name. Use it to resolve to a packet
+            # endpoint
             try:
                 streamid_url = resolve_streamURL(stream_endpoint_url, stream_name)
             except urllib2.URLError, e:
@@ -170,15 +141,18 @@ class WeeRTThread(RESTThread):
                               "****   Reason: %s" % e)
                 return
             if not streamid_url:
-                syslog.syslog(syslog.LOG_INFO, "weert: Unable to resolve stream name %s" % stream_name)
+                syslog.syslog(syslog.LOG_INFO,
+                              "weert: Unable to resolve stream name %s" %
+                              stream_name)
                 return
         
         self.packets_url = streamid_url.rstrip(' /') + '/packets'
 
-        syslog.syslog(syslog.LOG_NOTICE, "weert: Publishing to %s" % self.packets_url)
+        syslog.syslog(syslog.LOG_NOTICE,
+                      "weert: Publishing to %s" % self.packets_url)
 
     def process_record(self, record, dbmanager):
-        """Specialized version of process_record that posts to a node server."""
+        """Specialized version of process_record that posts to a node server"""
 
         # Get the full record by querying the database ...
         full_record = self.get_record(record, dbmanager)
@@ -214,14 +188,12 @@ class WeeRTThread(RESTThread):
                     # Server signals an error. Raise an exception.
                     raise weewx.restx.FailedPost(line)
 
-#===============================================================================
+#==============================================================================
 #                             UTILITIES
-#===============================================================================
+#==============================================================================
 
-#
 # The following two functions should probably be moved to a separate WeeRT
 # utilities package.
-#
 
 def resolve_streamURL(stream_endpoint, stream_name):
     """Given a stream_name, return its URL. If a stream has not been
@@ -264,7 +236,6 @@ def resolve_streamURL(stream_endpoint, stream_name):
                       "weert: Server allocated streamID '%s' for stream name '%s'" % (stream_id, stream_name))
         return stream_url
 
-    
     
 def lookup_streamURL(stream_endpoint, stream_name):
     """Given a stream_name, ask the server what its URL is.
