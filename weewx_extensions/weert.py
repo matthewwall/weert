@@ -28,6 +28,12 @@ def loginf(msg):
 def logerr(msg):
     logmsg(syslog.LOG_ERR, msg)
 
+
+DEFAULT_HOST = 'localhost'
+DEFAULT_PORT = 3000
+DEFAULT_SERVER_URL = "http://%s:%s" % (DEFAULT_HOST, DEFAULT_PORT)
+
+
 class WeeRT(StdRESTful):
     """Weewx service for posting using to a Node RESTful server.
     
@@ -42,23 +48,45 @@ class WeeRT(StdRESTful):
         # Need either a streamID or a stream_name to proceed:        
         if (_node_dict is None or
             (not _node_dict.get('stream_id') and
-             not _node_dict.get('stream_name')):
+             not _node_dict.get('stream_name'))):
             loginf("Data will not be posted: no stream_id or stream_name")
             return
-             
+
+        # If full server URL is specified, use it, otherwise build the URL
+        # from host name.
+        if 'server_url' not in _node_dict:
+            host = _node_dict.get('host', DEFAULT_HOST)
+            port = int(_node_dict.get('port', DEFAULT_PORT))
+            _node_dict['server_url'] = "http://%s:%s" % (host, port)
+        _node_dict.pop('host', None) # not needed when we have server_url
+        _node_dict.pop('port', None) # not needed when we have server_url
+
         # Get the database manager dictionary:
         _manager_dict = weewx.manager.get_manager_dict_from_config(
             config_dict, 'wx_binding')
+
+        # Bind to loop packets or archive records
+        binding = site_dict.pop('binding', 'archive')
+
         self.loop_queue = Queue.Queue()
-        self.loop_thread = WeeRTThread(self.loop_queue,
-                                       _manager_dict,
-                                       **_node_dict)
-        if self.loop_thread.packets_url is None:
-            loginf("Data will not be posted: cannot resolve URL")
+        try:
+            self.loop_thread = WeeRTThread(self.loop_queue,
+                                           _manager_dict,
+                                           **_node_dict)
+        except weewx.ViolatedPrecondition, e:
+            loginf("Data will not be posted: %s" % e)
             return
         self.loop_thread.start()
-        self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
-        loginf("LOOP packets will be posted.")
+
+        if binding == 'archive':
+            self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
+            loginf("archive records will be posted.")
+        else:
+            self.bind(weewx.NEW_LOOP_PACKET, self.new_loop_packet)
+            loginf("loop packets will be posted.")
+
+    def new_archive_record(self, event):
+        self.archive_queue.put(event.record)
 
     def new_loop_packet(self, event):
         self.loop_queue.put(event.packet)
@@ -67,7 +95,6 @@ class WeeRT(StdRESTful):
 class WeeRTThread(RESTThread):
     """Concrete class for threads posting to a Node server"""
 
-    DEFAULT_SERVER_URL = "http://localhost:3000"
     STREAM_ENDPOINT = "/api/v1/streams/"
 
     default_obs_types = ['outTemp',
@@ -91,11 +118,11 @@ class WeeRTThread(RESTThread):
 
     def __init__(self, queue,
                  manager_dict,
-                 protocol_name="WeeRT",
-                 stream_id = None,
-                 stream_name = None,
+                 stream_id=None,
+                 stream_name=None,
                  server_url=DEFAULT_SERVER_URL,
                  obs_types=default_obs_types,
+                 protocol_name="WeeRT",
                  max_backlog=sys.maxint, stale=60,
                  log_success=True, log_failure=True,
                  timeout=5, max_tries=1, retry_wait=5):
@@ -131,25 +158,23 @@ class WeeRTThread(RESTThread):
                                           retry_wait=retry_wait)
         self.obs_types = obs_types
         self.packets_url = None
-        
-        # This should be something like http://localhost:3000/api/v1/streams
-        stream_endpoint_url = urlparse.urljoin(
-            server_url, WeeRTThread.STREAM_ENDPOINT)
+        endpoint_url = server_url + WeeRTThread.STREAM_ENDPOINT
+        streamid_url = ''
 
         # See if we have a streamID
         if stream_id:
             # Yes. It gets simple. Form the URL for this streamID.
-            streamid_url = stream_endpoint_url + '/' + stream_id
+            streamid_url = endpoint_url + '/' + stream_id
         else:
             # No. Use the stream name to resolve to a packet endpoint
             try:
-                streamid_url = resolve_streamURL(stream_endpoint_url, stream_name)
+                streamid_url = resolve_streamURL(endpoint_url, stream_name)
             except urllib2.URLError, e:
-                logerr("Unable to get stream_name from server: %s" % e)
-                return
+                raise weewx.ViolatedPrecondition(
+                    "Unable to get stream_name from server: %s" % e)
             if not streamid_url:
-                logerr("Unable to resolve stream name %s" % stream_name)
-                return
+                raise weewx.ViolatedPrecondition(
+                    "Unable to resolve stream name %s" % stream_name)
         
         self.packets_url = streamid_url.rstrip(' /') + '/packets'
         loginf("Publishing to %s" % self.packets_url)
@@ -158,7 +183,7 @@ class WeeRTThread(RESTThread):
         """Specialized version of process_record that posts to a node server"""
 
         # Get the full record by querying the database ...
-        full_record = self.get_record(record, dbmanager)
+        full_record = self.get_record(record, dbmanager) if dbmanager else record
         # ... convert to Metric if necessary ...
         metric_record = weewx.units.to_METRICWX(full_record)
         
@@ -190,6 +215,7 @@ class WeeRTThread(RESTThread):
                 if line.startswith('Error'):
                     # Server signals an error. Raise an exception.
                     raise weewx.restx.FailedPost(line)
+
 
 #==============================================================================
 #                             UTILITIES
@@ -253,7 +279,7 @@ def lookup_streamURL(stream_endpoint, stream_name):
     # Query to look for a "name" field that matches the stream name
     query = {"name":{"$eq": stream_name}}
     # Encode it with the proper escapes
-    param = urllib.urlencode({'query':json.dumps(query)})
+    param = urllib.urlencode({'query': json.dumps(query)})
     # Form the full URL
     full_url = urlparse.urljoin(stream_endpoint, '?%s' % param)
 
@@ -262,3 +288,19 @@ def lookup_streamURL(stream_endpoint, stream_name):
     result = response.read()
     urlarray = json.loads(result)
     return str(urlarray[0]) if urlarray else None
+
+
+# Use this hook to test the uploader:
+#   PYTHONPATH=bin python bin/user/weert.py
+
+if __name__ == "__main__":
+    weewx.debug = 2
+    queue = Queue.Queue()
+    t = WeeRTThread(queue, None,
+                    server_url='http://192.168.101.39:3000',
+                    stream_name='tester')
+    t.process_record({'dateTime': int(time.time() + 0.5),
+                      'usUnits': weewx.US,
+                      'outTemp': 32.5,
+                      'inTemp': 75.8,
+                      'outHumidity': 24}, None)
