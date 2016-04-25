@@ -13,8 +13,12 @@ import Queue
 
 import weewx.units
 import weewx.restx
-
 from weewx.restx import StdRESTful, RESTThread
+from weeutil.version import require_weewx_version
+
+VERSION = "0.3"
+
+require_weewx_version("weert %s" % VERSION, "3.5.0")
 
 def logmsg(level, msg):
     syslog.syslog(level, 'weert: %s' % msg)
@@ -40,12 +44,12 @@ class WeeRT(StdRESTful):
     Manages a separate thread WeeRTThread"""
 
     def __init__(self, engine, config_dict):
-        
         super(WeeRT, self).__init__(engine, config_dict)
+        loginf("service version is %s" % VERSION)
 
-        _node_dict = weewx.restx.check_enable(config_dict, 'WeeRT')
+        _node_dict = weewx.restx.get_site_dict(config_dict, 'WeeRT')
 
-        # Need either a streamID or a stream_name to proceed:        
+        # we need either a streamID or a stream_name to proceed:        
         if (_node_dict is None or
             (not _node_dict.get('stream_id') and
              not _node_dict.get('stream_name'))):
@@ -61,23 +65,19 @@ class WeeRT(StdRESTful):
         _node_dict.pop('host', None) # not needed when we have server_url
         _node_dict.pop('port', None) # not needed when we have server_url
 
-        # Get the database manager dictionary:
-        _manager_dict = weewx.manager.get_manager_dict_from_config(
-            config_dict, 'wx_binding')
-
         # Bind to loop packets or archive records
-        binding = site_dict.pop('binding', 'archive')
+        binding = _node_dict.pop('binding', 'loop')
 
-        self.loop_queue = Queue.Queue()
+        # try to start the thread
+        self.queue = Queue.Queue()
         try:
-            self.loop_thread = WeeRTThread(self.loop_queue,
-                                           _manager_dict,
-                                           **_node_dict)
+            self.thread = WeeRTThread(self.queue, **_node_dict)
         except weewx.ViolatedPrecondition, e:
             loginf("Data will not be posted: %s" % e)
             return
-        self.loop_thread.start()
+        self.thread.start()
 
+        # if everything is ok, then bind to the events to get the data
         if binding == 'archive':
             self.bind(weewx.NEW_ARCHIVE_RECORD, self.new_archive_record)
             loginf("archive records will be posted.")
@@ -86,16 +86,16 @@ class WeeRT(StdRESTful):
             loginf("loop packets will be posted.")
 
     def new_archive_record(self, event):
-        self.archive_queue.put(event.record)
+        self.queue.put(event.record)
 
     def new_loop_packet(self, event):
-        self.loop_queue.put(event.packet)
+        self.queue.put(event.packet)
 
 
 class WeeRTThread(RESTThread):
     """Concrete class for threads posting to a Node server"""
 
-    STREAM_ENDPOINT = "/api/v1/streams/"
+    DEFAULT_STREAM_ENDPOINT = "/api/v1/streams/"
 
     default_obs_types = ['outTemp',
                          'dewpoint',
@@ -117,10 +117,11 @@ class WeeRTThread(RESTThread):
            'dayRain'    : 'day_rain'}
 
     def __init__(self, queue,
-                 manager_dict,
+                 manager_dict=None,
                  stream_id=None,
                  stream_name=None,
                  server_url=DEFAULT_SERVER_URL,
+                 stream_endpoint=DEFAULT_STREAM_ENDPOINT,
                  obs_types=default_obs_types,
                  protocol_name="WeeRT",
                  max_backlog=sys.maxint, stale=60,
@@ -141,7 +142,10 @@ class WeeRTThread(RESTThread):
         
           server_url: The URL for the WeeRT Node server.
           E.g., http://localhost:3000
-        
+
+          stream_endpoint: Path to the stream restful api endpoint
+          [optional]
+
           obs_types: A list of observation types to be sent to the Node
           server [optional]
         """        
@@ -158,7 +162,7 @@ class WeeRTThread(RESTThread):
                                           retry_wait=retry_wait)
         self.obs_types = obs_types
         self.packets_url = None
-        endpoint_url = server_url + WeeRTThread.STREAM_ENDPOINT
+        endpoint_url = server_url + stream_endpoint
         streamid_url = ''
 
         # See if we have a streamID
