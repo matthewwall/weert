@@ -14,11 +14,10 @@ import Queue
 import weewx.units
 import weewx.restx
 from weewx.restx import StdRESTful, RESTThread
-from weeutil.version import require_weewx_version
 
 VERSION = "0.3"
 
-require_weewx_version("weert %s" % VERSION, "3.5.0")
+weewx.require_weewx_version("weert %s" % VERSION, "3.5.0")
 
 def logmsg(level, msg):
     syslog.syslog(level, 'weert: %s' % msg)
